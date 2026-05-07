@@ -67,6 +67,7 @@ db.serialize(() => {
     db.run(`ALTER TABLE users ADD COLUMN password TEXT`, (err) => { /* ignore */ });
     db.run(`ALTER TABLE users ADD COLUMN serial_number TEXT`, (err) => { /* ignore */ });
     db.run(`ALTER TABLE rescue_requests ADD COLUMN assigned_phone TEXT`, (err) => { /* ignore */ });
+    db.run(`ALTER TABLE rescue_requests ADD COLUMN phone TEXT`, (err) => { /* ignore */ });
 
     // Backfill serial numbers for existing users
     db.all("SELECT id, role FROM users WHERE serial_number IS NULL", [], (err, rows) => {
@@ -195,6 +196,7 @@ db.serialize(() => {
     db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('sos_interval', '15')`);
     db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('sos_interval_unit', 'minutes')`);
     db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('sharing_protocol', 'auto')`);
+    db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('refresh_interval', '5')`);
 
     // Default operation types
     db.run(`INSERT OR IGNORE INTO operation_types (name, color, icon) VALUES ('Rescue', '#3b82f6', '🛡️')`);
@@ -214,11 +216,11 @@ db.serialize(() => {
     // Default users
     db.get("SELECT COUNT(*) as count FROM users", [], (err, row) => {
         if (row && row.count === 0) {
-            db.run(`INSERT INTO users (name, role, phone, device_id, serial_number, password) VALUES ('Rajan Kumar', 'rescuer', '919876543210', 'DEV_001', 'MEM-01', '123456')`);
-            db.run(`INSERT INTO users (name, role, phone, device_id, serial_number, password) VALUES ('Priya Singh', 'rescuer', '919876543211', 'DEV_002', 'MEM-02', '123456')`);
-            db.run(`INSERT INTO users (name, role, phone, device_id, serial_number, password) VALUES ('IND_USER_99', 'public', '919876543212', '919876543212', 'PUB-01', '123456')`);
-            db.run(`INSERT INTO users (name, role, phone, device_id, serial_number, password) VALUES ('Dr. Ananya', 'medic', '919876543213', 'DEV_003', 'MEM-03', '123456')`);
-            db.run(`INSERT INTO users (name, role, phone, device_id, serial_number, password) VALUES ('Sgt. Rajesh', 'rescuer', '919876543214', 'DEV_004', 'MEM-04', '123456')`);
+            db.run(`INSERT INTO users (name, role, phone, device_id, serial_number, password) VALUES ('Arjun Singh', 'rescuer', '919000000001', 'DEV_001', 'MEM-01', '123456')`);
+            db.run(`INSERT INTO users (name, role, phone, device_id, serial_number, password) VALUES ('Sarah Khan', 'rescuer', '919000000002', 'DEV_002', 'MEM-02', '123456')`);
+            db.run(`INSERT INTO users (name, role, phone, device_id, serial_number, password) VALUES ('Amit Kumar', 'public', '918000000001', '918000000001', 'PUB-01', '123456')`);
+            db.run(`INSERT INTO users (name, role, phone, device_id, serial_number, password) VALUES ('Vikram Rao', 'rescuer', '919000000003', 'DEV_003', 'MEM-03', '123456')`);
+            db.run(`INSERT INTO users (name, role, phone, device_id, serial_number, password) VALUES ('Neha Sharma', 'rescuer', '919000000004', 'DEV_004', 'MEM-04', '123456')`);
         }
     });
 
@@ -351,9 +353,9 @@ app.delete('/api/groups/:id/members/:userId', async (req, res) => {
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 app.post('/api/login', async (req, res) => {
-    const { phone, password } = req.body;
+    const { phone, password } = req.body; // 'phone' here is the identifier (could be actual phone or SN)
     try {
-        const user = await get(`SELECT * FROM users WHERE phone = ? AND password = ? AND status = 'active'`, [phone, password]);
+        const user = await get(`SELECT * FROM users WHERE (phone = ? OR serial_number = ?) AND password = ? AND status = 'active'`, [phone, phone, password]);
         if (user) {
             // Fetch groups for user
             const userGroups = await all(`SELECT g.* FROM group_members gm JOIN groups g ON gm.group_id = g.id WHERE gm.user_id = ?`, [user.id]);
@@ -566,12 +568,13 @@ app.post('/api/sync', async (req, res) => {
         userGroupIds = groups.map(g => g.group_id);
     }
 
-    const [commands, zones, setting, notifs, myRequests] = await Promise.all([
+    const [commands, zones, setting, notifs, myRequests, refreshSetting] = await Promise.all([
         all(`SELECT * FROM command_queue WHERE status = 'pending'`),
         all(`SELECT * FROM operation_zones WHERE status = 'active'`),
         get(`SELECT value FROM settings WHERE key = 'sos_interval'`),
         all(`SELECT * FROM notifications WHERE (device_id = ? OR device_id = ?) AND read = 0`, [effectiveDeviceId, phone || effectiveDeviceId]),
-        all(`SELECT id, type, status, sector, urgency, assigned_phone, updated_at FROM rescue_requests WHERE phone = ? OR device_id = ? ORDER BY created_at DESC LIMIT 5`, [phone || effectiveDeviceId, effectiveDeviceId])
+        all(`SELECT id, type, status, sector, urgency, assigned_phone, updated_at FROM rescue_requests WHERE phone = ? OR device_id = ? ORDER BY created_at DESC LIMIT 5`, [phone || effectiveDeviceId, effectiveDeviceId]),
+        get(`SELECT value FROM settings WHERE key = 'refresh_interval'`)
     ]);
 
     // Mark notifications as sent (read)
@@ -591,6 +594,7 @@ app.post('/api/sync', async (req, res) => {
         commands: filteredCommands,
         zones,
         sos_interval: setting ? setting.value : '15',
+        refresh_interval: refreshSetting ? refreshSetting.value : '5',
         notifications: notifs,
         my_requests: myRequests,
         user: user ? { id: user.id, name: user.name, role: user.role, phone: user.phone } : null
@@ -657,40 +661,49 @@ app.put('/api/rescue-requests/:id/accept', async (req, res) => {
 
         const reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [req.params.id]);
 
-        // Find assigned user device
+        // Find assigned user phone and device
+        let assignedPhone = null;
         let assignedDeviceId = null;
         let assignedName = 'Team';
         if (assigned_user_id) {
-            const user = await get(`SELECT device_id, name FROM users WHERE id = ?`, [assigned_user_id]);
+            const user = await get(`SELECT phone, device_id, name FROM users WHERE id = ?`, [assigned_user_id]);
             if (user) {
+                assignedPhone = user.phone;
                 assignedDeviceId = user.device_id;
                 assignedName = user.name;
+                
                 await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,
-                    [user.device_id, 'dispatch', `NEW DISPATCH: ${reqData.type.toUpperCase()} RESCUE at ${reqData.sector}. Urgency: ${reqData.urgency}. Please proceed immediately.`, 1]);
-            }
-        } else if (assigned_group_id) {
-            const group = await get(`SELECT group_name FROM groups WHERE id = ?`, [assigned_group_id]);
-            if (group) assignedName = group.group_name;
-            const members = await all(`SELECT u.device_id FROM group_members gm JOIN users u ON gm.user_id = u.id WHERE gm.group_id = ?`, [assigned_group_id]);
-            for (const m of members) {
-                await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,
-                    [m.device_id, 'dispatch', `NEW DISPATCH for ${group ? group.group_name : 'Group'}: ${reqData.type.toUpperCase()} RESCUE at ${reqData.sector}. Urgency: ${reqData.urgency}.`, 1]);
+                    [assignedDeviceId || assignedPhone, 'dispatch', `NEW DISPATCH: ${reqData.type.toUpperCase()} at ${reqData.sector}. Urgency: ${reqData.urgency}. Please proceed immediately.`, 1]);
             }
         }
+
+        // Determine if this is a critical mission or a normal task
+        // Pregnancy and Medical (emergency) are always critical. Food and general delivery are normal.
+        let commandType = 'critical';
+        if (['food', 'delivery', 'supply'].includes(reqData.type.toLowerCase())) {
+            commandType = 'normal';
+        } else if (reqData.urgency === 'low' || reqData.urgency === 'medium') {
+            commandType = 'normal';
+        }
+
+        // AUTO-CREATE COMMAND FOR ACCEPTED REQUEST
+        const cmdPayload = JSON.stringify({
+            message: `${reqData.type.toUpperCase()} ${commandType === 'normal' ? 'TASK' : 'RESCUE'} at ${reqData.sector}`,
+            sector: reqData.sector,
+            urgency: reqData.urgency,
+            rescue_req_id: reqData.id,
+            details: reqData.details // Include quantities if available
+        });
+
+        await run(`INSERT INTO command_queue (group_id, target_phone, command_type, command_payload, status) VALUES (?, ?, ?, ?, 'accepted')`,
+            [assigned_group_id || null, assignedPhone || assignedDeviceId || null, commandType, cmdPayload]);
 
         // Notify the original requester
         await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,
-            [reqData.device_id, 'rescue_dispatched', `Help is on the way! ${assignedName} has been dispatched to your location.`, 0]);
-
-        // Find assigned user phone
-        let assignedPhone = null;
-        if (assigned_user_id) {
-            const user = await get(`SELECT phone FROM users WHERE id = ?`, [assigned_user_id]);
-            if (user) assignedPhone = user.phone;
-        }
+            [reqData.device_id, 'rescue_dispatched', `Update: ${assignedName} has been assigned to your ${reqData.type} request. Stay safe!`, 0]);
 
         broadcast('RESCUE_REQUEST_ACCEPTED', { ...reqData, assignedName, assigned_phone: assignedPhone });
-        await logCommand('RESCUE_REQUEST_ACCEPTED', 'Commander', `Request ID: ${req.params.id}`, { assigned_user_id, assigned_group_id });
+        await logCommand('RESCUE_REQUEST_ACCEPTED', 'Commander', `Request ID: ${req.params.id}`, { assigned_user_id, assigned_group_id, commandType });
         res.json(reqData);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -739,6 +752,40 @@ app.get('/api/commands', async (req, res) => {
     try {
         const commands = await all(`SELECT * FROM command_queue ORDER BY created_at DESC`);
         res.json(commands);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/commands/:id/reassign', async (req, res) => {
+    const { assigned_user_id, assigned_group_id } = req.body;
+    const cmdId = req.params.id;
+    try {
+        let assignedPhone = null;
+        let assignedDeviceId = null;
+        let assignedName = 'Team';
+
+        if (assigned_user_id) {
+            const user = await get(`SELECT phone, device_id, name FROM users WHERE id = ?`, [assigned_user_id]);
+            if (user) {
+                assignedPhone = user.phone;
+                assignedDeviceId = user.device_id;
+                assignedName = user.name;
+            }
+        }
+
+        await run(`UPDATE command_queue SET group_id = ?, target_phone = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+            [assigned_group_id || null, assignedPhone || assignedDeviceId || null, cmdId]);
+
+        const cmd = await get(`SELECT * FROM command_queue WHERE id = ?`, [cmdId]);
+        
+        // Notify new assignee
+        if (assignedPhone || assignedDeviceId) {
+            await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,
+                [assignedDeviceId || assignedPhone, 'direct_command', `🚨 RE-ASSIGNED TASK: ${JSON.parse(cmd.command_payload).message}. Please acknowledge.`, 1]);
+        }
+
+        broadcast('COMMAND_REASSIGNED', cmd);
+        await logCommand('COMMAND_REASSIGNED', 'Commander', `CMD ID: ${cmdId}`, { assigned_user_id, assigned_group_id });
+        res.json(cmd);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -814,7 +861,7 @@ app.put('/api/commands/:id/status', async (req, res) => {
     try {
         await run(`UPDATE command_queue SET status = ? WHERE id = ?`, [status, req.params.id]);
         const cmdData = await get(`SELECT * FROM command_queue WHERE id = ?`, [req.params.id]);
-        
+
         broadcast('COMMAND_STATUS_UPDATE', cmdData);
         await logCommand('COMMAND_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Command ID: ${req.params.id}`, { status });
         res.json(cmdData);
@@ -835,11 +882,11 @@ app.put('/api/commands/:id/reassign', async (req, res) => {
 
         await run(`UPDATE command_queue SET target_phone = ?, group_id = ?, status = 'pending' WHERE id = ?`, [effectivePhone || null, effectiveGroupId || null, req.params.id]);
         const cmdData = await get(`SELECT * FROM command_queue WHERE id = ?`, [req.params.id]);
-        
+
         // Notify new target
         const payload = JSON.parse(cmdData.command_payload || '{}');
         const msgText = payload.message || 'You have been reassigned a task.';
-        
+
         if (effectivePhone) {
             await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,
                 [effectivePhone, 'direct_command', `🔄 REASSIGNED: ${msgText}`, 1]);
@@ -853,7 +900,7 @@ app.put('/api/commands/:id/reassign', async (req, res) => {
                 }
             }
         }
-        
+
         broadcast('COMMAND_REASSIGNED', cmdData);
         await logCommand('COMMAND_REASSIGNED', 'Commander', `Command ID: ${req.params.id}`, { target_phone, group_id });
         res.json(cmdData);
@@ -904,6 +951,25 @@ app.post('/api/notifications/action', async (req, res) => {
         const n = await get(`SELECT * FROM notifications WHERE id = ?`, [notification_id]);
         broadcast('NOTIFICATION_ACTION', { notification_id, action, device_id: n?.device_id });
         res.json({ message: 'Action recorded' });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+app.get('/api/settings', async (req, res) => {
+    try {
+        const rows = await all(`SELECT * FROM settings`);
+        const settings = {};
+        rows.forEach(r => settings[r.key] = r.value);
+        res.json(settings);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/settings', async (req, res) => {
+    const { key, value } = req.body;
+    try {
+        await run(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, [key, String(value)]);
+        broadcast('SETTINGS_UPDATED', { key, value });
+        res.json({ message: 'Setting updated' });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

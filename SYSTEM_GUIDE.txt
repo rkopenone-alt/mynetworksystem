@@ -1,0 +1,71 @@
+# 🚁 Rescue System Ecosystem - Technical Guide & Credentials
+
+This guide provides everything you need to run, test, and manage the Rescue System Ecosystem.
+
+---
+
+## 🛠️ Tech Stack
+- **Backend**: Node.js with Express
+- **Database**: SQLite3 (Local file-based database)
+- **Real-time**: WebSockets (WS) for live dispatch and status updates
+- **Frontend**: Vanilla HTML5, CSS3 (Modern Light Themes), and Javascript
+- **Maps**: Leaflet.js with OpenStreetMap/CartoDB tiles
+
+---
+
+## 🚀 How to Run Locally (Dynamic Mode)
+
+To ensure the apps are dynamic and connected to the database, follow these steps:
+
+### 1. Start the Backend Server
+Open your terminal in the `system-backend` directory and run:
+```bash
+cd system-backend
+npm install  # (First time only)
+npm start
+```
+*The server will run on `http://localhost:3001`.*
+
+### 2. Open the Previews
+Once the server is running, open the following files in your browser:
+- **Admin Portal**: `preview-web-admin.html`
+- **Field Rescuer App**: `preview-rescuer.html`
+- **Public SOS App**: `preview-mobile-app.html`
+
+*Note: All apps are configured to communicate with `localhost:3001` automatically.*
+
+---
+
+## 🔐 Test Credentials (ID & PIN)
+*All default passwords/PINs are `123456`*
+
+### 🛡️ Rescuer Teams
+| Officer Name | Officer ID | Phone | Team |
+| :--- | :--- | :--- | :--- |
+| Arjun Singh | **MEM-01** | 919000000001 | Rescue Team |
+| Sarah Khan | **MEM-02** | 919000000002 | Rescue Team |
+| Vikram Rao | **MEM-03** | 919000000003 | Delivery Team |
+| Neha Sharma | **MEM-04** | 919000000004 | Rescue Team |
+| David Miller | **MEM-05** | 919000000005 | Delivery Team |
+| Maria Gomez | **MEM-06** | 919000000006 | Delivery Team |
+
+### 🆘 Public Citizens
+| Citizen Name | Citizen ID | Phone |
+| :--- | :--- | :--- |
+| Amit Kumar | **PUB-01** | 918000000001 |
+| Sneha Reddy | **PUB-02** | 918000000002 |
+| Priya Sharma | **PUB-03** | 918000000003 |
+
+---
+
+## 📂 Database & Seed Scripts
+If you ever need to reset or re-seed the dummy data, use these scripts in the `system-backend` folder:
+- `node seed_data.js`: Basic user seeding.
+- `node seed_groups.js`: Advanced group and rescuer seeding.
+- `node hard_reset.js`: **Recommended** - Wipes the database and re-initializes it with exactly 2 teams and 9 users (as per this guide).
+
+---
+
+## 📝 Future Modifications
+- **Adding Users**: Use the `Member Master DB` in the **Web Admin Portal** to add new rescuers or citizens dynamically.
+- **API URL**: If you deploy the backend to a cloud server, update the `API_BASE` or `this.API` variables in the `.html` files to point to your new server URL.

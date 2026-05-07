@@ -498,15 +498,13 @@
 
             <!-- SCREEN 1: LOGIN -->
             <div class="screen active" id="screenLogin">
-                <div class="brand-logo" style="background:none; box-shadow:none; border:none;">
-                    <img src="field_rescuer_logo_new_1778175407124.png" style="width:100%; height:100%; border-radius:24px; object-fit:cover;">
-                </div>
-                <h1 class="brand-name">Rescuer Ops</h1>
-                <p class="brand-tagline">Emergency Field Operations</p>
+                <div class="brand-logo">🛡️</div>
+                <h1 class="brand-name">Field Rescuer App</h1>
+                <p class="brand-tagline">Emergency Operations</p>
                 
                 <div class="input-group">
-                    <label class="input-label">Officer Login ID</label>
-                    <input type="text" id="inpId" class="input-field" placeholder="Enter Phone or ID" value="919000000001">
+                    <label class="input-label">Officer ID / Phone</label>
+                    <input type="text" id="inpId" class="input-field" placeholder="Admin provided ID" value="MEM-01">
                 </div>
                 <div class="input-group">
                     <label class="input-label">Security PIN</label>
@@ -548,17 +546,15 @@
                     </div>
 
                     <div class="notif-label">
-                        <span>🚨 Critical Response Feed</span>
+                        <span>📡 Live Operations Feed</span>
+                        <span style="color:var(--primary); font-size:10px;">REALTIME SYNC</span>
                     </div>
-                    <div id="notifListCritical">
-                        <!-- Critical Dispatches -->
-                    </div>
-                    
-                    <div class="notif-label" style="margin-top:20px;">
-                        <span>📦 Normal Logistics Feed</span>
-                    </div>
-                    <div id="notifListNormal">
-                        <!-- Normal Dispatches -->
+                    <div id="notifList">
+                        <!-- Dispatches here -->
+                        <div style="text-align:center; padding:50px 20px; color:var(--text-muted);">
+                            <div style="font-size:40px; margin-bottom:10px;">📡</div>
+                            <div style="font-size:15px; font-weight:700;">Scanning for nearby dispatches...</div>
+                        </div>
                     </div>
                 </div>
 
@@ -582,12 +578,9 @@
                         <i>🔍</i>
                         <input type="text" id="histSearch" placeholder="Search mission ID, type, sector..." oninput="core.filterHistory()">
                     </div>
-                    
-                    <div style="margin-top:15px; font-size:12px; font-weight:800; color:var(--critical); padding:0 10px;">CRITICAL MISSIONS</div>
-                    <div id="histListCritical"></div>
-                    
-                    <div style="margin-top:20px; font-size:12px; font-weight:800; color:var(--primary); padding:0 10px;">NORMAL MISSIONS</div>
-                    <div id="histListNormal"></div>
+                    <div id="histList">
+                        <!-- History items -->
+                    </div>
                 </div>
 
                 <div class="bottom-nav">
@@ -787,7 +780,7 @@
                     document.querySelectorAll('.nav-link')[3].classList.add('active');
                 } else if (tab === 'Tasks') {
                     this.showScreen('screenHome');
-                    document.getElementById('notifListCritical').scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('notifList').scrollIntoView({ behavior: 'smooth' });
                 }
             },
             
@@ -800,26 +793,14 @@
             },
             
             renderDispatches(tasks) {
-                const listCrit = document.getElementById('notifListCritical');
-                const listNorm = document.getElementById('notifListNormal');
-                
-                listCrit.innerHTML = '';
-                listNorm.innerHTML = '';
-                
-                const critTasks = tasks.filter(t => ['sos', 'medical', 'pregnancy', 'critical'].includes(t.type.toLowerCase()));
-                const normTasks = tasks.filter(t => !['sos', 'medical', 'pregnancy', 'critical'].includes(t.type.toLowerCase()));
-
-                if (critTasks.length === 0) {
-                    listCrit.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">No critical alerts</div>';
-                }
-                if (normTasks.length === 0) {
-                    listNorm.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">No routine logistics</div>';
+                const list = document.getElementById('notifList');
+                if (tasks.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; padding:50px 20px; color:var(--text-muted);"><div style="font-size:40px; margin-bottom:10px;">📡</div><div style="font-size:15px; font-weight:700;">No active dispatches. Scanning...</div></div>';
+                    return;
                 }
                 
+                list.innerHTML = '';
                 tasks.forEach(t => {
-                    const isCrit = ['sos', 'medical', 'pregnancy', 'critical'].includes(t.type.toLowerCase());
-                    const targetList = isCrit ? listCrit : listNorm;
-                    
                     const card = document.createElement('div');
                     card.className = 'notif-card';
                     card.innerHTML = `
@@ -827,14 +808,14 @@
                             <span class="notif-badge badge-${t.type}">${t.type}</span>
                             <span class="notif-time">${new Date(t.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                         </div>
-                        <h4 class="notif-title">${t.type.toUpperCase()} ${isCrit ? 'EMERGENCY' : 'DISPATCH'}</h4>
+                        <h4 class="notif-title">${t.type.toUpperCase()} ASSISTANCE</h4>
                         <p class="notif-loc">📍 ${t.sector || 'Coordinate Point'}</p>
                         <div class="notif-btns">
                             <button class="btn-action btn-primary" onclick="core.accept('${t.id}', '${t.type}', '${t.sector}', ${t.lat}, ${t.lng})">ACCEPT</button>
                             <button class="btn-action btn-secondary">IGNORE</button>
                         </div>
                     `;
-                    targetList.appendChild(card);
+                    list.appendChild(card);
                     this.addTaskMarker(t);
                 });
             },
@@ -931,22 +912,14 @@
             },
             
             renderHistory(items) {
-                const listCrit = document.getElementById('histListCritical');
-                const listNorm = document.getElementById('histListNormal');
-                
-                listCrit.innerHTML = '';
-                listNorm.innerHTML = '';
-                
+                const list = document.getElementById('histList');
                 if (items.length === 0) {
-                    listCrit.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">No history found</div>';
-                    listNorm.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">No history found</div>';
+                    list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">No missions found.</div>';
                     return;
                 }
                 
+                list.innerHTML = '';
                 items.forEach(h => {
-                    const isCrit = ['sos', 'medical', 'pregnancy', 'critical'].includes(h.type.toLowerCase());
-                    const targetList = isCrit ? listCrit : listNorm;
-                    
                     const card = document.createElement('div');
                     card.className = 'hist-item';
                     card.innerHTML = `
@@ -959,7 +932,7 @@
                             <span class="hist-status status-done">${h.status}</span>
                         </div>
                     `;
-                    targetList.appendChild(card);
+                    list.appendChild(card);
                 });
             },
             
@@ -973,11 +946,8 @@
                 this.renderHistory(filtered);
             },
             
-            syncTimer: null,
-            refreshInterval: 10,
-
             startSync() {
-                const runSync = async () => {
+                setInterval(async () => {
                     // Sim Movement
                     if (this.activeMission) {
                         this.pos.lat += (this.activeMission.lat - this.pos.lat) * 0.05;
@@ -992,28 +962,14 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 phone: this.user.phone,
-                                deviceId: this.user.serial_number || 'MEM-01',
+                                deviceId: 'PRO_DEVICE_01',
                                 location: { lat: this.pos.lat, lng: this.pos.lng, groupId: 1 }
                             })
                         });
                         const data = await res.json();
                         if (data.commands) data.commands.forEach(c => this.handleCommand(c));
-                        
-                        // Update refresh interval from server
-                        if (data.refresh_interval) {
-                            const newInterval = parseInt(data.refresh_interval);
-                            if (newInterval !== this.refreshInterval) {
-                                console.log(`[Rescuer] Sync interval updated to ${newInterval}s`);
-                                this.refreshInterval = newInterval;
-                            }
-                        }
                     } catch (e) {}
-                    
-                    // Schedule next sync
-                    this.syncTimer = setTimeout(runSync, this.refreshInterval * 1000);
-                };
-                
-                runSync();
+                }, 10000);
             },
             
             connectWS() {

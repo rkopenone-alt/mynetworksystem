@@ -1175,29 +1175,48 @@
 
                 <!-- Command List Area -->
                 <div class="command-list-area">
+                    <!-- Critical Operations Feed (NEW) -->
+                    <div id="criticalOperationsHub" style="display:none; margin-bottom: 20px; padding: 0 16px;">
+                        <div class="section-title" style="color:var(--critical); font-weight:800; display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="zap" style="width:16px; fill:var(--critical);"></i> 
+                            CRITICAL RESPONSE HUB
+                        </div>
+                        <div id="criticalTasksList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px;">
+                            <!-- Critical Tasks Cards will be injected here -->
+                        </div>
+                    </div>
+
                     <div class="cmd-tabs">
                         <div class="cmd-tab active" onclick="switchCmdTab('live', this)">Live Commands</div>
                         <div class="cmd-tab" onclick="switchCmdTab('completed', this)">Completed Commands</div>
                     </div>
                     <div class="cmd-content" id="cmd-live">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>S.No</th>
-                                    <th>ID</th>
-                                    <th>Task / Description</th>
-                                    <th>Type</th>
-                                    <th>Zone</th>
-                                    <th>Assigned Team</th>
-                                    <th>Req. Time</th>
-                                    <th>Cmd Time</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="liveCmdBody">
-                                <!-- Populated by JS -->
-                            </tbody>
-                        </table>
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="margin: 0 0 10px 16px; font-size: 13px; font-weight: 800; color: var(--critical); display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="alert-circle" style="width:14px;"></i> CRITICAL OPERATIONS
+                            </h4>
+                            <table>
+                                <thead>
+                                    <!-- Header injected by JS -->
+                                </thead>
+                                <tbody id="liveCmdBodyCritical">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 10px 16px; font-size: 13px; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="box" style="width:14px;"></i> NORMAL LOGISTICS
+                            </h4>
+                            <table>
+                                <thead>
+                                    <!-- Header injected by JS -->
+                                </thead>
+                                <tbody id="liveCmdBodyNormal">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     <div class="cmd-content" id="cmd-completed" style="display:none;">
                         <table>
@@ -1400,8 +1419,9 @@
                                     <tr>
                                         <th>S.No</th>
                                         <th>Photo</th>
-                                        <th>Name</th>
-                                        <th>ID</th>
+                                        <th>Member ID</th>
+                                        <th>Username</th>
+                                        <th>Password</th>
                                         <th>Role</th>
                                         <th>Groups</th>
                                         <th>Status</th>
@@ -1467,48 +1487,61 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <label class="input-label">Type</label>
-                    <select class="form-control">
-                        <option>All Types</option>
-                        <option>SOS</option>
-                        <option>Food</option>
-                        <option>Medical</option>
-                    </select>
-                </div>
-                <div class="input-group">
                     <label class="input-label">Time</label>
                     <input type="date" class="form-control">
                 </div>
-                <div class="input-group">
-                    <label class="input-label">Status</label>
-                    <select class="form-control">
-                        <option>All</option>
-                        <option>Completed</option>
-                        <option>Ongoing</option>
-                        <option>Cancelled</option>
-                    </select>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <h3 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--critical);">
+                    <i data-lucide="alert-circle" style="width:20px;"></i> Critical Task History
+                </h3>
+                <div class="card" style="padding:0; overflow:hidden;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Log ID</th>
+                                <th>Command / Action</th>
+                                <th>Type</th>
+                                <th>Zone</th>
+                                <th>Team</th>
+                                <th>Req. Time</th>
+                                <th>Cmd Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTbodyCritical">
+                            <!-- JS populated -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="card" style="padding:0; overflow:hidden;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>S.No</th>
-                            <th>Log ID</th>
-                            <th>Command / Action</th>
-                            <th>Type</th>
-                            <th>Zone</th>
-                            <th>Team</th>
-                            <th>Req. Time</th>
-                            <th>Cmd Time</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTbody">
-                        <!-- JS populated -->
-                    </tbody>
-                </table>
+            <div>
+                <h3 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--accent);">
+                    <i data-lucide="box" style="width:20px;"></i> Normal Task History
+                </h3>
+                <div class="card" style="padding:0; overflow:hidden;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Log ID</th>
+                                <th>Command / Action</th>
+                                <th>Type</th>
+                                <th>Zone</th>
+                                <th>Team</th>
+                                <th>Req. Time</th>
+                                <th>Cmd Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTbodyNormal">
+                            <!-- JS populated -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -1532,6 +1565,20 @@
                 <h2 class="page-title"><i data-lucide="settings"></i> System Configuration</h2>
             </div>
             <div class="card">
+                <h3 style="margin-top:0;">Async Refresh Settings</h3>
+                <p style="color:var(--text-muted);font-size:13px;">Configure how often the dashboard updates automatically (affects all connected apps).</p>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label class="input-label">Refresh Time Period</label>
+                    <select id="refreshIntervalSelect" class="form-control" onchange="updateRefreshSetting(this.value)">
+                        <option value="5">5 Seconds (Default)</option>
+                        <option value="10">10 Seconds</option>
+                        <option value="30">30 Seconds</option>
+                        <option value="60">1 Minute</option>
+                        <option value="300">5 Minutes</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card mt-4">
                 <h3 style="margin-top:0;">Map Settings</h3>
                 <p style="color:var(--text-muted);font-size:13px;">Manage offline map packages.</p>
                 <div class="input-group" style="margin-bottom: 12px;">
@@ -2311,9 +2358,85 @@
         }
 
         // 3. Modals
-        function openOpDetails(title) {
-            document.getElementById('opModalTitle').innerText = title + ' Details';
+        async function openOpDetails(type) {
+            const title = type === 'SOS' ? 'SOS Emergency Missions' : 'Food & Supply Distribution';
+            document.getElementById('opModalTitle').innerText = title;
             document.getElementById('opDetailsModal').style.display = 'flex';
+            
+            // Fetch all requests to show a full breakdown
+            try {
+                const res = await fetch(`${API_BASE}/rescue-requests`);
+                const allReqs = await res.json();
+                
+                let filtered = [];
+                if (type === 'SOS') {
+                    filtered = allReqs.filter(r => r.type === 'sos' || r.type === 'medical' || r.type === 'pregnancy');
+                } else {
+                    filtered = allReqs.filter(r => r.type === 'food' || r.type === 'delivery' || r.type === 'medical_delivery');
+                }
+
+                const tbody = document.querySelector('#opDetailsModal tbody');
+                tbody.innerHTML = '';
+                
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">No records found for this category.</td></tr>';
+                }
+
+                filtered.forEach((r, idx) => {
+                    const statusTag = r.status === 'completed' ? 'tag-green' : r.status === 'accepted' ? 'tag-yellow' : 'tag-gray';
+                    const time = new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const updateTime = r.updated_at ? new Date(r.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                    
+                    let itemsStr = '';
+                    if (r.details) {
+                        try {
+                            const d = typeof r.details === 'string' ? JSON.parse(r.details) : r.details;
+                            if (d.food) itemsStr += `Food:${d.food} `;
+                            if (d.med) itemsStr += `Med:${d.med} `;
+                            if (d.sanitary) itemsStr += `San:${d.sanitary} `;
+                        } catch(e) {}
+                    }
+
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 8px; font-weight: 800; color: var(--text-muted);">${String(idx+1).padStart(2, '0')}</td>
+                            <td style="padding: 8px; font-weight:600;">
+                                ${r.type.toUpperCase()} @ ${r.sector}
+                                <div style="font-size:10px; color:var(--text-muted); font-weight:400;">${itemsStr}</div>
+                            </td>
+                            <td style="padding: 8px; font-size: 12px; color: var(--text-muted);">${time}</td>
+                            <td style="padding: 8px; font-size: 12px; color: var(--text-muted);">${updateTime}</td>
+                            <td style="padding: 8px; text-align: right;"><span class="tag ${statusTag}">${r.status.toUpperCase()}</span></td>
+                        </tr>
+                    `;
+                });
+
+                // Update summary stats in modal
+                const accepted = filtered.filter(f => f.status === 'accepted').length;
+                const completed = filtered.filter(f => f.status === 'completed').length;
+                const pending = filtered.filter(f => f.status === 'pending').length;
+
+                // Simple distribution logic for the UI cards in modal
+                document.querySelector('#opDetailsModal .grid-2').innerHTML = `
+                    <div>
+                        <div class="input-label">Current Status</div>
+                        <div class="card" style="padding:12px; font-weight:600; font-size:13px; display:flex; gap:10px;">
+                            <span style="color:var(--pending)">${pending} Pending</span>
+                            <span style="color:var(--accent)">${accepted} Ongoing</span>
+                            <span style="color:var(--secondary)">${completed} Done</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="input-label">Zone Load</div>
+                        <div class="card" style="padding:12px; font-weight:600; font-size:13px;">
+                            ${filtered.length > 0 ? 'Active in ' + [...new Set(filtered.map(f => f.sector))].join(', ') : 'No Active Zones'}
+                        </div>
+                    </div>
+                `;
+
+            } catch (e) {
+                console.error("Error loading op details", e);
+            }
         }
         function openGroupModal() {
             document.getElementById('createGroupModal').style.display = 'flex';
@@ -2515,7 +2638,15 @@
         }
 
         function getTagForType(type) {
-            const m = { sos: 'tag-red', food: 'tag-yellow', medical: 'tag-purple', pregnancy: 'tag-special', rescue: 'tag-red' };
+            const m = { 
+                sos: 'tag-red', 
+                food: 'tag-yellow', 
+                medical: 'tag-purple', 
+                pregnancy: 'tag-special', 
+                rescue: 'tag-red',
+                critical: 'tag-red',
+                normal: 'tag-blue'
+            };
             return m[type] || 'tag-gray';
         }
         function getTagForStatus(status) {
@@ -2525,34 +2656,63 @@
         }
 
         function renderCmds() {
-            let liveHtml = '';
+            let liveCritHtml = '';
+            let liveNormHtml = '';
             let compHtml = '';
-            let histHtml = '';
+            let histCriticalHtml = '';
+            let histNormalHtml = '';
 
-            cmds.forEach((c, index) => {
-                let sNo = String(index + 1).padStart(2, '0');
+            let liveCritCount = 0;
+            let liveNormCount = 0;
+            let compCount = 0;
+            let critHistCount = 0;
+            let normHistCount = 0;
+
+            cmds.forEach((c) => {
                 let isReassignable = c.status !== 'Completed';
                 
                 let row = `<tr onclick="selectTask('${c.id}')" style="cursor:pointer;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                    <td style="font-weight: 800; color: var(--text-muted);">${sNo}</td>
+                    <td style="font-weight: 800; color: var(--text-muted);">{SNO}</td>
                     <td style="font-weight:700;">${c.id}</td>
                     <td>${c.desc}</td>
-                    <td><span class="tag ${getTagForType(c.type)}">${c.type}</span></td>
+                    <td>
+                        <span class="tag ${getTagForType(c.type)}">${c.type.toUpperCase()}</span>
+                    </td>
                     <td>${c.zone}</td>
                     <td>${c.team}</td>
                     <td style="color:var(--text-muted); font-size: 12px;">${c.reqTime || c.time}</td>
                     <td style="color:var(--text-muted); font-size: 12px;">${c.cmdTime || c.time}</td>
                     <td><span class="tag ${getTagForStatus(c.status)}">${c.status}</span></td>
                     <td>
-                        ${isReassignable ? `<button class="btn btn-outline" style="padding:4px 8px; font-size:10px;" onclick="event.stopPropagation(); openReassignModal('${c.id}')">🔄 Reassign</button>` : '-'}
+                        ${isReassignable ? `<button class="btn btn-outline" style="padding:4px 8px; font-size:10px;" onclick="event.stopPropagation(); openReassignModal('${c.id.replace('CMD-', '')}')">🔄 Reassign</button>` : '-'}
                     </td>
                 </tr>`;
-                if (c.status === 'Ongoing' || c.status === 'Critical' || c.status === 'Pending' || c.status === 'Accepted' || c.status === 'Declined') liveHtml += row;
-                else compHtml += row;
-                histHtml += row;
+
+                const isCrit = ['sos', 'medical', 'pregnancy', 'critical'].includes(c.type.toLowerCase());
+
+                if (c.status === 'Ongoing' || c.status === 'Critical' || c.status === 'Pending' || c.status === 'Accepted' || c.status === 'Declined') {
+                    if (isCrit) {
+                        liveCritCount++;
+                        liveCritHtml += row.replace('{SNO}', String(liveCritCount).padStart(2, '0'));
+                    } else {
+                        liveNormCount++;
+                        liveNormHtml += row.replace('{SNO}', String(liveNormCount).padStart(2, '0'));
+                    }
+                } else {
+                    compCount++;
+                    compHtml += row.replace('{SNO}', String(compCount).padStart(2, '0'));
+                }
+
+                if (isCrit) {
+                    critHistCount++;
+                    histCriticalHtml += row.replace('{SNO}', String(critHistCount).padStart(2, '0'));
+                } else {
+                    normHistCount++;
+                    histNormalHtml += row.replace('{SNO}', String(normHistCount).padStart(2, '0'));
+                }
             });
             
-            const liveHeader = `<tr>
+            const tableHeader = `<tr>
                 <th style="width: 40px;">S.NO</th>
                 <th style="width: 80px;">ID</th>
                 <th>TASK / DESCRIPTION</th>
@@ -2565,10 +2725,62 @@
                 <th style="width: 100px;">ACTION</th>
             </tr>`;
             
-            document.getElementById('liveCmdBody').parentElement.querySelector('thead').innerHTML = liveHeader;
-            document.getElementById('liveCmdBody').innerHTML = liveHtml || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">No live commands</td></tr>';
+            // Apply headers to all tables
+            document.querySelectorAll('#cmd-live table thead, #cmd-completed table thead').forEach(thead => {
+                thead.innerHTML = tableHeader;
+            });
+            
+            document.getElementById('liveCmdBodyCritical').innerHTML = liveCritHtml || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">No critical commands</td></tr>';
+            document.getElementById('liveCmdBodyNormal').innerHTML = liveNormHtml || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">No normal commands</td></tr>';
             document.getElementById('compCmdBody').innerHTML = compHtml || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">No completed commands</td></tr>';
-            document.getElementById('historyTbody').innerHTML = histHtml;
+            
+            document.getElementById('historyTbodyCritical').innerHTML = histCriticalHtml || '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">No critical history</td></tr>';
+            document.getElementById('historyTbodyNormal').innerHTML = histNormalHtml || '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">No normal history</td></tr>';
+
+            // Handle Critical Operations Hub
+            const criticalMissions = cmds.filter(c => c.type === 'critical' && c.status !== 'Completed');
+            const hub = document.getElementById('criticalOperationsHub');
+            const hubList = document.getElementById('criticalTasksList');
+            
+            if (criticalMissions.length > 0) {
+                hub.style.display = 'block';
+                hubList.innerHTML = criticalMissions.map(m => `
+                    <div class="card" style="margin:0; border-left: 4px solid var(--critical); background:rgba(239,68,68,0.02); padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                            <div style="font-weight:900; color:var(--critical); font-size:14px;">${m.id}</div>
+                            <span class="tag tag-red" style="font-size:10px;">URGENT</span>
+                        </div>
+                        <div style="font-weight:700; font-size:13px; margin-bottom:4px;">${m.desc}</div>
+                        <div style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">
+                            <b>Assigned:</b> ${m.team} <br>
+                            <b>Target:</b> ${m.zone} <br>
+                            <b>Status:</b> <span class="tag ${getTagForStatus(m.status)}" style="font-size:9px; padding:1px 4px;">${m.status}</span>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-outline" style="flex:1; padding:6px; font-size:10px; font-weight:700;" onclick="openReassignModal('${m.id.replace('CMD-', '')}')">🔄 RE-ASSIGN</button>
+                            <button class="btn btn-primary" style="flex:1; padding:6px; font-size:10px; font-weight:700;" onclick="selectTask('${m.id}')">👁️ VIEW</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                hub.style.display = 'none';
+            }
+            lucide.createIcons();
+        }
+
+        function openReassignModal(cmdId) {
+            const cmd = cmds.find(c => c.id === 'CMD-' + cmdId);
+            if (!cmd) return;
+
+            document.getElementById('assignReqId').value = 'CMD_REF:' + cmdId;
+            document.getElementById('assignReqTitle').innerHTML = `<span style="background: var(--bg-alt); padding: 2px 6px; border-radius: 4px; color: var(--text-muted); margin-right: 6px;">REF</span> RE-ASSIGN: ${cmd.desc}`;
+            document.getElementById('assignReqDetails').innerText = `Currently assigned to: ${cmd.team}`;
+            populateAssignDropdowns();
+            document.getElementById('assignModal').style.display = 'flex';
+        }
+
+        async function reassignTask(cmdId, personId, groupId) {
+            // This is handled by dispatchAssignment if I update it to detect CMD_REF
         }
 
         // Track selected task priority
@@ -2980,7 +3192,7 @@
 
         async function fetchRescueRequests() {
             try {
-                const res = await fetch('http://localhost:3001/api/rescue-requests?status=pending');
+                const res = await fetch(`${API_BASE}/rescue-requests?status=pending`);
                 rescueRequests = await res.json();
                 renderRescueRequests();
             } catch (e) {
@@ -2998,26 +3210,74 @@
                 list.innerHTML = '<div style="padding:12px; text-align:center; color:var(--text-muted); font-size:12px;">No pending requests</div>';
                 return;
             }
-
             rescueRequests.forEach((req, index) => {
-                const isMedical = req.type === 'medical';
-                const color = isMedical ? 'var(--critical)' : 'var(--special)';
-                const bg = isMedical ? '#fee2e2' : '#f3e8ff';
-                const title = isMedical ? 'Medical Rescue' : 'Pregnancy Rescue';
-                const num = String(index + 1).padStart(2, '0');
+                let typeLabel = req.type.charAt(0).toUpperCase() + req.type.slice(1) + ' Rescue';
+                let color = 'var(--special)';
+                let bg = '#f3e8ff';
+                let isDelivery = false;
 
-                const user = currentUsers.find(u => u.device_id === req.device_id || u.phone === req.device_id);
-                const nickName = user ? (user.serial_number || user.name) : (req.device_id || 'Unknown');
+                if (req.type === 'medical') {
+                    color = 'var(--critical)';
+                    bg = '#fee2e2';
+                    typeLabel = '🏥 Medical Rescue';
+                } else if (req.type === 'pregnancy') {
+                    color = 'var(--special)';
+                    bg = '#f3e8ff';
+                    typeLabel = '🤰 Pregnancy Rescue';
+                } else if (req.type === 'food' || req.type === 'delivery' || req.type === 'medical_delivery') {
+                    color = 'var(--pending)';
+                    bg = '#fffbeb';
+                    typeLabel = req.type === 'food' ? '📦 Food Delivery' : '💊 Medical Supply';
+                    isDelivery = true;
+                } else if (req.type === 'sos') {
+                    color = 'var(--pending)';
+                    bg = '#fffbeb';
+                    typeLabel = '🚨 SOS Alert Response';
+                    isDelivery = true;
+                }
+
+                // Parse details for quantities
+                let detailsHtml = '';
+                if (req.details) {
+                    try {
+                        const d = typeof req.details === 'string' ? JSON.parse(req.details) : req.details;
+                        const items = [];
+                        if (d.food) items.push(`🍞 Food: <b>${d.food}</b>`);
+                        if (d.med) items.push(`💊 Medicine: <b>${d.med}</b>`);
+                        if (d.sanitary) items.push(`🧻 Sanitary: <b>${d.sanitary}</b>`);
+                        
+                        if (items.length > 0) {
+                            detailsHtml = `<div style="margin-top:4px; padding:6px; background:rgba(0,0,0,0.03); border-radius:4px; font-size:11px;">
+                                ${items.join(' • ')}
+                            </div>`;
+                        }
+                    } catch (e) {}
+                }
+
+                const num = String(index + 1).padStart(2, '0');
+                const user = (window.currentUsers || []).find(u => u.device_id === req.device_id || u.phone === req.device_id || u.phone === req.phone);
+                const nickName = user ? (user.serial_number || user.name) : (req.phone || req.device_id || 'Unknown');
+
+                const assignBtnLabel = (req.type === 'sos' || req.type === 'food') ? 'Assign as Normal Task' : 'Accept & Assign';
 
                 list.innerHTML += `
-                    <div class="notif-item actionable-item" style="align-items: flex-start; ${isMedical ? 'border-color:#fca5a5;' : ''}">
+                    <div class="notif-item actionable-item" style="align-items: flex-start; border-left: 3px solid ${color}; cursor:pointer;" 
+                         onclick="openAssignModal('${req.id}', '${typeLabel}', '${req.sector}', '${req.urgency}', '${num}')">
                         <div class="notif-icon" style="background:${bg}; color:${color}; font-weight:900; font-size:12px;">${num}</div>
                         <div class="notif-content">
-                            <div class="notif-title" style="color:${color};">${title}</div>
-                            <div class="notif-count text-sm text-muted" style="margin-bottom:6px;"><b>Person:</b> <span style="color:var(--accent); font-weight:700;">${nickName}</span> &bull; <b>Location:</b> ${req.sector} &bull; Urgency: ${req.urgency}</div>
+                            <div class="notif-title" style="color:${color}; font-weight:800; display:flex; justify-content:space-between; align-items:center;">
+                                <span>${typeLabel}</span>
+                                <span style="font-size:9px; background:${bg}; padding:2px 4px; border-radius:3px;">${isDelivery ? 'NORMAL TASK' : 'CRITICAL'}</span>
+                            </div>
+                            <div class="notif-count text-sm text-muted" style="margin-bottom:6px;">
+                                <b>Person:</b> <span style="color:var(--text-main); font-weight:700;">${nickName}</span><br>
+                                <b>Sector:</b> ${req.sector || 'Unspecified'}<br>
+                                <b>Urgency:</b> <span style="color:${req.urgency === 'critical' ? 'var(--critical)' : 'inherit'}; font-weight:700;">${req.urgency.toUpperCase()}</span>
+                                ${detailsHtml}
+                            </div>
                             <div class="actionable-actions">
-                                <button class="btn btn-primary" onclick="openAssignModal('${req.id}', '${title}', '${req.sector}', '${req.urgency}', '${num}')">Accept</button>
-                                <button class="btn btn-outline" onclick="declineRescueRequest('${req.id}')">Decline</button>
+                                <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;" onclick="openAssignModal('${req.id}', '${typeLabel}', '${req.sector}', '${req.urgency}', '${num}')">${assignBtnLabel}</button>
+                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 11px;" onclick="event.stopPropagation(); declineRescueRequest('${req.id}')">Decline</button>
                             </div>
                         </div>
                     </div>
@@ -3028,8 +3288,8 @@
         async function populateAssignDropdowns() {
             try {
                 const [usersRes, groupsRes] = await Promise.all([
-                    fetch('http://localhost:3001/api/users'),
-                    fetch('http://localhost:3001/api/groups')
+                    fetch(`${API_BASE}/users`),
+                    fetch(`${API_BASE}/groups`)
                 ]);
                 const users = await usersRes.json();
                 const groups = await groupsRes.json();
@@ -3040,7 +3300,7 @@
 
                 const gSelect = document.getElementById('assignGroupSelect');
                 gSelect.innerHTML = '<option value="">-- Select Group --</option>';
-                groups.forEach(g => gSelect.innerHTML += `<option value="${g.id}">${g.group_name} (${g.zone})</option>`);
+                groups.forEach(g => gSelect.innerHTML += `<option value="${g.id}">${g.group_name} (${g.zone || 'Global'})</option>`);
             } catch (e) {
                 console.error("Error populating dropdowns", e);
             }
@@ -3050,12 +3310,21 @@
             document.getElementById('assignReqId').value = id;
             document.getElementById('assignReqTitle').innerHTML = `<span style="background: var(--bg-alt); padding: 2px 6px; border-radius: 4px; color: var(--text-muted); margin-right: 6px;">${num}</span> ${title}`;
             document.getElementById('assignReqDetails').innerText = `${sector}, urgency ${urgency}`;
+            
+            // Dynamic Title based on request type
+            const modalTitle = document.querySelector('#assignModal .modal-title');
+            if (title.toLowerCase().includes('sos') || title.toLowerCase().includes('food')) {
+                modalTitle.innerText = "Assign Task as Normal Task";
+            } else {
+                modalTitle.innerText = "Assign Rescue Operation";
+            }
+            
             populateAssignDropdowns();
             document.getElementById('assignModal').style.display = 'flex';
         }
 
         async function dispatchAssignment() {
-            const reqId = document.getElementById('assignReqId').value;
+            const rawId = document.getElementById('assignReqId').value;
             const personId = document.getElementById('assignPersonSelect').value;
             const groupId = document.getElementById('assignGroupSelect').value;
 
@@ -3065,16 +3334,30 @@
             }
 
             try {
-                await fetch(`http://localhost:3001/api/rescue-requests/${reqId}/accept`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        assigned_user_id: personId || null,
-                        assigned_group_id: groupId || null
-                    })
-                });
+                if (rawId.startsWith('CMD_REF:')) {
+                    const cmdId = rawId.split(':')[1];
+                    await fetch(`${API_BASE}/commands/${cmdId}/reassign`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            assigned_user_id: personId || null,
+                            assigned_group_id: groupId || null
+                        })
+                    });
+                    showAdminToast('Task successfully reassigned!');
+                } else {
+                    await fetch(`${API_BASE}/rescue-requests/${rawId}/accept`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            assigned_user_id: personId || null,
+                            assigned_group_id: groupId || null
+                        })
+                    });
+                }
                 closeModal('assignModal');
                 fetchRescueRequests();
+                fetchCommands();
             } catch (e) {
                 console.error("Error dispatching assignment", e);
             }
@@ -3082,7 +3365,7 @@
 
         async function declineRescueRequest(id) {
             try {
-                await fetch(`http://localhost:3001/api/rescue-requests/${id}/decline`, { method: 'PUT' });
+                await fetch(`${API_BASE}/rescue-requests/${id}/decline`, { method: 'PUT' });
                 fetchRescueRequests();
             } catch (e) {
                 console.error("Error declining", e);
@@ -3114,6 +3397,70 @@
             } catch (e) {
                 console.error("Error fetching dashboard stats", e);
             }
+        }
+
+        async function fetchCommands() {
+            try {
+                const res = await fetch(`${API_BASE}/commands`);
+                const data = await res.json();
+                
+                // Map the DB commands to the UI format
+                cmds = data.map(c => {
+                    let payload = {};
+                    try { payload = JSON.parse(c.command_payload); } catch(e) {}
+                    
+                    return {
+                        id: 'CMD-' + c.id,
+                        desc: payload.message || c.command_payload,
+                        type: c.command_type,
+                        zone: payload.sector || payload.zone || 'N/A',
+                        team: c.target_phone || (c.group_id ? `Group ${c.group_id}` : 'Unassigned'),
+                        time: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        status: c.status.charAt(0).toUpperCase() + c.status.slice(1),
+                        rescueReqId: payload.rescue_req_id || null
+                    };
+                });
+                renderCmds();
+            } catch (e) {
+                console.error("Error fetching commands", e);
+            }
+        }
+
+        async function fetchRefreshSetting() {
+            try {
+                const res = await fetch(`${API_BASE}/settings`);
+                const settings = await res.json();
+                if (settings.refresh_interval) {
+                    const interval = parseInt(settings.refresh_interval);
+                    document.getElementById('refreshIntervalSelect').value = interval;
+                    startAutoRefresh(interval);
+                }
+            } catch (e) { console.error("Error fetching settings", e); }
+        }
+
+        async function updateRefreshSetting(val) {
+            try {
+                await fetch(`${API_BASE}/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: 'refresh_interval', value: val })
+                });
+                showAdminToast(`Refresh interval updated to ${val} seconds`);
+                startAutoRefresh(parseInt(val));
+            } catch (e) { console.error(e); }
+        }
+
+        let refreshTimer = null;
+        function startAutoRefresh(seconds) {
+            if (refreshTimer) clearInterval(refreshTimer);
+            console.log(`[Admin] Starting auto-refresh every ${seconds} seconds`);
+            refreshTimer = setInterval(() => {
+                fetchRescueRequests();
+                fetchDashboardStats();
+                fetchCommands();
+                fetchUsers();
+                fetchGroups();
+            }, seconds * 1000);
         }
 
         const API_BASE = 'http://localhost:3001/api';
@@ -3238,8 +3585,9 @@
                         <img src="${m.photo_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(m.name) + '&background=random'}" 
                              style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid var(--border);" />
                     </td>
+                    <td style="font-weight:700; color:var(--accent); font-family: monospace;">${m.serial_number || 'N/A'}</td>
                     <td><div style="font-weight:600;">${m.name}</div></td>
-                    <td>${m.phone || m.device_id || 'N/A'}</td>
+                    <td><code style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:700; color:#1e293b; border:1px solid #cbd5e1;">${m.password || '123456'}</code></td>
                     <td><span class="tag tag-gray">${m.role}</span></td>
                     <td>
                         <div style="display:flex; flex-wrap:wrap; gap:4px;">
@@ -3299,6 +3647,25 @@
             }
 
             document.getElementById('assignExistingModal').style.display = 'flex';
+        }
+
+        async function fetchDashboardStats() {
+            try {
+                const res = await fetch(`${API_BASE}/rescue-requests`);
+                const data = await res.json();
+                
+                const stats = {
+                    sos: data.filter(r => (r.type === 'sos' || r.type === 'medical' || r.type === 'pregnancy') && r.status !== 'completed').length,
+                    food: data.filter(r => (r.type === 'food' || r.type === 'delivery' || r.type === 'medical_delivery') && r.status !== 'completed').length,
+                    rescuers: currentUsers.filter(u => u.role === 'rescuer').length,
+                    active: data.filter(r => r.status === 'accepted').length
+                };
+
+                document.getElementById('sosCount').innerText = stats.sos;
+                document.getElementById('foodCount').innerText = stats.food;
+                document.getElementById('rescuerCount').innerText = stats.rescuers;
+                document.getElementById('activeCount').innerText = stats.active;
+            } catch (e) { console.error("Error fetching stats", e); }
         }
 
         async function assignExistingMembers() {
@@ -3502,9 +3869,10 @@
             fetchGroups();
             fetchUsers();
 
-            initWebSocket();
             fetchRescueRequests();
             fetchDashboardStats();
+            fetchCommands();
+            fetchRefreshSetting();
         };
     </script>
 </body>
