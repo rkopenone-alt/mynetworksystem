@@ -453,7 +453,16 @@
         .cmd-content {
             flex: 1;
             overflow-y: auto;
-            padding: 0;
+            padding: 16px;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
         }
 
         /* Table Styles */
@@ -462,6 +471,7 @@
             border-collapse: collapse;
             text-align: left;
             font-size: 13px;
+            table-layout: fixed;
         }
 
         th {
@@ -1291,39 +1301,43 @@
                         </button>
                     </div>
                     <div class="card"
-                        style="margin:0; border-top: 4px solid var(--primary); background: var(--bg-body);">
-                        <div id="tdId" style="font-weight: 900; font-size: 16px; color: var(--primary);"></div>
-                        <div id="tdStatus" style="margin: 12px 0;"></div>
+                        style="margin:0; border-top: 3px solid var(--primary); background: var(--bg-body); padding: 12px;">
+                        <div id="tdId" style="font-weight: 800; font-size: 14px; color: var(--primary);"></div>
+                        <div id="tdStatus" style="margin: 8px 0;"></div>
                         <div id="tdDesc"
-                            style="font-size: 14px; color: var(--text-main); margin-bottom: 16px; line-height: 1.5; font-weight: 500;">
+                            style="font-size: 13px; color: var(--text-main); margin-bottom: 12px; line-height: 1.4; font-weight: 600;">
                         </div>
                         <div
-                            style="background: var(--bg-panel); padding: 12px; border-radius: 6px; font-size: 13px; border: 1px solid var(--border); margin-bottom: 12px;">
-                            <div id="tdMeta" style="color: var(--text-muted); font-weight: 500; line-height: 1.6;">
+                            style="background: var(--bg-panel); padding: 10px; border-radius: 6px; font-size: 12px; border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div id="tdMeta" style="color: var(--text-muted); font-weight: 500; line-height: 1.5;">
                             </div>
                         </div>
 
                         <!-- Public / Requester Details Section -->
                         <div id="tdRequesterSection"
-                            style="display:none; background: #eff6ff; padding: 12px; border-radius: 6px; font-size: 13px; border: 1px solid #bfdbfe; margin-bottom: 16px;">
-                            <div
-                                style="font-weight: 800; color: #1e40af; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; text-transform: uppercase; font-size: 11px;">
-                                <i data-lucide="user" style="width:12px;"></i> Public / Requester Details
+                            style="display:none; background: #eff6ff; padding: 12px; border-radius: 8px; font-size: 12px; border: 1px solid #bfdbfe; margin-bottom: 12px; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);">
+                            <div style="font-weight: 900; color: #1e40af; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid #bfdbfe; padding-bottom: 4px;">
+                                <i data-lucide="alert-circle" style="width:12px; height:12px;"></i> SOS / Requester Info
                             </div>
-                            <div style="color: #1e3a8a; font-weight: 600; font-size: 14px; margin-bottom: 4px;"
-                                id="tdRequesterName">N/A</div>
-                            <div style="color: #1d4ed8; font-weight: 500; font-size: 12px; margin-bottom: 8px;"
-                                id="tdRequesterPhone">N/A</div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <div id="tdRequesterName" style="font-weight: 800; color: #1e3a8a; font-size: 13px;">-</div>
+                                <div id="tdRequesterPhone" style="font-weight: 700; color: #1d4ed8; font-family: monospace; background: #dbeafe; padding: 1px 6px; border-radius: 4px; font-size: 11px;">-</div>
+                            </div>
+                            
                             <div id="tdRequesterMeta"
-                                style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; font-size: 10px; color: #1e40af; border-top: 1px solid #dbeafe; padding-top: 8px;">
-                                <div><b>Request ID:</b> <span id="tdRequesterId">-</span></div>
-                                <div><b>Rescue Type:</b> <span id="tdRequesterType">-</span></div>
-                                <div style="grid-column: span 2;"><b>Location:</b> <span id="tdRequesterLoc">-</span>
+                                style="display:grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; font-size: 10px; color: #1e40af;">
+                                <div><b style="color:#64748b; font-size:8px; display:block; text-transform:uppercase;">ID:</b> <span id="tdRequesterId" style="font-weight:700;">-</span></div>
+                                <div><b style="color:#64748b; font-size:8px; display:block; text-transform:uppercase;">Type:</b> <span id="tdRequesterType" style="font-weight:700;">-</span></div>
+                                <div><b style="color:#64748b; font-size:8px; display:block; text-transform:uppercase;">Triggered:</b> <span id="tdRequesterTime" style="font-weight:700;">-</span></div>
+                                <div><b style="color:#64748b; font-size:8px; display:block; text-transform:uppercase;">Status:</b> <span id="tdRequesterStatus" style="font-weight:700;">-</span></div>
+                                <div style="grid-column: span 2; background: white; padding: 6px; border-radius: 4px; border: 1px solid #dbeafe;">
+                                    <b style="color:#64748b; font-size:8px; display:block; text-transform:uppercase; margin-bottom:2px;">Location:</b> 
+                                    <span id="tdRequesterLoc" style="font-weight:700;">-</span>
                                 </div>
                             </div>
                             <div id="tdRequesterItems"
-                                style="font-size: 11px; color: #374151; padding: 6px; background: rgba(255,255,255,0.5); border-radius: 4px; border: 1px dashed #93c5fd;">
-                                <!-- Item details -->
+                                style="font-size: 10px; color: #1e40af; font-weight: 600; display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.4); padding: 6px; border-radius: 4px;">
+                                <i data-lucide="package" style="width:12px; height:12px;"></i> <span id="reqItemsList">No items</span>
                             </div>
                         </div>
                         <button class="btn btn-outline btn-block" onclick="openReassignModalFromDetails()"
@@ -1364,39 +1378,42 @@
                             </div>
                         </div>
 
-                        <div style="display:flex; gap:20px;">
-                            <div style="flex: 1; min-width: 0;">
-                                <h4
-                                    style="margin: 0 0 10px 16px; font-size: 13px; font-weight: 800; color: var(--critical); display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="alert-circle" style="width:14px;"></i> CRITICAL MISSIONS
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; align-items: start;">
+                            <div style="min-width: 0;">
+                                <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 800; color: var(--critical); display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="alert-circle" style="width:16px;"></i> CRITICAL MISSIONS
                                 </h4>
-                                <table>
-                                    <thead>
-                                        <!-- Header injected by JS -->
-                                    </thead>
-                                    <tbody id="liveCmdBodyCritical">
-                                        <!-- Populated by JS -->
-                                    </tbody>
-                                </table>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <!-- Header injected by JS -->
+                                        </thead>
+                                        <tbody id="liveCmdBodyCritical">
+                                            <!-- Populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                            <div style="flex: 1; min-width: 0;">
-                                <h4
-                                    style="margin: 0 0 10px 16px; font-size: 13px; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="box" style="width:14px;"></i> NORMAL LOGISTICS
+                            <div style="min-width: 0;">
+                                <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="box" style="width:16px;"></i> NORMAL LOGISTICS
                                 </h4>
-                                <table>
-                                    <thead>
-                                        <!-- Header injected by JS -->
-                                    </thead>
-                                    <tbody id="liveCmdBodyNormal">
-                                        <!-- Populated by JS -->
-                                    </tbody>
-                                </table>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <!-- Header injected by JS -->
+                                        </thead>
+                                        <tbody id="liveCmdBodyNormal">
+                                            <!-- Populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="cmd-content" id="cmd-completed" style="display:none;">
-                        <table>
+                        <div class="table-container">
+                            <table>
                             <thead>
                                 <tr>
                                     <th>S.No</th>
@@ -1414,6 +1431,7 @@
                                 <!-- Populated by JS -->
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -2944,13 +2962,56 @@
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
+                // 1. Cancel main dashboard drawing
+                if (isDrawing) {
+                    map.off('mousemove', onMapMove);
+                    map.off('mouseup', onMapUp);
+                    map.dragging.enable();
+                }
                 if (drawnLayer) {
                     map.removeLayer(drawnLayer);
                     drawnLayer = null;
                 }
-                document.getElementById('cmdCoords').value = '';
-                document.getElementById('distanceInput').value = '';
+                drawMode = null;
                 isDrawing = false;
+                if (map) map.getContainer().style.cursor = '';
+                
+                // Reset button states
+                const btnRad = document.getElementById('btnRad');
+                const btnArea = document.getElementById('btnArea');
+                if (btnRad) btnRad.classList.remove('active');
+                if (btnArea) btnArea.classList.remove('active');
+                
+                // Clear inputs
+                if (document.getElementById('cmdCoords')) document.getElementById('cmdCoords').value = '';
+                if (document.getElementById('distanceInput')) document.getElementById('distanceInput').value = '';
+
+                // 2. Cancel Operation Modal drawing
+                if (opIsDrawing) {
+                    opMapInstance.off('mousemove', onOpMapMove);
+                    opMapInstance.off('mouseup', onOpMapUp);
+                    opMapInstance.dragging.enable();
+                }
+                if (opDrawnLayer) {
+                    opMapInstance.removeLayer(opDrawnLayer);
+                    opDrawnLayer = null;
+                }
+                opIsDrawing = false;
+                if (opMapInstance) opMapInstance.getContainer().style.cursor = '';
+                if (document.getElementById('opZoneText')) document.getElementById('opZoneText').value = '';
+
+                // 3. Cancel Download Modal drawing
+                if (dlIsDrawing) {
+                    dlMapInstance.off('mousemove', onDlMapMove);
+                    dlMapInstance.off('mouseup', onDlMapUp);
+                    dlMapInstance.dragging.enable();
+                }
+                if (dlDrawnLayer) {
+                    dlMapInstance.removeLayer(dlDrawnLayer);
+                    dlDrawnLayer = null;
+                }
+                dlIsDrawing = false;
+                if (document.getElementById('dlMapCoords')) document.getElementById('dlMapCoords').value = '';
             }
         });
 
@@ -2996,16 +3057,19 @@
             const reqName = document.getElementById('tdRequesterName');
             const reqPhone = document.getElementById('tdRequesterPhone');
             const reqItems = document.getElementById('tdRequesterItems');
-
-            if (cmd.rescueReqId) {
+            const isRescue = ['sos', 'rescue', 'emergency'].includes(cmd.type.toLowerCase());
+            
+            if (cmd.rescueReqId || cmd.requesterName || cmd.requesterPhone || isRescue) {
                 reqSection.style.display = 'block';
                 reqName.innerText = cmd.requesterName || 'Public Requester';
                 reqPhone.innerText = cmd.requesterPhone || 'Phone Not Available';
 
                 document.getElementById('tdRequesterId').innerText = cmd.rescueReqId ? `PUB-${cmd.rescueReqId}` : 'N/A';
-                document.getElementById('tdRequesterType').innerText = (cmd.requesterType || 'Emergency').toUpperCase();
+                document.getElementById('tdRequesterType').innerText = (cmd.requesterType || cmd.type || 'Emergency').toUpperCase();
+                document.getElementById('tdRequesterTime').innerText = cmd.reqTime || cmd.time;
+                document.getElementById('tdRequesterStatus').innerText = cmd.status || 'Active';
                 document.getElementById('tdRequesterLoc').innerHTML = (cmd.requesterLat && cmd.requesterLng)
-                    ? `<a href="#" onclick="map.flyTo([${cmd.requesterLat}, ${cmd.requesterLng}], 18); return false;" style="color:#1d4ed8; text-decoration:underline;">📍 ${parseFloat(cmd.requesterLat).toFixed(5)}, ${parseFloat(cmd.requesterLng).toFixed(5)}</a>`
+                    ? `<a href="#" onclick="map.flyTo([${cmd.requesterLat}, ${cmd.requesterLng}], 18); return false;" style="color:#1d4ed8; text-decoration:underline; font-weight:700;">📍 ${parseFloat(cmd.requesterLat).toFixed(5)}, ${parseFloat(cmd.requesterLng).toFixed(5)}</a>`
                     : 'Coordinates Not Available';
 
                 let itemsHtml = '<span style="color:var(--text-muted)">No specific items listed</span>';
@@ -3099,7 +3163,7 @@
                     </td>
                 </tr>`;
 
-                const isCrit = c.priority === 'critical' || ['sos', 'medical', 'pregnancy', 'critical'].includes(c.type.toLowerCase());
+                const isCrit = c.priority === 'critical' || ['sos', 'medical', 'pregnancy', 'critical', 'rescue'].includes(c.type.toLowerCase());
 
                 // Logic for Live vs Completed separation
                 // Live: Everything currently active or needing attention
@@ -3121,26 +3185,40 @@
                     compHtml += row.replace('{SNO}', String(compCount).padStart(2, '0'));
                 }
 
+                let historyRow = `<tr onclick="selectTask('${c.id}')" style="cursor:pointer;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                    <td style="font-weight: 800; color: var(--text-muted);">{SNO}</td>
+                    <td style="font-weight:700;">${c.id}</td>
+                    <td>${c.desc}</td>
+                    <td>
+                        <span class="tag ${getTagForType(c.type)}">${c.type.toUpperCase()}</span>
+                    </td>
+                    <td>${c.zone}</td>
+                    <td>${c.team}</td>
+                    <td style="color:var(--text-muted); font-size: 12px;">${c.reqTime || c.time}</td>
+                    <td style="color:var(--text-muted); font-size: 12px;">${c.cmdTime || c.time}</td>
+                    <td><span class="tag ${getTagForStatus(c.status)}">${c.status}</span></td>
+                </tr>`;
+
                 if (isCrit) {
                     critHistCount++;
-                    histCriticalHtml += row.replace('{SNO}', String(critHistCount).padStart(2, '0'));
+                    histCriticalHtml += historyRow.replace('{SNO}', String(critHistCount).padStart(2, '0'));
                 } else {
                     normHistCount++;
-                    histNormalHtml += row.replace('{SNO}', String(normHistCount).padStart(2, '0'));
+                    histNormalHtml += historyRow.replace('{SNO}', String(normHistCount).padStart(2, '0'));
                 }
             });
 
             const tableHeader = `<tr>
-                <th style="width: 40px;">S.NO</th>
-                <th style="width: 80px;">ID</th>
-                <th>TASK / DESCRIPTION</th>
+                <th style="width: 50px;">S.NO</th>
+                <th style="width: 90px;">ID</th>
+                <th style="width: 250px;">TASK / DESCRIPTION</th>
                 <th style="width: 100px;">TYPE</th>
-                <th>ZONE / AREA</th>
-                <th>ASSIGNED TO</th>
+                <th style="width: 150px;">ZONE / AREA</th>
+                <th style="width: 150px;">ASSIGNED TO</th>
                 <th style="width: 80px;">REQ</th>
                 <th style="width: 80px;">CMD</th>
                 <th style="width: 100px;">STATUS</th>
-                <th style="width: 100px;">ACTION</th>
+                <th style="width: 120px;">ACTION</th>
             </tr>`;
 
             // Apply headers to all tables
@@ -3895,7 +3973,8 @@
                         requesterLat: c.requester_lat || null,
                         requesterLng: c.requester_lng || null,
                         requesterUrgency: c.requester_urgency || null,
-                        details: c.requester_details || payload.details || null
+                        details: c.requester_details || payload.details || null,
+                        reqTime: c.request_time ? new Date(c.request_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null
                     };
                 });
                 renderCmds();

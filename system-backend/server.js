@@ -888,7 +888,8 @@ app.get('/api/commands', async (req, res) => {
                    rr.type as requester_type,
                    rr.lat as requester_lat,
                    rr.lng as requester_lng,
-                   rr.urgency as requester_urgency
+                   rr.urgency as requester_urgency,
+                   rr.created_at as request_time
             FROM command_queue cq
             LEFT JOIN rescue_requests rr ON CAST(rr.id AS TEXT) = CAST(json_extract(cq.command_payload, '$.rescue_req_id') AS TEXT)
             ORDER BY cq.created_at DESC
