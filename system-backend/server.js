@@ -248,12 +248,96 @@ db.serialize(() => {
     });
 });
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-const broadcast = (type, data) => {
-    wss.clients.forEach(client => {
-        if (client.readyState === 1) client.send(JSON.stringify({ type, data }));
-    });
+// ─── Real-Time Gateway (Enhanced WebSocket) ──────────────────────────────────
+const clients = new Map(); // Map<deviceId, ws>
+const rooms = new Map(); // Map<roomName, Set<deviceId>>
+const pendingMessages = new Map(); // Map<deviceId, Array<{type, data, timestamp, retryCount}>>
+
+const socketManager = {
+    addClient(deviceId, ws) {
+        clients.set(deviceId, ws);
+        console.log(`[GATEWAY] Device connected: ${deviceId}`);
+
+        // Push pending messages
+        if (pendingMessages.has(deviceId)) {
+            const messages = pendingMessages.get(deviceId);
+            console.log(`[GATEWAY] Pushing ${messages.length} pending messages to ${deviceId}`);
+            messages.forEach(msg => this.send(deviceId, msg.type, msg.data, false));
+            pendingMessages.delete(deviceId);
+        }
+    },
+
+    removeClient(deviceId) {
+        clients.delete(deviceId);
+        console.log(`[GATEWAY] Device disconnected: ${deviceId}`);
+    },
+
+    joinRoom(deviceId, room) {
+        if (!rooms.has(room)) rooms.set(room, new Set());
+        rooms.get(room).add(deviceId);
+    },
+
+    send(deviceId, type, data, queueIfOffline = true) {
+        const ws = clients.get(deviceId);
+        const payload = JSON.stringify({ type, data, timestamp: new Date().toISOString(), deliveryId: Math.random().toString(36).substr(2, 9) });
+
+        if (ws && ws.readyState === 1) {
+            ws.send(payload);
+            return true;
+        } else if (queueIfOffline) {
+            if (!pendingMessages.has(deviceId)) pendingMessages.set(deviceId, []);
+            pendingMessages.get(deviceId).push({ type, data, timestamp: new Date().toISOString() });
+            return false;
+        }
+        return false;
+    },
+
+    broadcast(type, data, room = null) {
+        const targets = room ? (rooms.get(room) || []) : clients.keys();
+        for (const deviceId of targets) {
+            this.send(deviceId, type, data);
+        }
+    }
 };
+
+wss.on('connection', (ws) => {
+    let currentDeviceId = null;
+
+    ws.on('message', async (message) => {
+        try {
+            const { type, deviceId, room, data, deliveryId } = JSON.parse(message);
+
+            if (type === 'REGISTER') {
+                currentDeviceId = deviceId;
+                socketManager.addClient(deviceId, ws);
+                if (room) socketManager.joinRoom(deviceId, room);
+                ws.send(JSON.stringify({ type: 'REGISTERED', status: 'ready', serverTime: new Date().toISOString() }));
+            }
+
+            if (type === 'ACK') {
+                console.log(`[GATEWAY] Acknowledgement received for message ${deliveryId} from ${deviceId}`);
+            }
+
+            if (type === 'HEARTBEAT') {
+                ws.send(JSON.stringify({ type: 'PONG', timestamp: new Date().toISOString() }));
+            }
+
+            if (type === 'RESCUER_LOCATION') {
+                // Update live tracking
+                const { lat, lng, name, group_id } = data;
+                await run(`INSERT OR REPLACE INTO rescuer_locations (device_id, group_id, name, lat, lng, last_updated) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+                    [deviceId, group_id, name, lat, lng]);
+                socketManager.broadcast('LIVE_LOCATION_UPDATE', { deviceId, name, lat, lng, group_id });
+            }
+        } catch (e) { console.error('WS Message Error:', e); }
+    });
+
+    ws.on('close', () => {
+        if (currentDeviceId) socketManager.removeClient(currentDeviceId);
+    });
+});
+
+const broadcast = (type, data, room = null) => socketManager.broadcast(type, data, room);
 
 const logCommand = async (action, actor, target, details) => {
     try {
@@ -313,7 +397,7 @@ const groupTasks = async () => {
             };
             const zone_name = `Grouped Task Zone (${group.tasks.length} tasks)`;
             const opType = group.tasks[0].type;
-            
+
             const result = await run(
                 `INSERT INTO operation_zones (zone_geometry, operation_type, zone_name, radius, radius_unit) VALUES (?, ?, ?, ?, ?)`,
                 [JSON.stringify(zone_geometry), opType, zone_name, radius, unitSetting.value]
@@ -454,25 +538,25 @@ app.get('/api/users/:id/combined-history', async (req, res) => {
 
         const groups = await all(`SELECT group_id FROM group_members WHERE user_id = ?`, [userId]);
         const groupIds = groups.map(g => g.group_id);
-        
+
         // Personal Rescue Requests
         const personalReqs = await all(`SELECT 'request' as source, id, type, sector, status, lat, lng, created_at, updated_at FROM rescue_requests WHERE assigned_user_id = ?`, [userId]);
-        
+
         // Group & Personal Commands
         let commandQuery = `SELECT 'command' as source, id, command_type as type, 'HQ Order' as sector, status, created_at, updated_at, command_payload FROM command_queue WHERE (target_phone = ?)`;
         let params = [user.phone || user.device_id];
-        
+
         if (groupIds.length > 0) {
             commandQuery += ` OR (group_id IN (${groupIds.map(() => '?').join(',')}))`;
             params = params.concat(groupIds);
         }
-        
+
         const commands = await all(commandQuery, params);
-        
+
         // Process commands to match format
         const processedCommands = commands.map(c => {
             let payload = {};
-            try { payload = JSON.parse(c.command_payload); } catch(e) {}
+            try { payload = JSON.parse(c.command_payload); } catch (e) { }
             return {
                 source: c.source,
                 id: c.id,
@@ -771,7 +855,7 @@ app.post('/api/rescue-requests', async (req, res) => {
             [device_id, 'rescue_ack', `Your priority ${type} rescue request is received. A team will be assigned shortly.`, 0]);
 
         res.json(reqData);
-        
+
         // Trigger regrouping after new request for normal tasks
         const normalTypes = ['food', 'supply', 'medical supply'];
         if (normalTypes.some(t => (type || '').toLowerCase().includes(t))) {
@@ -798,7 +882,7 @@ app.put('/api/rescue-requests/:id/accept', async (req, res) => {
                 assignedPhone = user.phone;
                 assignedDeviceId = user.device_id;
                 assignedName = user.name;
-                
+
                 await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,
                     [assignedDeviceId || assignedPhone, 'dispatch', `NEW DISPATCH: ${reqData.type.toUpperCase()} at ${reqData.sector}. Urgency: ${reqData.urgency}. Please proceed immediately.`, 1]);
             }
@@ -874,17 +958,17 @@ app.put('/api/rescue-requests/:id/status', async (req, res) => {
 
         broadcast('RESCUE_REQUEST_' + status.toUpperCase(), reqData);
         await logCommand('RESCUE_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Request ID: ${req.params.id}`, { status });
-        
+
         // Multi-rescuer completion logic
         if (status === 'completed') {
             const rescuer = await get(`SELECT id FROM users WHERE phone = ? OR device_id = ?`, [rescuer_phone, rescuer_phone]);
             if (rescuer) {
                 await run(`INSERT OR IGNORE INTO rescuer_task_completions (task_id, rescuer_id) VALUES (?, ?)`, [req.params.id, rescuer.id]);
-                
+
                 // Check if all assigned rescuers completed
                 const assignedRescuers = await all(`SELECT user_id FROM group_members WHERE group_id = ?`, [reqData.assigned_group_id]);
                 const completedRescuers = await all(`SELECT rescuer_id FROM rescuer_task_completions WHERE task_id = ?`, [req.params.id]);
-                
+
                 if (completedRescuers.length < assignedRescuers.length) {
                     // Not everyone completed yet, revert status to in_progress or similar
                     await run(`UPDATE rescue_requests SET status = 'in_progress' WHERE id = ?`, [req.params.id]);
@@ -900,7 +984,7 @@ app.put('/api/rescue-requests/:id/status', async (req, res) => {
                 }
             }
         }
-        
+
         res.json(reqData);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -937,7 +1021,7 @@ app.get('/api/commands', async (req, res) => {
             ORDER BY cq.created_at DESC
         `);
         res.json(commands);
-    } catch (e) { 
+    } catch (e) {
         // Fallback if json_extract is not supported
         try {
             const commands = await all(`SELECT * FROM command_queue ORDER BY created_at DESC`);
@@ -1035,15 +1119,15 @@ app.put('/api/commands/:id/location', async (req, res) => {
     try {
         const cmd = await get(`SELECT * FROM command_queue WHERE id = ?`, [req.params.id]);
         if (!cmd) return res.status(404).json({ error: 'Command not found' });
-        
+
         const payload = JSON.parse(cmd.command_payload || '{}');
         payload.lat = lat;
         payload.lng = lng;
         payload.coords = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-        
-        await run(`UPDATE command_queue SET command_payload = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, 
+
+        await run(`UPDATE command_queue SET command_payload = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
             [JSON.stringify(payload), req.params.id]);
-            
+
         const updatedCmd = await get(`SELECT * FROM command_queue WHERE id = ?`, [req.params.id]);
         broadcast('COMMAND_LOCATION_UPDATED', updatedCmd);
         await logCommand('COMMAND_LOCATION_UPDATE', 'Admin', `Command ID: ${req.params.id}`, { lat, lng });
@@ -1152,7 +1236,7 @@ app.post('/api/settings', async (req, res) => {
     try {
         await run(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, [key, String(value)]);
         broadcast('SETTINGS_UPDATED', { key, value });
-        
+
         res.json({ message: 'Setting updated' });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });

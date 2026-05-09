@@ -486,6 +486,13 @@
                         </div>
                     </div>
 
+                    <!-- REAL-TIME STATUS TICKER -->
+                    <div id="sosStatusTicker" style="margin-top: 20px; text-align: center; display: none;">
+                        <div id="tickerIcon" style="font-size: 24px; margin-bottom: 8px;">📡</div>
+                        <div id="tickerLabel" style="font-size: 14px; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 1px;">Ready</div>
+                        <div id="tickerSub" style="font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 4px;">System Online</div>
+                    </div>
+
                     <div class="mode-selector">
                         <div class="mode-btn active" onclick="core.setMode('medical', this)"><i>🏥</i><span>Medical</span></div>
                         <div class="mode-btn" onclick="core.setMode('pregnancy', this)"><i>🤰</i><span>Pregnancy</span></div>
@@ -664,19 +671,40 @@
     <script>
         const core = {
             API: 'http://localhost:3001/api',
+            WS_URL: 'ws://localhost:3001',
             user: null,
             sosTimer: null,
+            socket: null,
             mode: 'medical',
             needs: { people: 1, food: 0, med: 0, sanitary: 0, photo: null, route: null },
+            retryQueue: [],
+            backoff: [3000, 7000, 12000],
             
-            init() {
+            async init() {
                 this.setupKeyboardHandling();
                 const saved = localStorage.getItem('citizen_user');
                 if (saved) {
                     this.user = JSON.parse(saved);
                     this.showScreen('screenHome');
                     this.bootstrap();
+                    this.connectGateway();
                 }
+                await this.fetchSettings();
+                this.processRetryQueue();
+            },
+
+            async fetchSettings() {
+                try {
+                    const res = await fetch(`${this.API}/settings`);
+                    const settings = await res.json();
+                    if (settings.retry_intervals) {
+                        const intervals = settings.retry_intervals.split(',').map(s => parseInt(s.trim()) * 1000);
+                        if (intervals.length > 0 && !intervals.some(isNaN)) {
+                            this.backoff = intervals;
+                            console.log('[SYNC] Retry intervals updated:', this.backoff);
+                        }
+                    }
+                } catch (e) { console.error('[SYNC] Failed to fetch settings', e); }
             },
             
             async login() {
@@ -697,6 +725,7 @@
                         localStorage.setItem('citizen_user', JSON.stringify(this.user));
                         this.showScreen('screenHome');
                         this.bootstrap();
+                        this.connectGateway();
                     } else {
                         err.style.display = 'block';
                     }
@@ -706,6 +735,7 @@
                     localStorage.setItem('citizen_user', JSON.stringify(this.user));
                     this.showScreen('screenHome');
                     this.bootstrap();
+                    this.connectGateway();
                 } finally {
                     this.showLoader(false);
                 }
@@ -723,23 +753,81 @@
                 document.getElementById('dispName').innerText = this.user.name;
                 document.getElementById('profName').innerText = this.user.name;
                 document.getElementById('profId').innerText = `ID: ${this.user.serial_number || 'PUB-01'}`;
-                
-                const runSync = async () => {
-                    await this.refreshStatus();
-                    
-                    // Fetch settings for refresh interval
-                    try {
-                        const res = await fetch(`${this.API}/settings`);
-                        const settings = await res.json();
-                        if (settings.refresh_interval) {
-                            this.refreshInterval = parseInt(settings.refresh_interval);
-                        }
-                    } catch (e) {}
+            },
 
-                    this.syncTimer = setTimeout(runSync, this.refreshInterval * 1000);
-                };
+            connectGateway() {
+                console.log('[GATEWAY] Connecting...');
+                this.socket = new WebSocket(this.WS_URL);
                 
-                runSync();
+                this.socket.onopen = async () => {
+                    console.log('[GATEWAY] Connected');
+                    this.socket.send(JSON.stringify({ 
+                        type: 'REGISTER', 
+                        deviceId: this.user.serial_number || this.user.phone,
+                        room: 'public_broadcast'
+                    }));
+                    await this.fetchSettings(); // Refresh settings on reconnect
+                };
+
+                this.socket.onmessage = (msg) => {
+                    const { type, data } = JSON.parse(msg.data);
+                    this.handleGatewayMessage(type, data);
+                };
+
+                this.socket.onclose = () => {
+                    console.log('[GATEWAY] Offline, reconnecting in 5s...');
+                    setTimeout(() => this.connectGateway(), 5000);
+                };
+            },
+
+            getDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371;
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            },
+
+            handleGatewayMessage(type, data) {
+                if (type === 'LIVE_LOCATION_UPDATE') {
+                    const dist = this.getDistance(13.085, 80.272, data.lat, data.lng);
+                    if (dist < 1) {
+                        this.updateStatusUI('NEARBY', `Rescuer ${data.name} is arriving (${dist.toFixed(1)}km)`, '🏢');
+                    } else if (dist < 5) {
+                        this.updateStatusUI('APPROACHING', `Rescuer ${data.name} in transit (${dist.toFixed(1)}km)`, '🚁');
+                    } else {
+                        this.updateStatusUI('DISPATCHED', `Team assigned: ${data.name} (${dist.toFixed(1)}km)`, '🚨');
+                    }
+                }
+                if (type === 'RESCUE_REQUEST_ACCEPTED') {
+                    this.updateStatusUI('TEAM_ASSIGNED', 'Rescue team has been dispatched!', '🚨');
+                    this.toast('TEAM DISPATCHED', '🚨');
+                }
+                if (type === 'RESCUE_REQUEST_COMPLETED') {
+                    this.updateStatusUI('SUCCESS', 'Rescue mission completed!', '✅');
+                    this.toast('MISSION COMPLETE', '✅');
+                }
+                if (type === 'SETTINGS_UPDATED' && data.key === 'retry_intervals') {
+                    const intervals = data.value.split(',').map(s => parseInt(s.trim()) * 1000);
+                    if (intervals.length > 0 && !intervals.some(isNaN)) {
+                        this.backoff = intervals;
+                        console.log('[SYNC] Live retry intervals update:', this.backoff);
+                        this.toast('Sync Config Updated', '⚙️');
+                    }
+                }
+            },
+
+            updateStatusUI(stage, message, icon) {
+                const ticker = document.getElementById('sosStatusTicker');
+                if (ticker) ticker.style.display = 'block';
+                const label = document.getElementById('tickerLabel');
+                if (label) label.innerText = stage;
+                const sub = document.getElementById('tickerSub');
+                if (sub) sub.innerText = message;
+                const iconEl = document.getElementById('tickerIcon');
+                if (iconEl) iconEl.innerText = icon || '📡';
             },
             
             showScreen(id) {
@@ -787,35 +875,87 @@
             },
             
             async triggerSOS() {
-                this.showLoader(true);
-                try {
-                    const payload = {
-                        phone: this.user.phone,
-                        device_id: this.user.serial_number,
-                        type: this.mode,
-                        lat: 13.085, lng: 80.272,
-                        details: JSON.stringify({ 
-                            needs: this.needs, 
-                            photo: this.needs.photo, 
-                            route: this.needs.route || 'Not Defined',
-                            sector: document.getElementById('inpLoc').value 
-                        }),
-                        urgency: 'critical',
-                        sector: document.getElementById('inpLoc').value || 'Detected Location'
-                    };
+                this.updateStatusUI('TRIGGERED', 'SOS initiated locally', '🚨');
+                
+                const payload = {
+                    phone: this.user.phone,
+                    device_id: this.user.serial_number,
+                    type: this.mode,
+                    lat: 13.085, lng: 80.272,
+                    details: JSON.stringify({ 
+                        needs: this.needs, 
+                        photo: this.needs.photo, 
+                        route: this.needs.route || 'Not Defined',
+                        sector: document.getElementById('inpLoc').value 
+                    }),
+                    urgency: 'critical',
+                    sector: document.getElementById('inpLoc').value || 'Detected Location'
+                };
+
+                if (navigator.onLine && this.socket && this.socket.readyState === 1) {
+                    this.updateStatusUI('CONNECTING', 'Syncing with server...', '📡');
+                    try {
+                        const res = await fetch(`${this.API}/rescue-requests`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (res.ok) {
+                            this.updateStatusUI('DELIVERED', 'SOS Delivered Successfully', '✅');
+                            this.toast('SOS DELIVERED', '✅');
+                            this.nav('Status');
+                        } else throw new Error('Server reject');
+                    } catch (e) {
+                        this.queueForRetry(payload);
+                    }
+                } else {
+                    this.queueForRetry(payload);
+                }
+            },
+
+            queueForRetry(payload) {
+                this.updateStatusUI('OFFLINE', 'Waiting for network...', '⏳');
+                const queue = JSON.parse(localStorage.getItem('sos_retry_queue') || '[]');
+                queue.push({ payload, retries: 0, timestamp: Date.now() });
+                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
+                this.toast('OFFLINE: SOS queued for retry', '⏳');
+            },
+
+            async processRetryQueue() {
+                const queue = JSON.parse(localStorage.getItem('sos_retry_queue') || '[]');
+                if (queue.length === 0) {
+                    setTimeout(() => this.processRetryQueue(), 5000);
+                    return;
+                }
+
+                if (navigator.onLine) {
+                    const item = queue[0];
+                    const waitTime = this.backoff[Math.min(item.retries, this.backoff.length - 1)];
                     
-                    await fetch(`${this.API}/rescue-requests`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    this.toast('SOS DISPATCHED SUCCESSFULLY', '🚨');
-                    this.nav('Status');
-                } catch (e) {
-                    this.toast('CONNECTION ERROR', '❌');
-                } finally {
-                    this.showLoader(false);
+                    setTimeout(async () => {
+                        try {
+                            const res = await fetch(`${this.API}/rescue-requests`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(item.payload)
+                            });
+                            if (res.ok) {
+                                queue.shift();
+                                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
+                                this.updateStatusUI('DELIVERED', 'Sync Complete: SOS Delivered', '✅');
+                                this.toast('SYNCED: SOS DELIVERED', '✅');
+                            } else {
+                                item.retries++;
+                                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
+                            }
+                        } catch (e) {
+                            item.retries++;
+                            localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
+                        }
+                        this.processRetryQueue();
+                    }, waitTime);
+                } else {
+                    setTimeout(() => this.processRetryQueue(), 5000);
                 }
             },
             

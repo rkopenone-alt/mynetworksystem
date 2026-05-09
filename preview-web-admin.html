@@ -997,8 +997,29 @@
             font-size: 12px;
         }
 
-        .mt-4 {
-            margin-top: 16px;
+        .mt-4 { margin-top: 16px; }
+
+        /* Admin Toast */
+        #adminToast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10001;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #adminToast.show {
+            transform: translateY(0);
+            opacity: 1;
         }
 
         /* Operational Hub Layout */
@@ -1759,19 +1780,72 @@
                 <h2 class="page-title"><i data-lucide="settings"></i> System Configuration</h2>
             </div>
             <div class="card">
-                <h3 style="margin-top:0;">Async Refresh Settings</h3>
-                <p style="color:var(--text-muted);font-size:13px;">Configure how often the dashboard updates
-                    automatically (affects all connected apps).</p>
-                <div class="input-group" style="margin-bottom: 12px;">
-                    <label class="input-label">Refresh Time Period</label>
-                    <select id="refreshIntervalSelect" class="form-control" onchange="updateRefreshSetting(this.value)">
-                        <option value="5">5 Seconds (Default)</option>
-                        <option value="10">10 Seconds</option>
-                        <option value="30">30 Seconds</option>
-                        <option value="60">1 Minute</option>
-                        <option value="300">5 Minutes</option>
-                    </select>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <h3 style="margin: 0;">Async Refresh Settings</h3>
+                    <div id="refreshBadge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; border: 1.5px solid #10b981; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.05);">
+                        <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i>
+                        Last Set Value: <span id="activeRefreshValue">5s</span>
+                    </div>
                 </div>
+                <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Configure how often the dashboard updates automatically (affects all connected apps).</p>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Refresh Time Period</label>
+                    <div style="display:flex; gap:10px; align-items: center; flex-wrap: nowrap;">
+                        <!-- Presets -->
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="updateRefreshSetting('5')">5s</button>
+                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="updateRefreshSetting('10')">10s</button>
+                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="updateRefreshSetting('30')">30s</button>
+                        </div>
+                        
+                        <!-- Separator -->
+                        <div style="width: 1px; height: 24px; background: var(--border); margin: 0 10px;"></div>
+
+                        <!-- Custom Input -->
+                        <div style="display:flex; gap:6px; flex: 1; max-width: 300px;">
+                            <input type="text" id="refreshIntervalInput" class="form-control" placeholder="Custom (seconds)..." style="flex:1; height: 36px; font-size: 12px; border-radius: 6px;">
+                            <button class="btn btn-primary" onclick="updateRefreshSetting(document.getElementById('refreshIntervalInput').value)" style="height: 36px; padding: 0 14px; font-size: 12px; white-space: nowrap; border-radius: 6px;">
+                                <i data-lucide="save" style="width:14px;"></i> Set
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-4">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <h3 style="margin: 0;">Public App Sync Settings</h3>
+                    <div id="activeRetryBadge" style="background: rgba(37, 99, 235, 0.1); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--accent); box-shadow: 0 2px 5px rgba(37, 99, 235, 0.05);">
+                        <i data-lucide="clock-rewind" style="width: 10px; height: 10px;"></i>
+                        Last Set Value: <span id="activeRetryValue">...</span>
+                    </div>
+                </div>
+                <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Configure the retry behavior for SOS transmission in the Public Mobile App.</p>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">SOS Retry Configuration</label>
+                    <div style="display:flex; gap:10px; align-items: center; flex-wrap: nowrap;">
+                        <!-- Presets -->
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setRetryPreset('3')">3s</button>
+                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setRetryPreset('7')">7s</button>
+                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setRetryPreset('15')">15s</button>
+                        </div>
+                        
+                        <!-- Separator -->
+                        <div style="width: 1px; height: 24px; background: var(--border); margin: 0 10px;"></div>
+
+                        <!-- Custom Input -->
+                        <div style="display:flex; gap:6px; flex: 1; max-width: 300px;">
+                            <input type="text" id="retryIntervalsInput" class="form-control" placeholder="Custom..." style="flex:1; height: 36px; font-size: 12px; border-radius: 6px;">
+                            <button class="btn btn-primary" onclick="saveRetryConfig()" style="height: 36px; padding: 0 14px; font-size: 12px; white-space: nowrap; border-radius: 6px;">
+                                <i data-lucide="save" style="width:14px;"></i> Set
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <p style="margin-top:12px; font-size:11px; color:var(--text-muted); font-style: italic;">
+                    <i data-lucide="info" style="width:12px; vertical-align: middle;"></i> 
+                    Selecting a preset or entering custom seconds (comma-separated for backoff) will instantly update all public devices.
+                </p>
             </div>
             <div class="card mt-4">
                 <h3 style="margin-top:0;">Map Settings</h3>
@@ -2272,7 +2346,13 @@
     </div>
 
     <!-- SCRIPTS -->
+    <div id="adminToast">
+        <i data-lucide="check-circle" style="width:20px; color:#10b981;"></i>
+        <span id="adminToastMsg">Settings updated successfully</span>
+    </div>
+
     <script>
+        const API_BASE = 'http://127.0.0.1:3001/api';
         lucide.createIcons();
 
         // 0. Landing Page Logic
@@ -2979,6 +3059,16 @@
             // Keep draw mode active so subsequent clicks draw a new zone
             // until the user presses Escape or explicitly changes the tool.
             map.getContainer().style.cursor = 'crosshair';
+        }
+
+        function showAdminToast(msg) {
+            const toast = document.getElementById('adminToast');
+            const toastMsg = document.getElementById('adminToastMsg');
+            toastMsg.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
         document.addEventListener('keydown', function (e) {
@@ -4122,20 +4212,58 @@
                 const settings = await res.json();
                 if (settings.refresh_interval) {
                     const interval = parseInt(settings.refresh_interval);
-                    document.getElementById('refreshIntervalSelect').value = interval;
+                    document.getElementById('refreshIntervalInput').value = interval;
+                    document.getElementById('activeRefreshValue').innerText = interval + 's';
                     startAutoRefresh(interval);
+                }
+                if (settings.retry_intervals) {
+                    document.getElementById('retryIntervalsInput').value = settings.retry_intervals;
+                    const displayVal = settings.retry_intervals.includes(',') ? settings.retry_intervals : settings.retry_intervals + 's';
+                    document.getElementById('activeRetryValue').innerText = displayVal;
                 }
             } catch (e) { console.error("Error fetching settings", e); }
         }
 
+        function setRetryPreset(val) {
+            document.getElementById('retryIntervalsInput').value = val;
+            saveRetryConfig();
+        }
+
+        async function saveRetryConfig() {
+            const val = document.getElementById('retryIntervalsInput').value;
+            console.log("[Admin] Saving retry config:", val);
+            if (!val) return;
+            try {
+                const response = await fetch(`${API_BASE}/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: 'retry_intervals', value: val })
+                });
+                if (response.ok) {
+                    const displayVal = val.includes(',') ? val : val + 's';
+                    document.getElementById('activeRetryValue').innerText = displayVal;
+                    showAdminToast(`Mobile SOS retry intervals updated to: ${displayVal}`);
+                } else {
+                    console.error("[Admin] Failed to save settings:", response.statusText);
+                    alert("Failed to save settings. Please check backend connection.");
+                }
+            } catch (e) { 
+                console.error("[Admin] Save error:", e);
+                alert("Error connecting to server. Is the backend running?");
+            }
+        }
+
         async function updateRefreshSetting(val) {
+            if (!val) return;
             try {
                 await fetch(`${API_BASE}/settings`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key: 'refresh_interval', value: val })
                 });
-                showAdminToast(`Refresh interval updated to ${val} seconds`);
+                document.getElementById('activeRefreshValue').innerText = val + 's';
+                document.getElementById('refreshIntervalInput').value = val;
+                showAdminToast(`Dashboard refresh interval updated to ${val} seconds`);
                 startAutoRefresh(parseInt(val));
             } catch (e) { console.error(e); }
         }
@@ -4153,7 +4281,6 @@
             }, seconds * 1000);
         }
 
-        const API_BASE = 'http://localhost:3001/api';
 
         // ─── Member DB Logic ────────────────────────────────────────────────────────
         let currentGroups = [];

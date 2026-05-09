@@ -117,6 +117,7 @@ async function hardReset() {
                 // 7. Add default settings
                 db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('sos_interval', '15')`);
                 db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('refresh_interval', '5')`);
+                db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('retry_intervals', '3, 7, 15')`);
 
                 // 8. Add dummy rescue requests
                 db.run(`INSERT INTO rescue_requests (type, sector, urgency, status, device_id, phone) VALUES 
