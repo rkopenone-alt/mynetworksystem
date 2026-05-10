@@ -2746,16 +2746,16 @@
 
             // Add dynamic tactical markers
             let mapMarkersData = [
-                { lat: 13.085, lng: 80.27, type: 'sos', icon: 'radio', details: 'Critical SOS: Stranded family on roof, immediate evac needed.' },
-                { lat: 13.090, lng: 80.26, type: 'medical', icon: 'cross', details: 'Medical Emergency: Elderly patient with cardiac arrest.' },
-                { lat: 13.075, lng: 80.28, type: 'food', icon: 'package', details: 'Food Request: 50 meal packets needed for relief camp.' },
-                { lat: 13.095, lng: 80.275, type: 'pregnancy', icon: 'activity', details: 'Pregnancy Evac: Labor initiated, urgent medical transport.' },
-                { lat: 13.068, lng: 80.278, type: 'rescue', icon: 'triangle', details: 'Rescue Operation: Structural collapse, 2 trapped civilians.' }
+                { id: 901, status: 'pending', lat: 13.085, lng: 80.27, type: 'sos', icon: 'radio', details: 'Critical SOS: Stranded family on roof, immediate evac needed.' },
+                { id: 902, status: 'pending', lat: 13.090, lng: 80.26, type: 'medical', icon: 'cross', details: 'Medical Emergency: Elderly patient with cardiac arrest.' },
+                { id: 903, status: 'pending', lat: 13.075, lng: 80.28, type: 'food', icon: 'package', details: 'Food Request: 50 meal packets needed for relief camp.' },
+                { id: 904, status: 'pending', lat: 13.095, lng: 80.275, type: 'pregnancy', icon: 'activity', details: 'Pregnancy Evac: Labor initiated, urgent medical transport.' },
+                { id: 905, status: 'pending', lat: 13.068, lng: 80.278, type: 'rescue', icon: 'triangle', details: 'Rescue Operation: Structural collapse, 2 trapped civilians.' }
             ];
 
             mapMarkersData.forEach(m => {
                 let isHex = m.type === 'rescue';
-                addMarker(m.lat, m.lng, m.type, `<i data-lucide="${m.icon}" style="width:16px;height:16px;${isHex ? 'fill:white' : ''}"></i>`, m.details);
+                addMarker(m.lat, m.lng, m.type, `<i data-lucide="${m.icon}" style="width:16px;height:16px;${isHex ? 'fill:white' : ''}"></i>`, m.details, null, false, false, m.id, false, m.status);
             });
 
             // Add a cluster example
@@ -2779,7 +2779,52 @@
             setTimeout(() => lucide.createIcons(), 100);
         }
 
-        function addMarker(lat, lng, type, iconHtml, details, label, isCriticalMovement = false, isGrouped = false, dbId = null, isCommand = false) {
+        window.populateCommandForm = function(dbId, type, lat, lng, details) {
+            const typeInput = document.getElementById('cmdType');
+            if (typeInput) {
+                const normType = type.toLowerCase();
+                if (normType.includes('medical')) typeInput.value = 'medical';
+                else if (normType.includes('pregnancy')) typeInput.value = 'pregnancy';
+                else if (normType.includes('food') || normType.includes('delivery')) typeInput.value = 'food';
+                else if (normType.includes('sos')) typeInput.value = 'sos';
+                else typeInput.value = 'rescue';
+                
+                typeInput.dispatchEvent(new Event('change'));
+            }
+
+            const areaInput = document.getElementById('cmdAreaName');
+            if (areaInput) {
+                const areaMatch = details && details.match(/Area:\s*(.*)/);
+                areaInput.value = areaMatch ? areaMatch[1].replace(/<[^>]*>?/gm, '') : `Location near ${parseFloat(lat).toFixed(4)}, ${parseFloat(lng).toFixed(4)}`;
+            }
+
+            const coordInput = document.getElementById('cmdCoords');
+            if (coordInput) {
+                coordInput.value = `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
+                coordInput.dataset.reqId = dbId;
+            }
+
+            const detailsInput = document.getElementById('cmdDetails');
+            if (detailsInput) {
+                const textDetails = details ? details.replace(/<br\s*[\/]?>/gi, '\n').replace(/<[^>]*>?/gm, '') : '';
+                detailsInput.value = `[Auto-Assigned ${type.toUpperCase()} Request #${dbId}]\n${textDetails}`;
+            }
+
+            document.querySelector('.sidebar.left').scrollIntoView({ behavior: 'smooth' });
+            
+            if (typeof showAdminToast === 'function') {
+                showAdminToast(`Selected ${type.toUpperCase()} Request #${dbId} for Assignment`);
+            }
+            
+            const formPanel = document.querySelector('.sidebar.left');
+            if (formPanel) {
+                formPanel.style.transition = 'box-shadow 0.3s';
+                formPanel.style.boxShadow = '0 0 0 3px var(--primary)';
+                setTimeout(() => formPanel.style.boxShadow = '', 800);
+            }
+        };
+
+        function addMarker(lat, lng, type, iconHtml, details, label, isCriticalMovement = false, isGrouped = false, dbId = null, isCommand = false, status = null) {
             // Priority check for pulsing
             const isPriority = isCriticalMovement || ['sos', 'medical', 'pregnancy', 'command', 'critical'].includes(type.toLowerCase());
             const markerClass = `marker-${type.toLowerCase()} ${isGrouped ? 'marker-grouped' : ''}`;
@@ -2799,9 +2844,8 @@
                 iconAnchor: [17, 17]
             });
 
-            // Make rescue and command markers draggable
-            const isTask = ['sos', 'medical', 'pregnancy', 'food', 'delivery', 'medical_delivery'].includes(type.toLowerCase());
-            const draggable = (isTask || isCommand) && dbId !== null;
+            // Make command markers draggable (SOS tasks should stick to coordinates)
+            const draggable = isCommand && dbId !== null;
 
             let marker = L.marker([lat, lng], {
                 icon: icon,
@@ -2836,11 +2880,33 @@
                 });
             }
             if (details) {
-                marker.bindPopup(`<div style="font-family:'Inter'; font-size:13px; padding:4px;">
+                let statusHtml = '';
+                let actionHtml = '';
+
+                if (!isCommand && dbId) {
+                    if (status) {
+                        let badgeClass = status === 'pending' ? 'tag-yellow' : (status === 'completed' ? 'tag-green' : (status === 'declined' ? 'tag-red' : 'tag-purple'));
+                        statusHtml = `<div style="margin-top:8px; margin-bottom:4px;"><span class="tag ${badgeClass}">${status.toUpperCase()}</span></div>`;
+                    }
+
+                    if (status !== 'completed') {
+                        const safeDetails = details.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        actionHtml = `<div style="margin-top:10px;">
+                            <button class="btn btn-primary" style="width:100%; font-size:11px; padding:6px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px;" onclick="window.populateCommandForm(${dbId}, '${type}', ${lat}, ${lng}, '${safeDetails}')">
+                                Assign Task
+                            </button>
+                        </div>`;
+                    }
+                }
+
+                marker.bindPopup(`<div style="font-family:'Inter'; font-size:13px; padding:4px; min-width:180px;">
                     <div style="font-weight:900; text-transform:uppercase; margin-bottom:4px; color:var(--primary);">${type} Mission</div>
                     <div style="line-height:1.4; color:var(--text-muted);">${details}</div>
+                    ${statusHtml}
+                    ${actionHtml}
                 </div>`);
             }
+
             return marker;
         }
 
@@ -2911,10 +2977,13 @@
                         const m = addMarker(r.lat, r.lng, 'rescuer', '🚁', `Rescuer: ${r.name}`, r.name);
                         mapLayers.push(m);
 
-                        // Draw lines for assigned critical commands or SOS alerts
+                        // Helper to check if rescuer is in a specific group
+                        const isInGroup = (groupId) => r.groups && r.groups.some(g => g.id === groupId);
+
+                        // Draw lines for assigned critical commands
                         activeCmds.forEach(c => {
                             const isCriticalCmd = c.command_type === 'critical' || c.priority === 'critical' || c.command_type === 'sos';
-                            if (isCriticalCmd && c.status !== 'completed' && (c.target_phone === r.phone || c.group_id === r.group_id)) {
+                            if (isCriticalCmd && c.status !== 'completed' && (c.target_phone === r.phone || isInGroup(c.group_id))) {
                                 // Find the target request location
                                 let targetLat, targetLng;
                                 const payload = JSON.parse(c.command_payload || '{}');
@@ -2935,6 +3004,19 @@
                                     }).addTo(map);
                                     mapLayers.push(line);
                                 }
+                            }
+                        });
+
+                        // Draw lines for assigned rescue tasks (Public SOS)
+                        tasks.forEach(t => {
+                            if (t.status !== 'completed' && (t.assigned_user_id === r.id || isInGroup(t.assigned_group_id))) {
+                                const line = L.polyline([[r.lat, r.lng], [t.lat, t.lng]], {
+                                    color: '#f59e0b', // High visibility warning color
+                                    weight: 3,
+                                    dashArray: '5, 10',
+                                    opacity: 0.8
+                                }).addTo(map);
+                                mapLayers.push(line);
                             }
                         });
                     }
@@ -2959,7 +3041,7 @@
 
                     const icon = getTaskIconByType(t.type);
                     const label = t.serial_number || t.phone || t.device_id;
-                    const m = addMarker(t.lat, t.lng, t.type.toLowerCase(), icon, `Request: ${t.type}<br>Area: ${t.sector}`, label, false, isInZone, t.id, false);
+                    const m = addMarker(t.lat, t.lng, t.type.toLowerCase(), icon, `Request: ${t.type}<br>Area: ${t.sector}`, label, false, isInZone, t.id, false, t.status);
                     mapLayers.push(m);
                 });
 
@@ -3713,7 +3795,9 @@
                 if (!rescuerPhone) { alert('Please select a rescuer'); return; }
             }
             let areaName = document.getElementById('cmdAreaName').value || 'Manual Zone';
-            let coords = document.getElementById('cmdCoords').value || '';
+            let coordsEl = document.getElementById('cmdCoords');
+            let coords = coordsEl.value || '';
+            let reqId = coordsEl.dataset.reqId || null;
             let zoneHtml = coords ? `<b>${areaName}</b><br><small style="color:var(--text-muted);font-size:11px;">${coords}</small>` : `<b>${areaName}</b>`;
             let desc = document.getElementById('cmdDetails').value;
 
@@ -3722,7 +3806,7 @@
             // === Critical Response: Show high-priority approval popup ===
             if (type === 'critical') {
                 showCriticalApprovalPopup({
-                    type, desc, teamId, team, areaName, coords, zoneHtml
+                    type, desc, teamId, team, areaName, coords, zoneHtml, reqId
                 });
                 return;
             }
@@ -3775,9 +3859,11 @@
                     target_user_id: rescuerPhone || null,
                     command_type: type,
                     priority: currentTaskPriority,
-                    command_payload: { message: desc, zone: areaName, coords, layerData: cmdLayerData },
+                    command_payload: { message: desc, zone: areaName, coords, layerData: cmdLayerData, rescue_req_id: reqId },
                     actor: 'Commander'
                 })
+            }).then(() => {
+                document.getElementById('cmdCoords').dataset.reqId = '';
             }).catch(e => console.warn('Command persist failed (offline?):', e));
 
             renderCmds();
@@ -3856,7 +3942,7 @@
                     target_user_id: params.rescuerPhone || null,
                     command_type: 'critical',
                     priority: 'critical',
-                    command_payload: { message: params.desc, zone: params.areaName, coords: params.coords },
+                    command_payload: { message: params.desc, zone: params.areaName, coords: params.coords, rescue_req_id: params.reqId },
                     actor: 'Commander'
                 })
             }).catch(e => console.warn('Critical dispatch persist failed:', e));
@@ -4340,7 +4426,18 @@
             const list = document.getElementById('groupSidebarList');
             if (!list) return;
 
-            list.innerHTML = currentGroups.slice(0, 5).map((g, index) => {
+            const allActive = selectedGroupId === 'all' ? 'active' : '';
+            let html = `
+                <div class="group-tile ${allActive}" onclick="switchGroup('all', this)">
+                    <div class="group-id" style="display:flex;align-items:center;justify-content:center;"><i data-lucide="users" style="width:16px;"></i></div>
+                    <div class="group-info">
+                        <div class="group-name" style="font-weight:700;">All Members</div>
+                        <div class="group-meta">Entire Roster</div>
+                    </div>
+                </div>
+            `;
+
+            html += currentGroups.map((g, index) => {
                 const sNo = String(index + 1).padStart(2, '0');
                 const isActive = selectedGroupId === g.id ? 'active' : '';
                 return `
@@ -4353,6 +4450,9 @@
                     </div>
                 `;
             }).join('');
+            
+            list.innerHTML = html;
+            lucide.createIcons();
         }
 
         function updateModalGroupLists() {
@@ -4382,10 +4482,15 @@
 
             if (el) el.classList.add('active');
 
-            const group = currentGroups.find(g => g.id === groupId);
-            if (group) {
-                document.getElementById('currentGroupName').innerText = group.group_name;
-                renderMembers(groupId);
+            if (groupId === 'all') {
+                document.getElementById('currentGroupName').innerText = 'All Members';
+                renderMembers('all');
+            } else {
+                const group = currentGroups.find(g => g.id === groupId);
+                if (group) {
+                    document.getElementById('currentGroupName').innerText = group.group_name;
+                    renderMembers(groupId);
+                }
             }
         }
 
@@ -4393,22 +4498,32 @@
             const tbody = document.getElementById('memberTableBody');
             if (!tbody) return;
 
-            const members = currentUsers.filter(u => u.groups && u.groups.some(g => g.id === groupId));
+            let members;
+            if (groupId === 'all') {
+                members = currentUsers.filter(u => u.role !== 'public');
+            } else {
+                members = currentUsers.filter(u => u.groups && u.groups.some(g => g.id === groupId));
+            }
 
-            tbody.innerHTML = members.map((m, index) => `
+            tbody.innerHTML = members.map((m, index) => {
+                const groupTags = m.groups && m.groups.length > 0 
+                    ? m.groups.map(g => `<span class="tag tag-blue" style="font-size:10px; padding:2px 6px; background:#eff6ff; color:#2563eb; border:1px solid #dbeafe;">${g.group_name}</span>`).join('')
+                    : `<span class="tag tag-gray" style="font-size:10px; padding:2px 6px;">Unassigned</span>`;
+                
+                return `
                 <tr>
                     <td style="font-weight: 800; color: var(--text-muted);">${String(index + 1).padStart(2, '0')}</td>
                     <td>
                         <img src="${m.photo_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(m.name) + '&background=random'}" 
                              style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid var(--border);" />
                     </td>
-                    <td style="font-weight:700; color:var(--accent); font-family: monospace;">${m.serial_number || 'N/A'}</td>
+                    <td style="font-weight:700; color:var(--accent); font-family: monospace;">${m.device_id || m.serial_number || 'N/A'}</td>
                     <td><div style="font-weight:600;">${m.name}</div></td>
                     <td><code style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:700; color:#1e293b; border:1px solid #cbd5e1;">${m.password || '123456'}</code></td>
                     <td><span class="tag tag-gray">${m.role}</span></td>
                     <td>
                         <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                            ${m.groups.map(g => `<span class="tag tag-blue" style="font-size:10px; padding:2px 6px; background:#eff6ff; color:#2563eb; border:1px solid #dbeafe;">${g.group_name}</span>`).join('')}
+                            ${groupTags}
                         </div>
                     </td>
                     <td><span class="tag ${m.status === 'active' ? 'tag-green' : 'tag-gray'}">${m.status}</span></td>
@@ -4417,7 +4532,8 @@
                         <button class="action-icon danger" onclick="deleteMember(${m.id})" title="Delete"><i data-lucide="trash-2" style="width:14px;"></i></button>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
             lucide.createIcons();
         }
 
@@ -4440,6 +4556,10 @@
         }
 
         function openAssignExistingModal() {
+            if (selectedGroupId === 'all') {
+                alert("Please select a specific group from the left sidebar to assign members to it.");
+                return;
+            }
             const group = currentGroups.find(g => g.id === selectedGroupId);
             if (!group) return;
 

@@ -448,7 +448,7 @@
                 
                 <div class="input-group">
                     <label class="input-label">Citizen Login ID</label>
-                    <input type="text" id="inpId" class="input-field" placeholder="Enter Phone or ID" value="918000000001">
+                    <input type="text" id="inpId" class="input-field" placeholder="Enter Phone or ID" value="918000000099">
                 </div>
                 <div class="input-group">
                     <label class="input-label">Security PIN</label>
@@ -682,12 +682,34 @@
             
             async init() {
                 this.setupKeyboardHandling();
-                const saved = localStorage.getItem('citizen_user');
-                if (saved) {
-                    this.user = JSON.parse(saved);
-                    this.showScreen('screenHome');
-                    this.bootstrap();
-                    this.connectGateway();
+                const savedToken = localStorage.getItem('citizen_token');
+                const savedUser = localStorage.getItem('citizen_user');
+                if (savedToken && savedUser) {
+                    this.showLoader(true);
+                    try {
+                        const res = await fetch(`${this.API}/auth/verify`, {
+                            headers: { 'Authorization': `Bearer ${savedToken}` }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.user = data.user;
+                            localStorage.setItem('citizen_user', JSON.stringify(this.user));
+                            this.showScreen('screenHome');
+                            this.bootstrap();
+                            this.connectGateway();
+                        } else {
+                            this.logout();
+                        }
+                    } catch (e) {
+                        // Offline mode: proceed with local data if network fails
+                        console.log("Offline mode, relying on local session");
+                        this.user = JSON.parse(savedUser);
+                        this.showScreen('screenHome');
+                        this.bootstrap();
+                        this.connectGateway();
+                    } finally {
+                        this.showLoader(false);
+                    }
                 }
                 await this.fetchSettings();
                 this.processRetryQueue();
@@ -712,36 +734,44 @@
                 const pin = document.getElementById('inpPin').value;
                 const err = document.getElementById('loginError');
                 
+                let localDeviceId = localStorage.getItem('citizen_device_id');
+                if (!localDeviceId) {
+                    localDeviceId = 'PUBDEV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                    localStorage.setItem('citizen_device_id', localDeviceId);
+                }
+
                 this.showLoader(true);
                 try {
-                    const res = await fetch(`${this.API}/login`, {
+                    const res = await fetch(`${this.API}/auth/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ phone, password: pin })
+                        body: JSON.stringify({ idOrPhone: phone, pin, deviceId: localDeviceId })
                     });
                     
                     if (res.ok) {
-                        this.user = await res.json();
+                        const data = await res.json();
+                        this.user = data.user;
+                        localStorage.setItem('citizen_token', data.token);
                         localStorage.setItem('citizen_user', JSON.stringify(this.user));
                         this.showScreen('screenHome');
                         this.bootstrap();
                         this.connectGateway();
                     } else {
+                        const errData = await res.json();
+                        err.innerText = errData.error || "INVALID CREDENTIALS";
                         err.style.display = 'block';
                     }
                 } catch (e) {
-                    // Fallback for demo
-                    this.user = { id: 99, name: 'Citizen User', phone, serial_number: 'PUB-01' };
-                    localStorage.setItem('citizen_user', JSON.stringify(this.user));
-                    this.showScreen('screenHome');
-                    this.bootstrap();
-                    this.connectGateway();
+                    console.error("Login failed", e);
+                    err.innerText = "NETWORK ERROR OR SERVER DOWN";
+                    err.style.display = 'block';
                 } finally {
                     this.showLoader(false);
                 }
             },
             
             logout() {
+                localStorage.removeItem('citizen_token');
                 localStorage.removeItem('citizen_user');
                 location.reload();
             },
@@ -791,6 +821,10 @@
             },
 
             handleGatewayMessage(type, data) {
+                if (type === 'USER_DISABLED') {
+                    this.toast('ACCOUNT DISABLED BY ADMIN', '🚫');
+                    setTimeout(() => this.logout(), 2000);
+                }
                 if (type === 'LIVE_LOCATION_UPDATE') {
                     const dist = this.getDistance(13.085, 80.272, data.lat, data.lng);
                     if (dist < 1) {

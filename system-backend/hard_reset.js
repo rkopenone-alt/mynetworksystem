@@ -2,27 +2,28 @@ const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./rescue.db');
 
 const rescuers = [
-    { name: 'Arjun Singh', phone: '919000000001', sn: 'MEM-01', pin: '123456', group: 'Rescue team' },
-    { name: 'Sarah Khan', phone: '919000000002', sn: 'MEM-02', pin: '123456', group: 'Rescue team' },
-    { name: 'Neha Sharma', phone: '919000000004', sn: 'MEM-04', pin: '123456', group: 'Rescue team' },
-    { name: 'Vikram Rao', phone: '919000000003', sn: 'MEM-03', pin: '123456', group: 'Delivery team' },
-    { name: 'David Miller', phone: '919000000005', sn: 'MEM-05', pin: '123456', group: 'Delivery team' },
-    { name: 'Maria Gomez', phone: '919000000006', sn: 'MEM-06', pin: '123456', group: 'Delivery team' },
-    // 3 More Rescuers as requested
-    { name: 'Rahul Kumar', phone: '919000000007', sn: 'MEM-07', pin: '123456', group: 'Rescue team' },
-    { name: 'Anita Das', phone: '919000000008', sn: 'MEM-08', pin: '123456', group: 'Delivery team' },
-    { name: 'Kevin Peter', phone: '919000000009', sn: 'MEM-09', pin: '123456', group: 'Rescue team' }
+    { name: 'Arjun Singh', phone: '919000000001', sn: 'MEM-01', pin: '123456', group: 'Alpha Rescue' },
+    { name: 'Sarah Khan', phone: '919000000002', sn: 'MEM-02', pin: '123456', group: 'Alpha Rescue' },
+    { name: 'Neha Sharma', phone: '919000000004', sn: 'MEM-04', pin: '123456', group: 'Alpha Rescue' },
+    { name: 'Vikram Rao', phone: '919000000003', sn: 'MEM-03', pin: '123456', group: 'Bravo Delivery' },
+    { name: 'David Miller', phone: '919000000005', sn: 'MEM-05', pin: '123456', group: 'Bravo Delivery' },
+    { name: 'Maria Gomez', phone: '919000000006', sn: 'MEM-06', pin: '123456', group: 'Bravo Delivery' },
+    { name: 'Test Rescuer 1', phone: '919000000011', sn: 'TEST-R1', pin: '123456', group: 'Testing Group' },
+    { name: 'Test Rescuer 2', phone: '919000000012', sn: 'TEST-R2', pin: '123456', group: 'Testing Group' },
+    { name: 'Test Rescuer 3', phone: '919000000013', sn: 'TEST-R3', pin: '123456', group: 'Testing Group' }
 ];
 
 const publicUsers = [
+    { name: 'Test Citizen', phone: '918000000099', sn: 'PUB-99', pin: '123456' },
     { name: 'Amit Kumar', phone: '918000000001', sn: 'PUB-01', pin: '123456' },
     { name: 'Sneha Reddy', phone: '918000000002', sn: 'PUB-02', pin: '123456' },
     { name: 'Priya Sharma', phone: '918000000003', sn: 'PUB-03', pin: '123456' }
 ];
 
 const groups = [
-    { name: 'Rescue team', role: 'rescuer', desc: 'Primary emergency response and life saving' },
-    { name: 'Delivery team', role: 'rescuer', desc: 'Food, medical supplies and logistics' }
+    { name: 'Alpha Rescue', role: 'rescuer', desc: 'Primary emergency response and life saving' },
+    { name: 'Bravo Delivery', role: 'rescuer', desc: 'Food, medical supplies and logistics' },
+    { name: 'Testing Group', role: 'rescuer', desc: 'Group for task testing and completion logic' }
 ];
 
 async function hardReset() {

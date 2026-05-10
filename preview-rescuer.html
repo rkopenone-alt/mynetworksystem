@@ -244,7 +244,7 @@
 
         #map {
             width: 100%;
-            height: 50%;
+            height: 55%;
             position: relative;
             z-index: 50;
             border-bottom: 1px solid var(--border);
@@ -538,7 +538,7 @@
                     </div>
                 </div>
 
-                <div class="notif-section">
+                <div class="notif-section" id="notifSection">
                     <div class="active-mission-banner" id="missionBanner">
                         <div class="mission-info">
                             <h4 id="missType">Medical Rescue</h4>
@@ -622,8 +622,8 @@
                             <div class="item-val">Emergency Ops</div>
                         </div>
                         <div class="settings-item">
-                            <div class="item-label"><i>📍</i> Operation Zone</div>
-                            <div class="item-val" id="profZone">Sector Alpha</div>
+                            <div class="item-label"><i>👥</i> Assigned Groups</div>
+                            <div class="item-val" id="profGroups">No Groups</div>
                         </div>
                     </div>
 
@@ -743,9 +743,9 @@
                 document.getElementById('profId').innerText = `ID: ${this.user.serial_number || 'MEM-01'} • Emergency Response`;
                 document.getElementById('profPhone').innerText = this.user.phone;
                 
-                const zone = (this.user.groups && this.user.groups[0]) ? this.user.groups[0].group_name : 'Sector Alpha';
-                document.getElementById('profZone').innerText = zone;
-                document.getElementById('dispZone').innerText = `Active in ${zone}`;
+                const groupNames = (this.user.groups && this.user.groups.length > 0) ? this.user.groups.map(g => g.group_name).join(', ') : 'No Groups Assigned';
+                document.getElementById('profGroups').innerText = groupNames;
+                document.getElementById('dispZone').innerText = `Active in: ${groupNames}`;
             },
             
             initMap() {
@@ -775,19 +775,27 @@
             
             nav(tab) {
                 document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                
+                const updateNavUI = (index) => {
+                    document.querySelectorAll('.screen.active .nav-link')[index].classList.add('active');
+                };
+
                 if (tab === 'Home') {
                     this.showScreen('screenHome');
-                    document.querySelectorAll('.nav-link')[0].classList.add('active');
+                    updateNavUI(0);
+                    document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+                } else if (tab === 'Tasks') {
+                    this.showScreen('screenHome');
+                    updateNavUI(1);
+                    document.getElementById('notifSection').scrollIntoView({ behavior: 'smooth' });
+                    this.refresh();
                 } else if (tab === 'History') {
                     this.showScreen('screenHistory');
-                    document.querySelectorAll('.nav-link')[2].classList.add('active');
+                    updateNavUI(2);
                     this.loadHistory();
                 } else if (tab === 'Settings') {
                     this.showScreen('screenSettings');
-                    document.querySelectorAll('.nav-link')[3].classList.add('active');
-                } else if (tab === 'Tasks') {
-                    this.showScreen('screenHome');
-                    document.getElementById('notifListCritical').scrollIntoView({ behavior: 'smooth' });
+                    updateNavUI(3);
                 }
             },
             
@@ -885,6 +893,7 @@
                 }).addTo(this.map);
                 
                 this.map.fitBounds(this.navPolyline.getBounds(), { padding: [50, 50] });
+                document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
                 this.toast('MISSION COMMENCED - NAVIGATING', '🚀');
             },
             
@@ -915,6 +924,7 @@
                 this.activeMission = null;
                 this.refresh();
                 this.map.setView([this.pos.lat, this.pos.lng], 14);
+                document.getElementById('notifSection').scrollIntoView({ behavior: 'smooth' });
             },
             
             async loadHistory() {

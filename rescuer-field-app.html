@@ -310,7 +310,7 @@
 
         #map {
             width: 100%;
-            height: 50%;
+            height: 55%;
             position: relative;
             z-index: 50;
             border-bottom: 1px solid var(--border);
@@ -570,7 +570,7 @@
                 
                 <div class="input-group">
                     <label class="input-label">Officer ID / Phone</label>
-                    <input type="text" id="inpId" class="input-field" placeholder="Admin provided ID" value="MEM-01">
+                    <input type="text" id="inpId" class="input-field" placeholder="Admin provided ID" value="TEST-R1">
                 </div>
                 <div class="input-group">
                     <label class="input-label">Security PIN</label>
@@ -602,7 +602,7 @@
                     </div>
                 </div>
 
-                <div class="notif-section">
+                <div class="notif-section" id="notifSection">
                     <div class="active-mission-banner" id="missionBanner">
                         <div class="mission-info">
                             <h4 id="missType">Medical Rescue</h4>
@@ -684,8 +684,8 @@
                             <div class="item-val">Emergency Ops</div>
                         </div>
                         <div class="settings-item">
-                            <div class="item-label"><i>📍</i> Operation Zone</div>
-                            <div class="item-val" id="profZone">Sector Alpha</div>
+                            <div class="item-label"><i>👥</i> Assigned Groups</div>
+                            <div class="item-val" id="profGroups">No Groups</div>
                         </div>
                     </div>
 
@@ -749,13 +749,34 @@
             pos: { lat: 13.0750, lng: 80.2600 },
             allHistory: [],
             
-            init() {
+            async init() {
                 this.setupKeyboardHandling();
-                const saved = localStorage.getItem('rescue_user_v3');
-                if (saved) {
-                    this.user = JSON.parse(saved);
-                    this.showScreen('screenHome');
-                    this.bootstrap();
+                const savedToken = localStorage.getItem('rescue_token_v3');
+                const savedUser = localStorage.getItem('rescue_user_v3');
+                if (savedToken && savedUser) {
+                    this.showLoader(true);
+                    try {
+                        const res = await fetch(`${this.API}/auth/verify`, {
+                            headers: { 'Authorization': `Bearer ${savedToken}` }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.user = data.user;
+                            localStorage.setItem('rescue_user_v3', JSON.stringify(this.user)); // update local data
+                            this.showScreen('screenHome');
+                            this.bootstrap();
+                        } else {
+                            this.logout();
+                        }
+                    } catch (e) {
+                        // Offline mode: proceed with local data if network fails
+                        console.log("Offline mode, relying on local session");
+                        this.user = JSON.parse(savedUser);
+                        this.showScreen('screenHome');
+                        this.bootstrap();
+                    } finally {
+                        this.showLoader(false);
+                    }
                 }
             },
             
@@ -764,35 +785,45 @@
                 const pin = document.getElementById('inpPin').value;
                 const err = document.getElementById('loginError');
                 
+                let localDeviceId = localStorage.getItem('device_id_v3');
+                if (!localDeviceId) {
+                    localDeviceId = 'DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                    localStorage.setItem('device_id_v3', localDeviceId);
+                }
+
                 this.showLoader(true);
                 try {
-                    const res = await fetch(`${this.API}/login`, {
+                    const res = await fetch(`${this.API}/auth/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ phone, password: pin })
+                        body: JSON.stringify({ idOrPhone: phone, pin, deviceId: localDeviceId })
                     });
                     
                     if (res.ok) {
-                        this.user = await res.json();
+                        const data = await res.json();
+                        this.user = data.user;
+                        localStorage.setItem('rescue_token_v3', data.token);
                         localStorage.setItem('rescue_user_v3', JSON.stringify(this.user));
                         this.showScreen('screenHome');
                         this.bootstrap();
                     } else {
+                        const errData = await res.json();
+                        err.innerText = errData.error || "INVALID CREDENTIALS";
                         err.style.display = 'block';
                     }
                 } catch (e) {
-                    // Fallback for demo
-                    this.user = { id: 1, name: 'Officer Rajan', phone, serial_number: 'MEM-01', role: 'rescuer' };
-                    localStorage.setItem('rescue_user_v3', JSON.stringify(this.user));
-                    this.showScreen('screenHome');
-                    this.bootstrap();
+                    console.error("Login failed", e);
+                    err.innerText = "NETWORK ERROR OR SERVER DOWN";
+                    err.style.display = 'block';
                 } finally {
                     this.showLoader(false);
                 }
             },
             
             logout() {
+                localStorage.removeItem('rescue_token_v3');
                 localStorage.removeItem('rescue_user_v3');
+                // We keep device_id_v3 so it stays bound
                 location.reload();
             },
             
@@ -810,9 +841,9 @@
                 document.getElementById('profId').innerText = `ID: ${this.user.serial_number || 'MEM-01'} • Emergency Response`;
                 document.getElementById('profPhone').innerText = this.user.phone;
                 
-                const zone = (this.user.groups && this.user.groups[0]) ? this.user.groups[0].group_name : 'Sector Alpha';
-                document.getElementById('profZone').innerText = zone;
-                document.getElementById('dispZone').innerText = `Active in ${zone}`;
+                const groupNames = (this.user.groups && this.user.groups.length > 0) ? this.user.groups.map(g => g.group_name).join(', ') : 'No Groups Assigned';
+                document.getElementById('profGroups').innerText = groupNames;
+                document.getElementById('dispZone').innerText = `Active in: ${groupNames}`;
             },
             
             initMap() {
@@ -889,19 +920,27 @@
             
             nav(tab) {
                 document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                
+                const updateNavUI = (index) => {
+                    document.querySelectorAll('.screen.active .nav-link')[index].classList.add('active');
+                };
+
                 if (tab === 'Home') {
                     this.showScreen('screenHome');
-                    document.querySelectorAll('.nav-link')[0].classList.add('active');
+                    updateNavUI(0);
+                    document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+                } else if (tab === 'Tasks') {
+                    this.showScreen('screenHome');
+                    updateNavUI(1);
+                    document.getElementById('notifSection').scrollIntoView({ behavior: 'smooth' });
+                    this.refresh();
                 } else if (tab === 'History') {
                     this.showScreen('screenHistory');
-                    document.querySelectorAll('.nav-link')[2].classList.add('active');
+                    updateNavUI(2);
                     this.loadHistory();
                 } else if (tab === 'Settings') {
                     this.showScreen('screenSettings');
-                    document.querySelectorAll('.nav-link')[3].classList.add('active');
-                } else if (tab === 'Tasks') {
-                    this.showScreen('screenHome');
-                    document.getElementById('notifList').scrollIntoView({ behavior: 'smooth' });
+                    updateNavUI(3);
                 }
             },
             
@@ -1041,7 +1080,20 @@
                 }
             },
             
+            startMission(id, type, sector, lat, lng) {
+                this.activeMission = { id, type, sector, lat, lng };
+                
+                document.getElementById('missionBanner').style.display = 'flex';
+                document.getElementById('missType').innerText = `${type.toUpperCase()} MISSION`;
+                document.getElementById('missLoc').innerText = sector || 'Emergency Location';
+                
+                if (this.navPolyline) this.map.removeLayer(this.navPolyline);
+                this.navPolyline = L.polyline([[this.pos.lat, this.pos.lng], [lat, lng]], {
+                    color: 'var(--primary)', weight: 6, opacity: 0.8, dashArray: '10, 15'
+                }).addTo(this.map);
+                
                 this.map.fitBounds(this.navPolyline.getBounds(), { padding: [50, 50] });
+                document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
                 this.toast('MISSION COMMENCED - NAVIGATING', '🚀');
             },
 
@@ -1076,7 +1128,10 @@
                 if (!this.activeMission) return;
                 this.showLoader(true);
                 try {
-                    await fetch(`${this.API}/rescue-requests/${this.activeMission.id}/status`, {
+                    const isCmd = String(this.activeMission.id).startsWith('CMD-');
+                    const endpoint = isCmd ? `/commands/${String(this.activeMission.id).replace('CMD-', '')}/status` : `/rescue-requests/${this.activeMission.id}/status`;
+                    
+                    await fetch(`${this.API}${endpoint}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status: 'completed', rescuer_phone: this.user.phone })
@@ -1111,6 +1166,7 @@
                 this.activeMission = null;
                 this.refresh();
                 this.map.setView([this.pos.lat, this.pos.lng], 14);
+                document.getElementById('notifSection').scrollIntoView({ behavior: 'smooth' });
             },
             
             async loadHistory() {
@@ -1189,9 +1245,26 @@
             
             connectWS() {
                 const ws = new WebSocket(this.WS_URL);
+                ws.onopen = () => {
+                    // Register with ID and Phone for instant revocation sync
+                    if (this.user) {
+                        ws.send(JSON.stringify({ 
+                            type: 'REGISTER', 
+                            deviceId: this.user.phone,
+                        }));
+                        ws.send(JSON.stringify({ 
+                            type: 'REGISTER', 
+                            deviceId: this.user.serial_number,
+                        }));
+                    }
+                };
                 ws.onmessage = (e) => {
                     const msg = JSON.parse(e.data);
                     if (msg.type === 'NEW_RESCUE_REQUEST') this.refresh();
+                    if (msg.type === 'USER_DISABLED') {
+                        this.toast('ACCOUNT DISABLED BY ADMIN - LOGGING OUT', '🚫');
+                        setTimeout(() => this.logout(), 2000);
+                    }
                 };
                 ws.onclose = () => setTimeout(() => this.connectWS(), 5000);
             },

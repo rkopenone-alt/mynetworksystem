@@ -5,6 +5,8 @@ const { WebSocketServer } = require('ws');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 app.use(cors());
@@ -12,6 +14,8 @@ app.use(express.json({ limit: '10mb' }));
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
+
+const JWT_SECRET = 'rescue_secret_key_2026';
 
 // ─── Database Setup ──────────────────────────────────────────────────────────
 const db = new sqlite3.Database('./rescue.db', (err) => {
@@ -49,6 +53,14 @@ db.serialize(() => {
         rescuer_id INTEGER,
         completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(task_id, rescuer_id)
+    )`);
+
+    db.run(`CREATE TABLE IF NOT EXISTS rescuer_command_completions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        command_id INTEGER,
+        rescuer_id INTEGER,
+        completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(command_id, rescuer_id)
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS groups (
@@ -413,6 +425,71 @@ const groupTasks = async () => {
     await logCommand('TASKS_REGROUPED', 'System', 'All Tasks', { radius, unit: unitSetting.value });
 };
 
+// ─── Authentication ──────────────────────────────────────────────────────────
+app.post('/api/auth/login', async (req, res) => {
+    const { idOrPhone, pin, deviceId } = req.body;
+    try {
+        const user = await get(`SELECT * FROM users WHERE (phone = ? OR serial_number = ?) AND password = ?`, [idOrPhone, idOrPhone, pin]);
+        
+        if (!user) {
+            await logCommand('LOGIN_FAILED', 'System', idOrPhone, { reason: 'Invalid credentials' });
+            return res.status(401).json({ error: 'Invalid ID or PIN' });
+        }
+        
+        if (user.status !== 'active') {
+            await logCommand('LOGIN_REJECTED', 'System', idOrPhone, { reason: 'Account disabled' });
+            return res.status(403).json({ error: 'Account disabled by Administrator' });
+        }
+
+        if (deviceId) {
+            if (user.device_id && user.device_id !== deviceId) {
+                await logCommand('LOGIN_REJECTED', 'System', idOrPhone, { reason: 'Duplicate device login attempt' });
+                return res.status(403).json({ error: 'Account already bound to another device' });
+            }
+            if (!user.device_id) {
+                await run(`UPDATE users SET device_id = ? WHERE id = ?`, [deviceId, user.id]);
+                user.device_id = deviceId;
+            }
+        }
+        
+        // Generate JWT token
+        const token = jwt.sign({ id: user.id, role: user.role, phone: user.phone, serial: user.serial_number, deviceId: user.device_id }, JWT_SECRET, { expiresIn: '7d' });
+        
+        // Audit log
+        await logCommand('LOGIN_SUCCESS', user.name, user.serial_number, { role: user.role, deviceId });
+        
+        res.json({ token, user: { id: user.id, name: user.name, role: user.role, serial_number: user.serial_number, phone: user.phone, device_id: user.device_id } });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'No token provided' });
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, JWT_SECRET, async (err, decoded) => {
+        if (err) return res.status(401).json({ error: 'Invalid or expired token' });
+        
+        // Check if user is still active in database
+        try {
+            const user = await get(`SELECT status FROM users WHERE id = ?`, [decoded.id]);
+            if (!user || user.status !== 'active') {
+                return res.status(403).json({ error: 'Account disabled by Administrator' });
+            }
+            req.user = decoded;
+            next();
+        } catch (e) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    });
+};
+
+app.get('/api/auth/verify', verifyToken, (req, res) => {
+    res.json({ valid: true, user: req.user });
+});
+
 // ─── Zones ────────────────────────────────────────────────────────────────────
 app.get('/api/zones', async (req, res) => {
     try { res.json(await all(`SELECT oz.*, g.group_name FROM operation_zones oz LEFT JOIN groups g ON oz.assigned_group_id = g.id`)); }
@@ -630,12 +707,29 @@ app.put('/api/users/:id', async (req, res) => {
         const userGroups = await all(`SELECT g.* FROM group_members gm JOIN groups g ON gm.group_id = g.id WHERE gm.user_id = ?`, [userId]);
         user.groups = userGroups;
 
+        // If user is disabled, force local logout instantly via WebSocket sync
+        if (status && status !== 'active') {
+            socketManager.send(user.phone, 'USER_DISABLED', { reason: 'Account disabled by administrator' });
+            socketManager.send(user.serial_number, 'USER_DISABLED', { reason: 'Account disabled by administrator' });
+            if (device_id) {
+                socketManager.send(device_id, 'USER_DISABLED', { reason: 'Account disabled by administrator' });
+            }
+            await logCommand('ACCESS_REVOKED', 'Admin', user.name || user.serial_number, { reason: 'Admin disabled account' });
+        }
+
         res.json(user);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.delete('/api/users/:id', async (req, res) => {
     try {
+        const user = await get(`SELECT * FROM users WHERE id = ?`, [req.params.id]);
+        if (user) {
+            socketManager.send(user.phone, 'USER_DISABLED', { reason: 'Account deleted by administrator' });
+            socketManager.send(user.serial_number, 'USER_DISABLED', { reason: 'Account deleted by administrator' });
+            if (user.device_id) socketManager.send(user.device_id, 'USER_DISABLED', { reason: 'Account deleted by administrator' });
+            await logCommand('ACCOUNT_DELETED', 'Admin', user.name || user.serial_number, { reason: 'Admin deleted account' });
+        }
         await run(`DELETE FROM users WHERE id = ?`, [req.params.id]);
         await run(`DELETE FROM group_members WHERE user_id = ?`, [req.params.id]);
         res.json({ message: 'User deleted' });
@@ -940,49 +1034,55 @@ app.put('/api/rescue-requests/:id/status', async (req, res) => {
     const validStatuses = ['pending', 'accepted', 'completed', 'declined', 'in_progress'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
     try {
-        await run(`UPDATE rescue_requests SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [status, req.params.id]);
-        const reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [req.params.id]);
+        let finalStatus = status;
+        let reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [req.params.id]);
 
-        if (status === 'completed') {
-            // Notify original requester
-            if (reqData.device_id) {
-                await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,
-                    [reqData.device_id, 'rescue_completed', `✅ Your rescue mission is complete! The rescue team has reached you. Stay safe.`, 0]);
-            }
-            // Also notify by phone if available
-            if (reqData.phone) {
-                await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,
-                    [reqData.phone, 'rescue_completed', `✅ Your rescue mission is complete! The rescue team has reached you. Stay safe.`, 0]);
-            }
-        }
-
-        broadcast('RESCUE_REQUEST_' + status.toUpperCase(), reqData);
-        await logCommand('RESCUE_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Request ID: ${req.params.id}`, { status });
-
-        // Multi-rescuer completion logic
         if (status === 'completed') {
             const rescuer = await get(`SELECT id FROM users WHERE phone = ? OR device_id = ?`, [rescuer_phone, rescuer_phone]);
             if (rescuer) {
                 await run(`INSERT OR IGNORE INTO rescuer_task_completions (task_id, rescuer_id) VALUES (?, ?)`, [req.params.id, rescuer.id]);
 
-                // Check if all assigned rescuers completed
-                const assignedRescuers = await all(`SELECT user_id FROM group_members WHERE group_id = ?`, [reqData.assigned_group_id]);
-                const completedRescuers = await all(`SELECT rescuer_id FROM rescuer_task_completions WHERE task_id = ?`, [req.params.id]);
+                if (reqData.assigned_group_id) {
+                    const assignedRescuers = await all(`SELECT user_id FROM group_members WHERE group_id = ?`, [reqData.assigned_group_id]);
+                    const completedRescuers = await all(`SELECT rescuer_id FROM rescuer_task_completions WHERE task_id = ?`, [req.params.id]);
 
-                if (completedRescuers.length < assignedRescuers.length) {
-                    // Not everyone completed yet, revert status to in_progress or similar
-                    await run(`UPDATE rescue_requests SET status = 'in_progress' WHERE id = ?`, [req.params.id]);
-                    broadcast('RESCUE_REQUEST_IN_PROGRESS', { ...reqData, status: 'in_progress', pending_completions: assignedRescuers.length - completedRescuers.length });
-                } else {
-                    // Everyone completed, dissolve zone if it was the last task
-                    const zoneTasks = await all(`SELECT id FROM rescue_requests WHERE sector = ? AND status != 'completed'`, [reqData.sector]);
-                    if (zoneTasks.length === 0) {
-                        await run(`UPDATE operation_zones SET status = 'inactive' WHERE zone_name = ?`, [reqData.sector]);
-                        broadcast('ZONE_DISSOLVED', { zone_name: reqData.sector });
-                        await logCommand('ZONE_DISSOLVED', 'System', reqData.sector, {});
+                    if (completedRescuers.length < assignedRescuers.length) {
+                        finalStatus = 'in_progress';
                     }
                 }
             }
+        }
+
+        await run(`UPDATE rescue_requests SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, req.params.id]);
+        reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [req.params.id]);
+
+        if (finalStatus === 'completed') {
+            // Notify original requester
+            if (reqData.device_id) {
+                await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,
+                    [reqData.device_id, 'rescue_completed', `✅ Your rescue mission is complete! The rescue team has reached you. Stay safe.`, 0]);
+            }
+            if (reqData.phone) {
+                await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,
+                    [reqData.phone, 'rescue_completed', `✅ Your rescue mission is complete! The rescue team has reached you. Stay safe.`, 0]);
+            }
+            
+            // Everyone completed, dissolve zone if it was the last task
+            const zoneTasks = await all(`SELECT id FROM rescue_requests WHERE sector = ? AND status != 'completed'`, [reqData.sector]);
+            if (zoneTasks.length === 0 && reqData.sector) {
+                await run(`UPDATE operation_zones SET status = 'inactive' WHERE zone_name = ?`, [reqData.sector]);
+                broadcast('ZONE_DISSOLVED', { zone_name: reqData.sector });
+                await logCommand('ZONE_DISSOLVED', 'System', reqData.sector, {});
+            }
+            
+            broadcast('RESCUE_REQUEST_COMPLETED', reqData);
+            await logCommand('RESCUE_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Request ID: ${req.params.id}`, { status: 'completed' });
+        } else if (finalStatus === 'in_progress' && status === 'completed') {
+            broadcast('RESCUE_REQUEST_IN_PROGRESS', reqData);
+            await logCommand('RESCUE_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Request ID: ${req.params.id}`, { status: 'rescuer_completed_waiting' });
+        } else {
+            broadcast('RESCUE_REQUEST_' + finalStatus.toUpperCase(), reqData);
+            await logCommand('RESCUE_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Request ID: ${req.params.id}`, { status: finalStatus });
         }
 
         res.json(reqData);
@@ -1101,14 +1201,38 @@ app.put('/api/commands/:id/acknowledge', async (req, res) => {
 // Update command status (accept, decline, complete)
 app.put('/api/commands/:id/status', async (req, res) => {
     const { status, rescuer_phone } = req.body;
-    const validStatuses = ['pending', 'accepted', 'declined', 'completed', 'acknowledged'];
+    const validStatuses = ['pending', 'accepted', 'declined', 'completed', 'acknowledged', 'in_progress'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
     try {
-        await run(`UPDATE command_queue SET status = ? WHERE id = ?`, [status, req.params.id]);
-        const cmdData = await get(`SELECT * FROM command_queue WHERE id = ?`, [req.params.id]);
+        let finalStatus = status;
+        let cmdData = await get(`SELECT * FROM command_queue WHERE id = ?`, [req.params.id]);
+
+        if (status === 'completed') {
+            const rescuer = await get(`SELECT id FROM users WHERE phone = ? OR device_id = ?`, [rescuer_phone, rescuer_phone]);
+            if (rescuer) {
+                await run(`INSERT OR IGNORE INTO rescuer_command_completions (command_id, rescuer_id) VALUES (?, ?)`, [req.params.id, rescuer.id]);
+                
+                if (cmdData.group_id) {
+                    const assignedRescuers = await all(`SELECT user_id FROM group_members WHERE group_id = ?`, [cmdData.group_id]);
+                    const completedRescuers = await all(`SELECT rescuer_id FROM rescuer_command_completions WHERE command_id = ?`, [req.params.id]);
+                    
+                    if (completedRescuers.length < assignedRescuers.length) {
+                        finalStatus = 'in_progress';
+                    }
+                }
+            }
+        }
+
+        await run(`UPDATE command_queue SET status = ? WHERE id = ?`, [finalStatus, req.params.id]);
+        cmdData = await get(`SELECT * FROM command_queue WHERE id = ?`, [req.params.id]);
 
         broadcast('COMMAND_STATUS_UPDATE', cmdData);
-        await logCommand('COMMAND_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Command ID: ${req.params.id}`, { status });
+        if (finalStatus === 'in_progress' && status === 'completed') {
+            await logCommand('COMMAND_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Command ID: ${req.params.id}`, { status: 'rescuer_completed_waiting' });
+        } else {
+            await logCommand('COMMAND_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Command ID: ${req.params.id}`, { status: finalStatus });
+        }
+
         res.json(cmdData);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
