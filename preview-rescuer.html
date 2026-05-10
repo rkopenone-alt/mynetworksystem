@@ -13,6 +13,9 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
+    <!-- HTML2PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
         :root {
             /* Professional Light Palette */
@@ -454,6 +457,24 @@
             margin-top: 10px;
         }
 
+        /* Filter Buttons */
+        .filter-btn {
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: none;
+            background: #f1f5f9;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px -2px rgba(14, 165, 233, 0.4);
+        }
+
         /* Active Task Card (previously banner) */
         .active-mission-banner {
             background: var(--primary);
@@ -538,7 +559,7 @@
                     </div>
                 </div>
 
-                <div class="notif-section" id="notifSection">
+                <div class="notif-section" id="notifSection" style="background:transparent; box-shadow:none; padding:10px;">
                     <div class="active-mission-banner" id="missionBanner">
                         <div class="mission-info">
                             <h4 id="missType">Medical Rescue</h4>
@@ -547,17 +568,17 @@
                         <button class="btn-complete" onclick="core.completeMission()">COMPLETE</button>
                     </div>
 
-                    <div class="notif-label">
+                    <div class="notif-label" style="margin-top:10px;">
                         <span>🚨 Critical Response Feed</span>
                     </div>
-                    <div id="notifListCritical">
+                    <div id="homeListCritical">
                         <!-- Critical Dispatches -->
                     </div>
                     
                     <div class="notif-label" style="margin-top:20px;">
                         <span>📦 Normal Logistics Feed</span>
                     </div>
-                    <div id="notifListNormal">
+                    <div id="homeListNormal">
                         <!-- Normal Dispatches -->
                     </div>
                 </div>
@@ -565,6 +586,37 @@
                 <div class="bottom-nav">
                     <div class="nav-link active" onclick="core.nav('Home')"><i>🏠</i><span>Home</span></div>
                     <div class="nav-link" onclick="core.nav('Tasks')"><i>📡</i><span>Tasks</span></div>
+                    <div class="nav-link" onclick="core.nav('History')"><i>📋</i><span>History</span></div>
+                    <div class="nav-link" onclick="core.nav('Settings')"><i>⚙️</i><span>Settings</span></div>
+                </div>
+            </div>
+
+            <!-- SCREEN 2B: TASKS -->
+            <div class="screen" id="screenTasks">
+                <div class="dashboard-header">
+                    <h2 style="font-size: 22px; font-weight: 900;">Mission Tasks</h2>
+                    <div class="control-btn" onclick="core.refresh()">🔄</div>
+                </div>
+                
+                <div class="notif-section" id="tasksSection" style="padding: 20px; padding-bottom: 100px; height: calc(100vh - 150px); overflow-y: auto;">
+                    <div class="notif-label">
+                        <span>🚨 Critical Response Feed</span>
+                    </div>
+                    <div id="tasksListCritical">
+                        <!-- Critical Dispatches -->
+                    </div>
+                    
+                    <div class="notif-label" style="margin-top:20px;">
+                        <span>📦 Normal Logistics Feed</span>
+                    </div>
+                    <div id="tasksListNormal">
+                        <!-- Normal Dispatches -->
+                    </div>
+                </div>
+
+                <div class="bottom-nav">
+                    <div class="nav-link" onclick="core.nav('Home')"><i>🏠</i><span>Home</span></div>
+                    <div class="nav-link active" onclick="core.nav('Tasks')"><i>📡</i><span>Tasks</span></div>
                     <div class="nav-link" onclick="core.nav('History')"><i>📋</i><span>History</span></div>
                     <div class="nav-link" onclick="core.nav('Settings')"><i>⚙️</i><span>Settings</span></div>
                 </div>
@@ -583,11 +635,21 @@
                         <input type="text" id="histSearch" placeholder="Search mission ID, type, sector..." oninput="core.filterHistory()">
                     </div>
                     
-                    <div style="margin-top:15px; font-size:12px; font-weight:800; color:var(--critical); padding:0 10px;">CRITICAL MISSIONS</div>
-                    <div id="histListCritical"></div>
+                    <div class="filter-row" style="display: flex; gap: 5px; margin-top: 10px; padding: 0 10px;">
+                        <button class="filter-btn active" onclick="core.setHistoryFilter('full', event)">Full</button>
+                        <button class="filter-btn" onclick="core.setHistoryFilter('day', event)">Day</button>
+                        <button class="filter-btn" onclick="core.setHistoryFilter('week', event)">Week</button>
+                        <button class="filter-btn" onclick="core.setHistoryFilter('yearly', event)">Year</button>
+                        <button class="filter-btn" style="margin-left: auto; background: var(--danger); color: white;" onclick="core.downloadHistoryPDF()">📄 PDF</button>
+                    </div>
                     
-                    <div style="margin-top:20px; font-size:12px; font-weight:800; color:var(--primary); padding:0 10px;">NORMAL MISSIONS</div>
-                    <div id="histListNormal"></div>
+                    <div id="pdfContent" style="padding-top: 5px; background: #fff;">
+                        <div style="margin-top:15px; font-size:12px; font-weight:800; color:var(--danger); padding:0 10px;">CRITICAL MISSIONS</div>
+                        <div id="histListCritical"></div>
+                        
+                        <div style="margin-top:20px; font-size:12px; font-weight:800; color:var(--primary); padding:0 10px;">NORMAL MISSIONS</div>
+                        <div id="histListNormal"></div>
+                    </div>
                 </div>
 
                 <div class="bottom-nav">
@@ -785,9 +847,8 @@
                     updateNavUI(0);
                     document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
                 } else if (tab === 'Tasks') {
-                    this.showScreen('screenHome');
+                    this.showScreen('screenTasks');
                     updateNavUI(1);
-                    document.getElementById('notifSection').scrollIntoView({ behavior: 'smooth' });
                     this.refresh();
                 } else if (tab === 'History') {
                     this.showScreen('screenHistory');
@@ -801,48 +862,84 @@
             
             async refresh() {
                 try {
-                    const res = await fetch(`${this.API}/rescue-requests?status=pending`);
-                    const data = await res.json();
-                    this.renderDispatches(data);
+                    const [resPending, resHistory] = await Promise.all([
+                        fetch(`${this.API}/rescue-requests?status=pending`),
+                        fetch(`${this.API}/users/${this.user.id}/history`).catch(() => ({ ok: false, json: () => [] }))
+                    ]);
+                    
+                    const pendingData = await resPending.json();
+                    const historyData = resHistory.ok ? await resHistory.json() : [];
+                    
+                    const ongoingData = historyData.filter(t => t.status === 'accepted' || t.status === 'ongoing');
+                    
+                    const taskMap = new Map();
+                    pendingData.forEach(t => taskMap.set(t.id, t));
+                    ongoingData.forEach(t => taskMap.set(t.id, t));
+                    
+                    this.renderDispatches(Array.from(taskMap.values()));
                 } catch (e) { console.error(e); }
             },
             
             renderDispatches(tasks) {
-                const listCrit = document.getElementById('notifListCritical');
-                const listNorm = document.getElementById('notifListNormal');
+                const homeCrit = document.getElementById('homeListCritical');
+                const homeNorm = document.getElementById('homeListNormal');
+                const tasksCrit = document.getElementById('tasksListCritical');
+                const tasksNorm = document.getElementById('tasksListNormal');
                 
-                listCrit.innerHTML = '';
-                listNorm.innerHTML = '';
+                homeCrit.innerHTML = '';
+                homeNorm.innerHTML = '';
+                tasksCrit.innerHTML = '';
+                tasksNorm.innerHTML = '';
                 
                 const critTasks = tasks.filter(t => ['sos', 'medical', 'pregnancy', 'critical'].includes(t.type.toLowerCase()));
                 const normTasks = tasks.filter(t => !['sos', 'medical', 'pregnancy', 'critical'].includes(t.type.toLowerCase()));
 
                 if (critTasks.length === 0) {
-                    listCrit.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">No critical alerts</div>';
+                    homeCrit.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">No critical alerts</div>';
+                    tasksCrit.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">No critical alerts</div>';
                 }
                 if (normTasks.length === 0) {
-                    listNorm.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">No routine logistics</div>';
+                    homeNorm.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">No routine logistics</div>';
+                    tasksNorm.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">No routine logistics</div>';
                 }
                 
                 tasks.forEach(t => {
                     const isCrit = ['sos', 'medical', 'pregnancy', 'critical'].includes(t.type.toLowerCase());
-                    const targetList = isCrit ? listCrit : listNorm;
+                    const targetHome = isCrit ? homeCrit : homeNorm;
+                    const targetTasks = isCrit ? tasksCrit : tasksNorm;
+                    
+                    const isOngoing = (t.status === 'accepted' || t.status === 'ongoing');
+                    
+                    let btnHtml = '';
+                    let badgeHtml = '';
+                    
+                    if (isOngoing) {
+                        btnHtml = `<button class="btn-action" style="background:var(--secondary); color:white; width:100%;" onclick="core.completeTask('${t.id}')">COMPLETE MISSION</button>`;
+                        badgeHtml = `<span class="notif-badge" style="background:var(--warning); color:white;">ONGOING - ${t.type.toUpperCase()}</span>`;
+                    } else {
+                        btnHtml = `<button class="btn-action btn-primary" onclick="core.accept('${t.id}', '${t.type}', '${t.sector}', ${t.lat}, ${t.lng})">ACCEPT</button>
+                                   <button class="btn-action btn-secondary" onclick="core.declineTask('${t.id}', event)">IGNORE</button>`;
+                        badgeHtml = `<span class="notif-badge badge-${t.type}">${t.type}</span>`;
+                    }
                     
                     const card = document.createElement('div');
                     card.className = 'notif-card';
+                    if (isOngoing) card.style.borderLeft = '4px solid var(--warning)';
+                    
                     card.innerHTML = `
                         <div class="notif-top">
-                            <span class="notif-badge badge-${t.type}">${t.type}</span>
+                            ${badgeHtml}
                             <span class="notif-time">${new Date(t.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                         </div>
                         <h4 class="notif-title">${t.type.toUpperCase()} ${isCrit ? 'EMERGENCY' : 'DISPATCH'}</h4>
                         <p class="notif-loc">📍 ${t.sector || 'Coordinate Point'}</p>
                         <div class="notif-btns">
-                            <button class="btn-action btn-primary" onclick="core.accept('${t.id}', '${t.type}', '${t.sector}', ${t.lat}, ${t.lng})">ACCEPT</button>
-                            <button class="btn-action btn-secondary">IGNORE</button>
+                            ${btnHtml}
                         </div>
                     `;
-                    targetList.appendChild(card);
+                    
+                    targetHome.appendChild(card);
+                    targetTasks.appendChild(card.cloneNode(true));
                     this.addTaskMarker(t);
                 });
             },
@@ -872,59 +969,117 @@
                         body: JSON.stringify({ assigned_user_id: this.user.id })
                     });
                     
-                    this.startMission(id, type, sector, lat, lng);
+                    await this.startMission(id, type, sector, lat, lng);
                 } catch (e) {
-                    this.startMission(id, type, sector, lat, lng); // Fallback
+                    await this.startMission(id, type, sector, lat, lng); // Fallback
                 } finally {
                     this.showLoader(false);
                 }
             },
             
-            startMission(id, type, sector, lat, lng) {
-                this.activeMission = { id, type, sector, lat, lng };
+            async startMission(id, type, sector, lat, lng) {
+                this.activeMission = { id, type, sector, lat: Number(lat), lng: Number(lng) };
                 
                 document.getElementById('missionBanner').style.display = 'flex';
                 document.getElementById('missType').innerText = `${type.toUpperCase()} MISSION`;
                 document.getElementById('missLoc').innerText = sector;
                 
                 if (this.navPolyline) this.map.removeLayer(this.navPolyline);
-                this.navPolyline = L.polyline([[this.pos.lat, this.pos.lng], [lat, lng]], {
-                    color: 'var(--primary)', weight: 6, opacity: 0.8, dashArray: '10, 15'
+                if (this.missionZoneLayer) this.map.removeLayer(this.missionZoneLayer);
+                
+                const isCrit = ['sos', 'medical', 'pregnancy', 'critical'].includes(type.toLowerCase());
+                const routeColor = isCrit ? 'var(--danger)' : 'var(--primary)';
+                
+                this.navPolyline = L.polyline([[this.pos.lat, this.pos.lng], [Number(lat), Number(lng)]], {
+                    color: routeColor, weight: 6, opacity: 0.8, dashArray: '10, 15'
                 }).addTo(this.map);
                 
-                this.map.fitBounds(this.navPolyline.getBounds(), { padding: [50, 50] });
-                document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+                // Fetch dynamic zone marking created by Admin
+                try {
+                    const res = await fetch(`${this.API}/zones`);
+                    const zones = await res.json();
+                    const activeZone = zones.find(z => z.status === 'active' && z.zone_name === sector);
+                    
+                    if (activeZone) {
+                        const geo = JSON.parse(activeZone.zone_geometry);
+                        const latlng = geo.latlng || geo.center;
+                        const radius = geo.radius;
+                        
+                        const style = {
+                            color: activeZone.color || 'var(--primary)',
+                            fillOpacity: 0.1,
+                            weight: 3,
+                            dashArray: '5, 10'
+                        };
+
+                        if (geo.type === 'Circle' || geo.type === 'radius' || (latlng && radius)) {
+                            this.missionZoneLayer = L.circle([latlng.lat, latlng.lng], { ...style, radius: radius }).addTo(this.map);
+                        } else if (geo.bounds) {
+                            this.missionZoneLayer = L.rectangle(geo.bounds, style).addTo(this.map);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch zones", e);
+                }
+                
+                let bounds = this.navPolyline.getBounds();
+                if (this.missionZoneLayer) bounds.extend(this.missionZoneLayer.getBounds());
+                this.map.fitBounds(bounds, { padding: [50, 50] });
+                
+                this.nav('Home');
                 this.toast('MISSION COMMENCED - NAVIGATING', '🚀');
             },
             
             async completeMission() {
                 if (!this.activeMission) return;
+                await this.completeTask(this.activeMission.id);
+            },
+            
+            async completeTask(id) {
                 this.showLoader(true);
                 try {
-                    await fetch(`${this.API}/rescue-requests/${this.activeMission.id}/status`, {
+                    await fetch(`${this.API}/rescue-requests/${id}/status`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status: 'completed', rescuer_phone: this.user.phone })
                     });
                     this.toast('MISSION SUCCESSFUL', '✅');
-                    this.endMission();
+                    if (this.activeMission && String(this.activeMission.id) === String(id)) {
+                        this.endMission();
+                    } else {
+                        if (this.taskMarkers[id]) this.map.removeLayer(this.taskMarkers[id]);
+                        delete this.taskMarkers[id];
+                        this.refresh();
+                    }
                 } catch (e) {
-                    this.toast('MISSION COMPLETED', '✅');
-                    this.endMission();
+                    this.toast('MISSION COMPLETED (OFFLINE)', '✅');
+                    if (this.activeMission && String(this.activeMission.id) === String(id)) this.endMission();
                 } finally {
                     this.showLoader(false);
+                }
+            },
+            
+            declineTask(id, event) {
+                this.toast('Task Ignored', 'ℹ️');
+                if (event && event.target) {
+                    const card = event.target.closest('.notif-card');
+                    if (card) card.remove();
                 }
             },
             
             endMission() {
                 document.getElementById('missionBanner').style.display = 'none';
                 if (this.navPolyline) this.map.removeLayer(this.navPolyline);
+                if (this.missionZoneLayer) {
+                    this.map.removeLayer(this.missionZoneLayer);
+                    this.missionZoneLayer = null;
+                }
                 if (this.taskMarkers[this.activeMission.id]) this.map.removeLayer(this.taskMarkers[this.activeMission.id]);
                 delete this.taskMarkers[this.activeMission.id];
                 this.activeMission = null;
                 this.refresh();
                 this.map.setView([this.pos.lat, this.pos.lng], 14);
-                document.getElementById('notifSection').scrollIntoView({ behavior: 'smooth' });
+                this.nav('Tasks');
             },
             
             async loadHistory() {
@@ -973,14 +1128,56 @@
                 });
             },
             
+            historyFilterRange: 'full',
+
+            setHistoryFilter(range, event) {
+                this.historyFilterRange = range;
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                if (event && event.currentTarget) {
+                    event.currentTarget.classList.add('active');
+                }
+                this.filterHistory();
+            },
+            
             filterHistory() {
                 const q = document.getElementById('histSearch').value.toLowerCase();
-                const filtered = this.allHistory.filter(h => 
-                    h.type.toLowerCase().includes(q) || 
-                    h.sector.toLowerCase().includes(q) || 
-                    String(h.id).includes(q)
-                );
+                const now = new Date();
+                
+                const filtered = this.allHistory.filter(h => {
+                    const matchQ = h.type.toLowerCase().includes(q) || 
+                                   (h.sector && h.sector.toLowerCase().includes(q)) || 
+                                   String(h.id).includes(q);
+                                   
+                    let matchTime = true;
+                    if (this.historyFilterRange !== 'full') {
+                        const hDate = new Date(h.updated_at);
+                        const diffTime = Math.abs(now - hDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (this.historyFilterRange === 'day' && diffDays > 1) matchTime = false;
+                        if (this.historyFilterRange === 'week' && diffDays > 7) matchTime = false;
+                        if (this.historyFilterRange === 'yearly' && diffDays > 365) matchTime = false;
+                    }
+                    
+                    return matchQ && matchTime;
+                });
                 this.renderHistory(filtered);
+            },
+            
+            downloadHistoryPDF() {
+                const element = document.getElementById('pdfContent');
+                const opt = {
+                  margin:       0.5,
+                  filename:     `Mission_History_${new Date().toISOString().split('T')[0]}.pdf`,
+                  image:        { type: 'jpeg', quality: 0.98 },
+                  html2canvas:  { scale: 2 },
+                  jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+                if (window.html2pdf) {
+                    html2pdf().set(opt).from(element).save();
+                } else {
+                    window.print();
+                }
             },
             
             syncTimer: null,
