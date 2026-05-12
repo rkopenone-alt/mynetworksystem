@@ -89,6 +89,9 @@ async function hardReset() {
                 db.run(`CREATE TABLE IF NOT EXISTS sos_alerts (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, device_id TEXT, phone TEXT, lat REAL, lng REAL, details TEXT, status TEXT DEFAULT 'active', is_priority INTEGER DEFAULT 0, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                 )`);
+                db.run(`CREATE TABLE IF NOT EXISTS operation_history (
+                    id TEXT PRIMARY KEY, name TEXT, date TEXT, zone_data TEXT, status TEXT DEFAULT 'active', created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )`);
 
                 // 3. Create Groups
                 const groupStmt = db.prepare("INSERT INTO groups (group_name, role_type, description) VALUES (?, ?, ?)");

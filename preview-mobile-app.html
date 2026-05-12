@@ -52,8 +52,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
-            overscroll-behavior: none;
         }
 
         /* Phone Mockup Wrapper */
@@ -648,6 +646,81 @@
             }
         }
 
+        /* Mission Alerts */
+        .mission-alert-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            z-index: 20000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .mission-alert-card {
+            background: var(--surface);
+            width: 100%;
+            max-width: 320px;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--primary);
+            text-align: center;
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes bounceIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .alert-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .alert-icon {
+            font-size: 40px;
+        }
+
+        .alert-header h3 {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .mission-alert-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .mission-alert-card button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .mission-alert-card button:active {
+            transform: scale(0.95);
+        }
+
         /* Location Status Bar */
         .loc-status-bar {
             position: absolute;
@@ -777,6 +850,10 @@
                             Online</div>
                     </div>
 
+                    <button onclick="core.nav('Settings')" style="margin-top:20px; background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; padding:8px 15px; border-radius:20px; font-size:11px; font-weight:800; display:flex; align-items:center; gap:6px;">
+                        📍 FIX GPS / OVERRIDE LOCATION
+                    </button>
+
                     <div class="mode-selector">
                         <div class="mode-btn active" onclick="core.setMode('medical', this)">
                             <i>🏥</i><span>Medical</span></div>
@@ -801,8 +878,8 @@
                 </div>
 
                 <div class="form-content"
-                    style="padding: 20px 20px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div>
+                    style="padding: 20px 20px 0 20px; display: flex; flex-direction: column;">
+                    <div style="flex: 1; overflow-y: auto; padding-bottom: 10px; -webkit-overflow-scrolling: touch;">
                         <div class="config-card"
                             style="display: flex; gap: 12px; padding: 0; background: transparent; border: none; box-shadow: none; justify-content: center; margin-bottom: 20px;">
                             <div class="route-btn" style="padding: 15px 25px;" onclick="core.setRoute('air', this)">
@@ -889,9 +966,11 @@
                                 ✕</div>
                         </div>
                     </div>
-
-                    <button class="submit-btn" style="padding: 18px; font-size: 16px; margin-top: 20px;"
-                        onclick="core.nav('SOS')">CONFIRM & PROCEED</button>
+                    
+                    <div style="flex-shrink: 0; padding: 15px 0; background: var(--bg);">
+                        <button class="submit-btn" style="padding: 18px; font-size: 16px;"
+                            onclick="core.nav('SOS')">CONFIRM & PROCEED</button>
+                    </div>
                 </div>
 
                 <div class="bottom-nav">
@@ -909,8 +988,8 @@
                         <span style="font-size:20px; color:#64748b;">✕</span>
                     </div>
                 </div>
-
-                <div class="form-content" style="padding: 0 24px; overflow-y: auto; max-height: calc(100vh - 160px);">
+                
+                <div class="form-content" style="padding: 0 24px; flex: 1; overflow-y: auto; padding-bottom: 20px; -webkit-overflow-scrolling: touch;">
                     <!-- Tactical Search Bar -->
                     <div style="background:var(--white); border:2px solid #eef2f6; border-radius:20px; padding:12px 18px; display:flex; align-items:center; gap:12px; margin-bottom:15px;">
                         <i style="color:#6366f1; font-style:normal; font-size:18px;">🔍</i>
@@ -958,6 +1037,29 @@
                         <p id="profId" style="font-size:14px; color:var(--text-muted); font-weight:700;">ID: PUB-01</p>
                     </div>
 
+                    <div class="section-label" style="text-align:left; margin-top:5px; margin-bottom:10px; color:var(--primary);">Developer Tools (Testing)</div>
+                    <div class="config-card" style="margin-bottom:20px; border: 2px solid var(--primary-light);">
+                        <div class="config-row" style="padding:15px 20px;">
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="font-size:14px; font-weight:800;">Location Override</span>
+                                <span style="font-size:10px; color:var(--text-muted);">Use manual coords for SOS</span>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" id="overLat" value="13.085" step="0.001" style="width:75px; font-size:12px; padding:6px; border-radius:6px; border:1px solid var(--primary); background:white; color:var(--dark);">
+                                <input type="number" id="overLng" value="80.272" step="0.001" style="width:75px; font-size:12px; padding:6px; border-radius:6px; border:1px solid var(--primary); background:white; color:var(--dark);">
+                            </div>
+                        </div>
+                        <div class="config-row" style="padding:15px 20px; border:none;">
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="font-size:14px; font-weight:800;">Simulation Mode</span>
+                                <span style="font-size:10px; color:var(--text-muted);">Simulate movement for testing</span>
+                            </div>
+                            <button onclick="core.toggleSimulation()" id="btnSim" style="background:#cbd5e1; border:none; width:44px; height:24px; border-radius:20px; position:relative; cursor:pointer; transition:0.3s;">
+                                <div style="width:18px; height:18px; background:white; border-radius:50%; position:absolute; top:3px; left:3px; transition:0.3s;"></div>
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="config-card" style="padding:0;">
                         <div class="config-row" style="padding:18px 20px;">
                             <span>Notifications</span>
@@ -993,13 +1095,31 @@
 
             <!-- LOCATION POPUP -->
             <div id="locationPopup"
-                style="display:none; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.95); z-index:9999; justify-content:center; align-items:center; flex-direction:column; padding:20px; text-align:center;">
-                <div style="font-size:60px; margin-bottom:20px;">📍</div>
-                <h2 style="color:white; font-size:24px; font-weight:900; margin-bottom:10px;">Location Required</h2>
-                <p style="color:var(--text-muted); font-size:14px; font-weight:600; margin-bottom:30px;">Please enable
-                    location services so we can automatically capture your coordinates in an emergency.</p>
-                <button class="submit-btn" style="width:100%; box-shadow:none;"
-                    onclick="core.startLocationTracking()">GRANT ACCESS</button>
+                style="display:none; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.98); z-index:9999; justify-content:center; align-items:center; flex-direction:column; padding:30px; text-align:center;">
+                <div style="font-size:60px; margin-bottom:20px; animation: pulse 2s infinite;">📍</div>
+                <h2 style="color:white; font-size:24px; font-weight:900; margin-bottom:10px;">Location Access Required</h2>
+                <p style="color:var(--text-muted); font-size:14px; font-weight:600; margin-bottom:30px;">To ensure accurate rescue response, we need your real-time coordinates. Browser permissions may be required.</p>
+                
+                <button class="submit-btn" style="width:100%; box-shadow:none; margin-bottom:12px;"
+                    onclick="core.startLocationTracking()">GRANT AUTO ACCESS</button>
+                
+                <div style="width:100%; margin: 15px 0; display: flex; align-items: center; gap: 10px;">
+                    <hr style="flex:1; border:0; border-top:1px solid #334155;">
+                    <span style="color:#64748b; font-size:12px; font-weight:800;">OR MANUALLY SET</span>
+                    <hr style="flex:1; border:0; border-top:1px solid #334155;">
+                </div>
+
+                <button class="submit-btn" style="width:100%; background:#475569; color:white; box-shadow:none; margin-bottom:12px;"
+                    onclick="document.getElementById('locationPopup').style.display='none'; core.toast('Test Mode Enabled', '🧪');">SIMULATE (TEST MODE)</button>
+
+                <div style="display:flex; gap:10px; width:100%; margin-bottom:10px;">
+                    <input type="number" id="manualLat" placeholder="Latitude" step="0.00001" style="flex:1; background:#1e293b; border:1px solid #334155; color:white; padding:12px; border-radius:10px; font-size:13px;">
+                    <input type="number" id="manualLng" placeholder="Longitude" step="0.00001" style="flex:1; background:#1e293b; border:1px solid #334155; color:white; padding:12px; border-radius:10px; font-size:13px;">
+                </div>
+                <button class="submit-btn" style="width:100%; background:var(--secondary); color:white; box-shadow:none;"
+                    onclick="core.setManualLocation()">USE MANUAL COORDINATES</button>
+                
+                <p style="margin-top:20px; color:#64748b; font-size:11px;">Current: <span id="curCoordDisplay">13.085, 80.272</span> (Chennai Default)</p>
             </div>
 
             <!-- LOADER -->
@@ -1018,8 +1138,12 @@
 
     <script>
         const core = {
-            API: 'http://192.168.1.11:3001/api',
-            WS_URL: 'ws://192.168.1.11:3001',
+            API: (window.location.protocol === 'file:' || !window.location.hostname) 
+                ? `http://192.168.1.7:3001/api` 
+                : `http://${window.location.hostname}:3001/api`,
+            WS_URL: (window.location.protocol === 'file:' || !window.location.hostname)
+                ? `ws://192.168.1.7:3001`
+                : `ws://${window.location.hostname}:3001`,
             user: null,
             sosTimer: null,
             socket: null,
@@ -1028,6 +1152,46 @@
             retryQueue: [],
             backoff: [3000, 7000, 12000],
             currentLocation: { lat: 13.085, lng: 80.272 },
+            isSimulating: false,
+
+            setManualLocation() {
+                const lat = parseFloat(document.getElementById('manualLat').value);
+                const lng = parseFloat(document.getElementById('manualLng').value);
+                if (isNaN(lat) || isNaN(lng)) {
+                    this.toast('PLEASE ENTER VALID COORDINATES', '⚠️');
+                    return;
+                }
+                this.currentLocation.lat = lat;
+                this.currentLocation.lng = lng;
+                
+                // Also update the Settings fields if they exist
+                const overLat = document.getElementById('overLat');
+                const overLng = document.getElementById('overLng');
+                if (overLat) overLat.value = lat;
+                if (overLng) overLng.value = lng;
+
+                document.getElementById('locationPopup').style.display = 'none';
+                this.renderLocationBar('on');
+                this.toast('LOCATION SET MANUALLY', '📍');
+            },
+
+            toggleSimulation() {
+                this.isSimulating = !this.isSimulating;
+                this.toast(`SIMULATION ${this.isSimulating ? 'ENABLED' : 'DISABLED'}`, '🧪');
+                if (this.isSimulating) {
+                    this.startLocationSimulation();
+                } else {
+                    if (this.simTimer) clearInterval(this.simTimer);
+                    this.startLocationTracking();
+                }
+            },
+
+            startLocationSimulation() {
+                if (this.simTimer) clearInterval(this.simTimer);
+                if (this.locationWatcher) navigator.geolocation.clearWatch(this.locationWatcher);
+                // Simulation mode simply locks the current coordinates without drifting
+                console.log('[SIM] Locked Lat:', this.currentLocation.lat, 'Lng:', this.currentLocation.lng);
+            },
             locationWatcher: null,
 
             startLocationTracking() {
@@ -1127,9 +1291,12 @@
                 bar.innerHTML = `
                     <div style="display:flex; align-items:center;">
                         <div class="loc-dot" style="background:${dotColor}"></div>
-                        <span>${message}</span>
+                        <span style="margin-right:8px;">${message}</span>
                     </div>
-                    ${btn}
+                    <div style="display:flex; gap:5px;">
+                        ${btn}
+                        <button class="loc-btn-fix" style="background:var(--primary); color:white; border:none;" onclick="core.showScreen('screenSettings')">MANUAL</button>
+                    </div>
                 `;
             },
 
@@ -1286,23 +1453,66 @@
                     this.toast('ACCOUNT DISABLED BY ADMIN', '🚫');
                     setTimeout(() => this.logout(), 2000);
                 }
-                if (type === 'LIVE_LOCATION_UPDATE') {
-                    const dist = this.getDistance(13.085, 80.272, data.lat, data.lng);
-                    if (dist < 1) {
-                        this.updateStatusUI('NEARBY', `Rescuer ${data.name} is arriving (${dist.toFixed(1)}km)`, '🏢');
-                    } else if (dist < 5) {
-                        this.updateStatusUI('APPROACHING', `Rescuer ${data.name} in transit (${dist.toFixed(1)}km)`, '🚁');
-                    } else {
-                        this.updateStatusUI('DISPATCHED', `Team assigned: ${data.name} (${dist.toFixed(1)}km)`, '🚨');
+                if (type === 'RESCUE_REQUEST_COMPLETED') {
+                    // Check if it's our request (the system sync might be more robust, but this provides instant feedback)
+                    this.updateStatusUI('COMPLETED', 'Mission accomplished by Rescue Team', '✅');
+                    this.toast('Rescue operation marked as completed!', '✅');
+                    if (this.rescuerMarker) {
+                        this.map.removeLayer(this.rescuerMarker);
+                        this.rescuerMarker = null;
                     }
                 }
+                if (type === 'RESCUER_UPDATE' || type === 'LIVE_LOCATION_UPDATE') {
+                    // Check if this update comes from the assigned rescuer team
+                    // For now, if there is an active mission, we show any incoming rescuer location as the incoming team
+                    // In a production system, we'd check if the data.deviceId belongs to the assigned group
+                    
+                    const dist = this.getDistance(this.currentLocation.lat, this.currentLocation.lng, data.lat, data.lng);
+                    
+                    if (dist < 1) {
+                        this.updateStatusUI('NEARBY', `Rescuer ${data.name || 'Team'} is arriving (${dist.toFixed(1)}km)`, '🏢');
+                    } else if (dist < 5) {
+                        this.updateStatusUI('APPROACHING', `Rescuer ${data.name || 'Team'} in transit (${dist.toFixed(1)}km)`, '🚁');
+                    } else {
+                        this.updateStatusUI('DISPATCHED', `Team assigned: ${data.name || 'Team'} (${dist.toFixed(1)}km)`, '🚨');
+                    }
+
+                    // Plot the live rescuer location on the map
+                    if (!this.rescuerMarker) {
+                        const rIcon = L.divIcon({ className: 'user-marker', html: '<div class="marker-pulse" style="background:var(--secondary)"></div>', iconSize: [20, 20] });
+                        this.rescuerMarker = L.marker([data.lat, data.lng], { icon: rIcon }).addTo(this.map);
+                    } else {
+                        this.rescuerMarker.setLatLng([data.lat, data.lng]);
+                    }
+                    
+                    // Keep both markers in view
+                    const bounds = L.latLngBounds([[this.currentLocation.lat, this.currentLocation.lng], [data.lat, data.lng]]);
+                    this.map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+                }
                 if (type === 'RESCUE_REQUEST_ACCEPTED') {
-                    this.updateStatusUI('TEAM_ASSIGNED', 'Rescue team has been dispatched!', '🚨');
-                    this.toast('TEAM DISPATCHED', '🚨');
+                    if (data.phone === this.user.phone || data.device_id === this.user.serial_number) {
+                        this.updateStatusUI('TEAM_ASSIGNED', 'Rescue team has been dispatched!', '🚨');
+                        this.toast('MISSION ACCEPTED: TEAM EN ROUTE', '✅');
+                        this.showMissionAlert(`TEAM DISPATCHED`, `The rescue team "${data.assignedName}" is now moving to your location. Stay calm and follow instructions.`);
+                        this.fetchMyHistory();
+                    }
                 }
                 if (type === 'RESCUE_REQUEST_COMPLETED') {
-                    this.updateStatusUI('SUCCESS', 'Rescue mission completed!', '✅');
-                    this.toast('MISSION COMPLETE', '✅');
+                    if (data.phone === this.user.phone || data.device_id === this.user.serial_number) {
+                        this.updateStatusUI('COMPLETED', 'Rescue mission successful!', '✅');
+                        this.toast('MISSION COMPLETE', '🏅');
+                        this.showMissionAlert(`MISSION COMPLETED`, `You are safe! The rescue operation has been marked as successful. Reach out if you need more help.`);
+                        this.fetchMyHistory();
+                    }
+                }
+                if (type === 'ADMIN_MESSAGE') {
+                    this.showMissionAlert('MESSAGE FROM ADMIN', data.message);
+                    this.toast('NEW MESSAGE RECEIVED', '💬');
+                }
+                if (type === 'NEW_COMMAND') {
+                    this.showMissionAlert('NEW MISSION ASSIGNED', `A new mission "${data.desc || 'Rescue Task'}" has been assigned to you/your group.`);
+                    this.toast('MISSION ASSIGNED', '🚨');
+                    this.fetchMyHistory();
                 }
                 if (type === 'SETTINGS_UPDATED' && data.key === 'retry_intervals') {
                     const intervals = data.value.split(',').map(s => parseInt(s.trim()) * 1000);
@@ -1312,6 +1522,46 @@
                         this.toast('Sync Config Updated', '⚙️');
                     }
                 }
+            },
+
+            showMissionAlert(title, msg) {
+                const overlay = document.createElement('div');
+                overlay.className = 'mission-alert-overlay';
+                overlay.innerHTML = `
+                    <div class="mission-alert-card">
+                        <div class="alert-header">
+                            <div class="alert-icon">🔔</div>
+                            <h3>${title}</h3>
+                        </div>
+                        <p>${msg}</p>
+                        <button onclick="this.parentElement.parentElement.remove()">ACKNOWLEDGE</button>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+            },
+
+            async fetchMyHistory() {
+                try {
+                    const res = await fetch(`${this.API}/rescue-requests?phone=${this.user.phone}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                        this.rawData.myHistory = data.filter(r => r.phone === this.user.phone || r.device_id === this.user.serial_number);
+                        this.renderStatusUI();
+                        
+                        // Update ticker based on active request
+                        const activeReq = this.rawData.myHistory.find(r => r.status !== 'completed' && r.status !== 'declined');
+                        if (activeReq) {
+                            if (activeReq.status === 'accepted') this.updateStatusUI('TEAM_ASSIGNED', 'Rescue team has been dispatched!', '🚨');
+                            else if (activeReq.status === 'assigned') this.updateStatusUI('DISPATCHED', 'Team assigned, pending acceptance.', '🚨');
+                            else if (activeReq.status === 'ongoing') this.updateStatusUI('APPROACHING', 'Rescue team is on the way!', '🚁');
+                            else this.updateStatusUI('PENDING', 'Waiting for available team...', '⏳');
+                        } else {
+                            const ticker = document.getElementById('sosStatusTicker');
+                            if (ticker) ticker.style.display = 'none';
+                        }
+                    }
+                } catch (e) { console.error("History fetch failed", e); }
             },
 
             updateStatusUI(stage, message, icon) {
@@ -1494,22 +1744,35 @@
             async triggerSOS() {
                 this.updateStatusUI('TRIGGERED', 'SOS initiated locally', '🚨');
 
+                // Check for manual overrides from Settings
+                const overLat = parseFloat(document.getElementById('overLat')?.value);
+                const overLng = parseFloat(document.getElementById('overLng')?.value);
+                let finalLat = this.currentLocation.lat;
+                let finalLng = this.currentLocation.lng;
+
+                if (!isNaN(overLat) && !isNaN(overLng) && (overLat !== 13.085 || overLng !== 80.272)) {
+                    finalLat = overLat;
+                    finalLng = overLng;
+                    console.log("[SOS] Using Manual Coordinate Override:", finalLat, finalLng);
+                }
+
                 const payload = {
-                    phone: this.user.phone,
-                    device_id: this.user.serial_number,
+                    phone: this.user ? this.user.phone : 'Unknown',
+                    device_id: this.user ? this.user.serial_number : 'Unknown',
                     type: this.mode,
-                    lat: this.currentLocation.lat, lng: this.currentLocation.lng,
+                    lat: finalLat, 
+                    lng: finalLng,
                     details: JSON.stringify({
                         needs: this.needs,
                         photo: this.needs.photo,
                         route: this.needs.route || 'Not Defined',
-                        sector: document.getElementById('inpLoc').value
+                        sector: document.getElementById('inpLoc').value.trim()
                     }),
                     urgency: 'critical',
-                    sector: document.getElementById('inpLoc').value || 'Detected Location'
+                    sector: (document.getElementById('inpLoc').value || 'Detected Location').trim()
                 };
 
-                if (navigator.onLine && this.socket && this.socket.readyState === 1) {
+                if (navigator.onLine) {
                     this.updateStatusUI('CONNECTING', 'Syncing with server...', '📡');
                     try {
                         const res = await fetch(`${this.API}/rescue-requests`, {
@@ -1518,11 +1781,19 @@
                             body: JSON.stringify(payload)
                         });
                         if (res.ok) {
-                            this.updateStatusUI('DELIVERED', 'SOS Delivered Successfully', '✅');
+                            const result = await res.json();
+                            this.updateStatusUI('DELIVERED', `SOS #${result.id || ''} Delivered Successfully`, '✅');
                             this.toast('SOS DELIVERED', '✅');
                             this.nav('Status');
+                        } else if (res.status === 429) {
+                            const errData = await res.json();
+                            this.updateStatusUI('BLOCKED', errData.error || 'SOS blocked by buffer time limit.', '⏳');
+                            this.toast(errData.error || 'You cannot submit an SOS at this time due to buffer restrictions.', '⏳', 2000);
+                            this.nav('Status');
+                            return;
                         } else throw new Error('Server reject');
                     } catch (e) {
+                        console.error("[SOS] Submit Error:", e);
                         this.queueForRetry(payload);
                     }
                 } else {
@@ -1561,6 +1832,12 @@
                                 localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
                                 this.updateStatusUI('DELIVERED', 'Sync Complete: SOS Delivered', '✅');
                                 this.toast('SYNCED: SOS DELIVERED', '✅');
+                            } else if (res.status === 429) {
+                                queue.shift();
+                                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
+                                const errData = await res.json();
+                                this.updateStatusUI('BLOCKED', 'Queued SOS dropped: Buffer active.', '⏳');
+                                this.toast('A queued SOS was dropped: ' + (errData.error || 'Buffer limit reached.'), '⏳', 2000);
                             } else {
                                 item.retries++;
                                 localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
@@ -1583,7 +1860,8 @@
             async refreshStatus() {
                 try {
                     const res = await fetch(`${this.API}/rescue-requests/by-phone/${this.user.phone || this.user.serial_number}`);
-                    const data = await res.json();
+                    let data = await res.json();
+                    data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     this.renderStatus(data);
                 } catch (e) { }
             },
@@ -1610,12 +1888,12 @@
                 });
             },
 
-            toast(msg, icon = '⚠️') {
+            toast(msg, icon = '⚠️', duration = 3500) {
                 const t = document.getElementById('toast');
                 document.getElementById('toastMsg').innerText = msg;
                 document.getElementById('toastIcon').innerText = icon;
                 t.style.display = 'flex';
-                setTimeout(() => t.style.display = 'none', 3500);
+                setTimeout(() => t.style.display = 'none', duration);
             },
 
             showLoader(val) { document.getElementById('loader').style.display = val ? 'flex' : 'none'; },

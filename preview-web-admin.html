@@ -797,34 +797,40 @@
             backdrop-filter: blur(4px);
         }
 
-        .marker-sos {
-            background: var(--critical);
-            color: white;
+        .marker-sos .marker-inner {
+            border-color: rgba(239, 68, 68, 0.9);
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
         }
 
-        .marker-food {
-            background: var(--pending);
-            color: white;
+        .marker-food .marker-inner {
+            border-color: rgba(245, 158, 11, 0.9);
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
         }
 
-        .marker-medical {
-            background: var(--medical);
-            color: white;
+        .marker-medical .marker-inner {
+            border-color: rgba(16, 185, 129, 0.9);
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
         }
 
-        .marker-pregnancy {
-            background: var(--special);
-            color: white;
+        .marker-pregnancy .marker-inner {
+            border-color: rgba(217, 70, 239, 0.9);
+            background: rgba(217, 70, 239, 0.2);
+            color: #d946ef;
         }
 
-        .marker-rescue {
-            background: var(--critical);
-            color: white;
+        .marker-rescue .marker-inner {
+            border-color: rgba(59, 130, 246, 0.9);
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
             border-radius: 6px;
             transform: rotate(45deg);
         }
 
-        .marker-rescue i {
+        .marker-rescue .marker-inner i {
             transform: rotate(-45deg);
         }
 
@@ -1433,6 +1439,8 @@
                             </div>
                         </div>
                     </div>
+
+
                 </div>
             </main>
 
@@ -1481,7 +1489,7 @@
                             <div style="font-size:11px; font-weight:700; margin-top:4px; color:var(--text-main);">SOS
                                 Calls</div>
                         </div>
-                        <div class="notif-item" id="foodNotifCard" onclick="openOpDetails('Food Dist.')"
+                        <div class="notif-item" id="foodNotifCard" onclick="openOpDetails('Supplies Request')"
                             style="flex:1; padding: 8px; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;"
                             onmouseover="this.style.background='#fffbeb'" onmouseout="this.style.background='white'">
                             <div style="position:relative;">
@@ -1489,8 +1497,8 @@
                                 <span id="foodDistBadge"
                                     style="position:absolute; top:-6px; right:-8px; background:var(--pending); color:white; font-size:10px; font-weight:800; padding:2px 5px; border-radius:10px;">0</span>
                             </div>
-                            <div style="font-size:11px; font-weight:700; margin-top:4px; color:var(--text-main);">Food
-                                Dist.</div>
+                            <div style="font-size:11px; font-weight:700; margin-top:4px; color:var(--text-main);">Supplies
+                                Request</div>
                         </div>
                     </div>
                 </div>
@@ -1513,10 +1521,10 @@
                             </div>
                         </div>
                         <div class="flex-between" id="foodUpdateRow" style="cursor: pointer;"
-                            onclick="openOpDetails('Food Dist.')">
+                            onclick="openOpDetails('Supplies Request')">
                             <span style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:4px;">
                                 <div style="width:8px; height:8px; border-radius:50%; background:var(--pending);"></div>
-                                Food: <span id="opFoodCount">0</span>
+                                Supplies Request: <span id="opFoodCount">0</span>
                             </span>
                             <div style="flex:1; margin:0 8px; height:4px; background:var(--border); border-radius:2px;">
                                 <div id="opFoodBar"
@@ -1662,8 +1670,9 @@
                 <div style="display: flex; align-items: center; gap: 24px;">
                     <h2 class="page-title" style="margin:0;"><i data-lucide="history" style="color:var(--accent);"></i> Action History Log</h2>
                     <div style="display:flex; gap:8px;">
-                        <button class="btn btn-primary" id="btnHistOngoing" onclick="setHistoryFilter('ongoing')" style="padding: 6px 16px; font-size: 13px;">Ongoing List</button>
-                        <button class="btn btn-outline" id="btnHistCompleted" onclick="setHistoryFilter('completed')" style="padding: 6px 16px; font-size: 13px;">Complete Selection</button>
+                        <button class="btn btn-primary" id="btnHistOngoing" onclick="setHistoryFilter('ongoing')" style="padding: 6px 16px; font-size: 13px;">Ongoing</button>
+                        <button class="btn btn-outline" id="btnHistCompleted" onclick="setHistoryFilter('completed')" style="padding: 6px 16px; font-size: 13px;">Completed</button>
+                        <button class="btn btn-outline" id="btnHistAll" onclick="setHistoryFilter('all')" style="padding: 6px 16px; font-size: 13px;">All Tasks</button>
                     </div>
                 </div>
                 <button class="btn btn-outline" onclick="exportHistoryToPDF()"><i data-lucide="file-text" style="width:16px;"></i> Export Report (PDF)</button>
@@ -1756,83 +1765,176 @@
             <div class="page-header">
                 <h2 class="page-title"><i data-lucide="settings"></i> System Configuration</h2>
             </div>
-            <div class="card">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                    <h3 style="margin: 0;">Async Refresh Settings</h3>
-                    <div id="refreshBadge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; border: 1.5px solid #10b981; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.05);">
-                        <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i>
-                        Last Set Value: <span id="activeRefreshValue">5s</span>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; padding-bottom: 24px;">
+                <!-- Box 1: SOS Trigger Buffer Controls -->
+                <div class="card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <h3 style="margin: 0;">SOS Trigger Buffer Controls</h3>
+                            <div id="activeBufferBadge" style="background: rgba(220, 38, 38, 0.1); color: var(--danger); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--danger); box-shadow: 0 2px 5px rgba(220, 38, 38, 0.05);">
+                                <i data-lucide="clock" style="width: 10px; height: 10px;"></i>
+                                Current Buffer: <span id="activeBufferValue">None</span>
+                            </div>
+                        </div>
+                        <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Prevent duplicate SOS triggers by setting a mandatory waiting period between requests from the same user.</p>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Buffer Time Period</label>
+                        <div style="display:flex; gap:10px; align-items: center; flex-wrap: wrap;">
+                            <!-- Presets -->
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn btn-outline" style="min-width: 65px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setBufferPreset('15')">15 Min</button>
+                                <button class="btn btn-outline" style="min-width: 65px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setBufferPreset('30')">30 Min</button>
+                                <button class="btn btn-outline" style="min-width: 65px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setBufferPreset('60')">1 Hour</button>
+                                <button class="btn btn-outline" style="min-width: 65px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setBufferPreset('0')">Disable</button>
+                            </div>
+                            
+                            <!-- Custom Input -->
+                            <div style="display:flex; gap:6px; flex: 1; min-width: 200px;">
+                                <input type="number" id="bufferIntervalInput" class="form-control" placeholder="Value..." style="flex:1; height: 36px; font-size: 12px; border-radius: 6px; min-width:60px;">
+                                <select id="bufferUnitSelect" class="form-control" style="width: 70px; height: 36px; font-size: 12px; border-radius: 6px; padding: 0 5px;">
+                                    <option value="min">Mins</option>
+                                    <option value="hr">Hours</option>
+                                </select>
+                                <button class="btn btn-danger" onclick="saveBufferConfig()" style="height: 36px; padding: 0 14px; font-size: 12px; white-space: nowrap; border-radius: 6px;">
+                                    <i data-lucide="shield" style="width:14px;"></i> Enforce
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Configure how often the dashboard updates automatically (affects all connected apps).</p>
-                <div class="input-group" style="margin-bottom: 12px;">
-                    <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Refresh Time Period</label>
-                    <div style="display:flex; gap:10px; align-items: center; flex-wrap: nowrap;">
-                        <!-- Presets -->
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="updateRefreshSetting('5')">5s</button>
-                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="updateRefreshSetting('10')">10s</button>
-                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="updateRefreshSetting('30')">30s</button>
-                        </div>
-                        
-                        <!-- Separator -->
-                        <div style="width: 1px; height: 24px; background: var(--border); margin: 0 10px;"></div>
 
-                        <!-- Custom Input -->
-                        <div style="display:flex; gap:6px; flex: 1; max-width: 300px;">
-                            <input type="text" id="refreshIntervalInput" class="form-control" placeholder="Custom (seconds)..." style="flex:1; height: 36px; font-size: 12px; border-radius: 6px;">
-                            <button class="btn btn-primary" onclick="updateRefreshSetting(document.getElementById('refreshIntervalInput').value)" style="height: 36px; padding: 0 14px; font-size: 12px; white-space: nowrap; border-radius: 6px;">
-                                <i data-lucide="save" style="width:14px;"></i> Set
-                            </button>
+                <!-- Box 2: Public App Sync -->
+                <div class="card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <h3 style="margin: 0;">Public app Network Re connect Sync</h3>
+                            <div id="activeRetryBadge" style="background: rgba(37, 99, 235, 0.1); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--accent); box-shadow: 0 2px 5px rgba(37, 99, 235, 0.05);">
+                                <i data-lucide="history" style="width: 10px; height: 10px;"></i>
+                                Last Set Value: <span id="activeRetryValue">...</span>
+                            </div>
                         </div>
+                        <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Configure the retry behavior for SOS transmission in the Public Mobile App.</p>
+                    </div>
+                    <div>
+                        <div class="input-group" style="margin-bottom: 8px;">
+                            <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">SOS Retry Configuration</label>
+                            <div style="display:flex; gap:10px; align-items: center; flex-wrap: wrap;">
+                                <!-- Presets -->
+                                <div style="display:flex; gap:6px;">
+                                    <button class="btn btn-outline" style="min-width: 70px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setRetryPreset('3')">3s</button>
+                                    <button class="btn btn-outline" style="min-width: 70px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setRetryPreset('7')">7s</button>
+                                    <button class="btn btn-outline" style="min-width: 70px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setRetryPreset('15')">15s</button>
+                                </div>
+                                
+                                <!-- Custom Input -->
+                                <div style="display:flex; gap:6px; flex: 1; min-width: 200px;">
+                                    <input type="text" id="retryIntervalsInput" class="form-control" placeholder="Custom..." style="flex:1; height: 36px; font-size: 12px; border-radius: 6px;">
+                                    <button class="btn btn-primary" onclick="saveRetryConfig()" style="height: 36px; padding: 0 14px; font-size: 12px; white-space: nowrap; border-radius: 6px;">
+                                        <i data-lucide="save" style="width:14px;"></i> Set
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <p style="margin:0; font-size:11px; color:var(--text-muted); font-style: italic;">
+                            <i data-lucide="info" style="width:12px; vertical-align: middle;"></i> 
+                            Selecting a preset or entering custom seconds will instantly update all public devices.
+                        </p>
                     </div>
                 </div>
-            </div>
-            <div class="card mt-4">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                    <h3 style="margin: 0;">Public App Sync Settings</h3>
-                    <div id="activeRetryBadge" style="background: rgba(37, 99, 235, 0.1); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--accent); box-shadow: 0 2px 5px rgba(37, 99, 235, 0.05);">
-                        <i data-lucide="clock-rewind" style="width: 10px; height: 10px;"></i>
-                        Last Set Value: <span id="activeRetryValue">...</span>
-                    </div>
-                </div>
-                <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Configure the retry behavior for SOS transmission in the Public Mobile App.</p>
-                <div class="input-group" style="margin-bottom: 12px;">
-                    <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">SOS Retry Configuration</label>
-                    <div style="display:flex; gap:10px; align-items: center; flex-wrap: nowrap;">
-                        <!-- Presets -->
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setRetryPreset('3')">3s</button>
-                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setRetryPreset('7')">7s</button>
-                            <button class="btn btn-outline" style="min-width: 90px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="setRetryPreset('15')">15s</button>
-                        </div>
-                        
-                        <!-- Separator -->
-                        <div style="width: 1px; height: 24px; background: var(--border); margin: 0 10px;"></div>
 
-                        <!-- Custom Input -->
-                        <div style="display:flex; gap:6px; flex: 1; max-width: 300px;">
-                            <input type="text" id="retryIntervalsInput" class="form-control" placeholder="Custom..." style="flex:1; height: 36px; font-size: 12px; border-radius: 6px;">
-                            <button class="btn btn-primary" onclick="saveRetryConfig()" style="height: 36px; padding: 0 14px; font-size: 12px; white-space: nowrap; border-radius: 6px;">
-                                <i data-lucide="save" style="width:14px;"></i> Set
-                            </button>
+                <!-- Box 3: Async Refresh -->
+                <div class="card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <h3 style="margin: 0;">Async Refresh Settings</h3>
+                            <div id="refreshBadge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; border: 1.5px solid #10b981; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.05);">
+                                <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i>
+                                Last Set Value: <span id="activeRefreshValue">5s</span>
+                            </div>
+                        </div>
+                        <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Configure how often the dashboard updates automatically (affects all connected apps).</p>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Refresh Time Period</label>
+                        <div style="display:flex; gap:10px; align-items: center; flex-wrap: wrap;">
+                            <!-- Presets -->
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn btn-outline" style="min-width: 70px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="updateRefreshSetting('5')">5s</button>
+                                <button class="btn btn-outline" style="min-width: 70px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="updateRefreshSetting('10')">10s</button>
+                                <button class="btn btn-outline" style="min-width: 70px; padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border-width: 1px;" onclick="updateRefreshSetting('30')">30s</button>
+                            </div>
+                            
+                            <!-- Custom Input -->
+                            <div style="display:flex; gap:6px; flex: 1; min-width: 200px;">
+                                <input type="text" id="refreshIntervalInput" class="form-control" placeholder="Custom (seconds)..." style="flex:1; height: 36px; font-size: 12px; border-radius: 6px;">
+                                <button class="btn btn-primary" onclick="updateRefreshSetting(document.getElementById('refreshIntervalInput').value)" style="height: 36px; padding: 0 14px; font-size: 12px; white-space: nowrap; border-radius: 6px;">
+                                    <i data-lucide="save" style="width:14px;"></i> Set
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <p style="margin-top:12px; font-size:11px; color:var(--text-muted); font-style: italic;">
-                    <i data-lucide="info" style="width:12px; vertical-align: middle;"></i> 
-                    Selecting a preset or entering custom seconds (comma-separated for backoff) will instantly update all public devices.
-                </p>
-            </div>
-            <div class="card mt-4">
-                <h3 style="margin-top:0;">Map Settings</h3>
-                <p style="color:var(--text-muted);font-size:13px;">Manage offline map packages.</p>
-                <div class="input-group" style="margin-bottom: 12px;">
-                    <label class="input-label">Area / City Name</label>
-                    <input type="text" id="dlMapArea" class="form-control" placeholder="e.g. Chennai">
+
+                <!-- Box 4: Map Settings -->
+                <div class="card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-top:0; margin-bottom: 12px;">Offline Map Settings</h3>
+                        <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Manage offline map packages for operational continuity without internet.</p>
+                    </div>
+                    <div>
+                        <div class="input-group" style="margin-bottom: 12px;">
+                            <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Area / City Name</label>
+                            <input type="text" id="dlMapArea" class="form-control" placeholder="e.g. Chennai" style="height: 36px; font-size: 12px; border-radius: 6px;">
+                        </div>
+                        <button class="btn btn-outline" onclick="openDownloadMapModal()" style="width: 100%; justify-content: center; height: 36px; font-size: 12px; border-radius: 6px; font-weight: 700;">
+                            <i data-lucide="download" style="width:16px;"></i> Select Region & Download
+                        </button>
+                    </div>
                 </div>
-                <button class="btn btn-outline" onclick="openDownloadMapModal()"><i data-lucide="download"
-                        style="width:16px;"></i> Select Region & Download</button>
+
+                <!-- Box 5: Notification Preferences (Placeholder) -->
+                <div class="card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-top:0; margin-bottom: 12px;">Notification Preferences</h3>
+                        <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Configure how administrators and teams are alerted during critical emergencies.</p>
+                    </div>
+                    <div>
+                        <div class="input-group" style="margin-bottom: 12px;">
+                            <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Alert Methods</label>
+                            <select class="form-control" style="height: 36px; font-size: 12px; border-radius: 6px;">
+                                <option>Push & Audio Alarms</option>
+                                <option>Push Notifications Only</option>
+                                <option>Silent (Visual Only)</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" style="width: 100%; justify-content: center; height: 36px; font-size: 12px; border-radius: 6px; font-weight: 700;" onclick="alert('Notification settings updated locally.')">
+                            <i data-lucide="bell-ring" style="width:16px;"></i> Save Preferences
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Box 6: System Security (Placeholder) -->
+                <div class="card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-top:0; margin-bottom: 12px;">System Security</h3>
+                        <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Manage authentication policies and active session timeouts.</p>
+                    </div>
+                    <div>
+                        <div class="input-group" style="margin-bottom: 12px;">
+                            <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Auto-Logout Timeout</label>
+                            <select class="form-control" style="height: 36px; font-size: 12px; border-radius: 6px;">
+                                <option>Never</option>
+                                <option>15 Minutes</option>
+                                <option>30 Minutes</option>
+                                <option>1 Hour</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" style="width: 100%; justify-content: center; height: 36px; font-size: 12px; border-radius: 6px; font-weight: 700;" onclick="alert('Security policy updated.')">
+                            <i data-lucide="shield-check" style="width:16px;"></i> Apply Security Policy
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2111,6 +2213,28 @@
         </div>
     </div>
 
+    <!-- Reply to User Modal -->
+    <div class="modal-overlay" id="replyModal" style="z-index: 10000;">
+        <div class="modal" style="width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Reply to Citizen</h3>
+                <button class="modal-close" onclick="closeModal('replyModal')"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p id="replyTargetInfo" style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;"></p>
+                <div class="input-group">
+                    <label class="input-label">Message Content</label>
+                    <textarea id="replyMessage" class="form-control" style="height: 120px; resize: none;" placeholder="Type your message to the citizen..."></textarea>
+                </div>
+                <input type="hidden" id="replyDeviceId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('replyModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="sendReply()">Send Message</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Download Map Modal -->
     <div class="modal-overlay" id="downloadMapModal" style="z-index: 10000;">
         <div class="modal" style="width: 600px;">
@@ -2241,6 +2365,64 @@
         </div>
     </div>
 
+    <!-- Reassign Rescue Operation Modal -->
+    <div class="modal-overlay" id="reassignTaskModal" style="z-index: 10000;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Re Assign Task</h3>
+                <button class="modal-close" onclick="closeModal('reassignTaskModal')"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="card" style="padding:12px; margin-bottom:16px; background:#f8fafc; border:1px solid var(--border);">
+                    <div style="font-weight:700; margin-bottom:4px;" id="reassignReqTitle"></div>
+                    <div style="font-size:12px; color:var(--text-muted); margin-bottom: 8px;" id="reassignReqDetails"></div>
+                    <div style="font-size:12px; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 8px;">
+                        <div style="display:flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="color:var(--text-muted);">Requester:</span>
+                            <span id="reassignReqPublic" style="font-weight:600;"></span>
+                        </div>
+                        <div style="display:flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="color:var(--text-muted);">Contact:</span>
+                            <span id="reassignReqPhone" style="font-weight:600;"></span>
+                        </div>
+                        <div style="display:flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="color:var(--text-muted);">SOS Type:</span>
+                            <span id="reassignReqType" style="font-weight:600;"></span>
+                        </div>
+                        <div style="display:flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="color:var(--text-muted);">Location:</span>
+                            <span id="reassignReqLocation" style="font-weight:600;"></span>
+                        </div>
+                        <div style="display:flex; justify-content: space-between;">
+                            <span style="color:var(--text-muted);">Current Status:</span>
+                            <span id="reassignReqStatus" style="font-weight:600; color:var(--warning);"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Reassign to Individual Person</label>
+                    <select class="form-control" id="reassignPersonSelect">
+                        <option value="">-- Select Person --</option>
+                    </select>
+                </div>
+
+                <div style="text-align:center; font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:12px;">OR</div>
+
+                <div class="input-group">
+                    <label class="input-label">Reassign to Group</label>
+                    <select class="form-control" id="reassignGroupSelect">
+                        <option value="">-- Select Group --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('reassignTaskModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmReassignment()">Re Assign Task</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Public User Modal -->
     <div class="modal-overlay" id="addPublicModal" style="z-index: 10000;">
         <div class="modal" style="width: 500px;">
@@ -2329,11 +2511,187 @@
     </div>
 
     <script>
-        const API_BASE = 'http://192.168.1.11:3001/api';
+        const SERVER_IP = '192.168.1.7'; // Your PC's current IP address
+        const API_BASE = (window.location.protocol === 'file:' || !window.location.hostname) 
+            ? `http://${SERVER_IP}:3001/api` 
+            : `${window.location.protocol}//${window.location.hostname}:3001/api`;
+        let operations = [];
+        let rescueRequests = [];
+        let cmds = [];
+        let currentUsers = [];
+        let currentActiveOp = null;
         lucide.createIcons();
 
+        // 0. WebSocket & Global Helpers
+        let socket;
+        function initWebSocket() {
+            const wsUrl = (window.location.protocol === 'file:' || !window.location.hostname)
+                ? `ws://${SERVER_IP}:3001`
+                : `ws://${window.location.hostname}:3001`;
+            console.log(`[Admin] Connecting to WebSocket: ${wsUrl}`);
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log("[Admin] WebSocket Connected");
+                socket.send(JSON.stringify({ type: 'REGISTER', deviceId: 'WEB_ADMIN_MASTER', room: 'admin' }));
+            };
+            socket.onclose = () => {
+                console.log("[Admin] WebSocket Closed. Reconnecting...");
+                setTimeout(initWebSocket, 5000);
+            };
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'NEW_RESCUE_REQUEST') {
+                        showAdminToast(`🆘 New SOS Alert from ${data.data?.sector || 'field'}`);
+                        fetchRescueRequests && fetchRescueRequests();
+                        fetchDashboardStats && fetchDashboardStats();
+                        updateTacticalMap && updateTacticalMap();
+                    } else if (data.type === 'RESCUE_REQUEST_ACCEPTED' || data.type === 'RESCUE_REQUEST_DECLINED' || data.type === 'RESCUE_REQUEST_UPDATE') {
+                        fetchRescueRequests && fetchRescueRequests();
+                        fetchCommands && fetchCommands();
+                        fetchDashboardStats && fetchDashboardStats();
+                        updateTacticalMap && updateTacticalMap();
+                    } else if (data.type === 'COMMAND_STATUS_UPDATE') {
+                        fetchCommands && fetchCommands();
+                        fetchRescueRequests && fetchRescueRequests();
+                        fetchDashboardStats && fetchDashboardStats();
+                        updateTacticalMap && updateTacticalMap();
+                    } else if (data.type === 'RESCUE_REQUEST_COMPLETED') {
+                        fetchRescueRequests && fetchRescueRequests();
+                        fetchDashboardStats && fetchDashboardStats();
+                        updateTacticalMap && updateTacticalMap();
+                        showAdminToast(`✅ Mission complete: ${data.data?.sector || 'request'} marked done`);
+                        
+                        const reqId = data.data?.id;
+                        if (reqId && typeof cmds !== 'undefined') {
+                            cmds.forEach(c => { if (c.rescueReqId === reqId) c.status = 'Completed'; });
+                            renderCmds && renderCmds();
+                        }
+                    } else if (data.type === 'SOS_ALERT') {
+                        showAdminToast(`🚨 SOS Alert: ${data.data?.details?.message || 'Incoming alert'}`);
+                        fetchDashboardStats && fetchDashboardStats();
+                        updateTacticalMap && updateTacticalMap();
+                    } else if (data.type === 'RESCUER_UPDATE') {
+                        updateTacticalMap && updateTacticalMap();
+                    } else if (data.type === 'NEW_COMMAND') {
+                        fetchDashboardStats && fetchDashboardStats();
+                    }
+                } catch (e) { console.error("[Admin] WS Error:", e); }
+            };
+        }
+
+        function showAdminToast(msg) {
+            const toast = document.getElementById('adminToast');
+            const toastMsg = document.getElementById('adminToastMsg');
+            if (toastMsg) toastMsg.innerText = msg;
+            else toast.innerText = msg;
+            
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
         // 0. Landing Page Logic
-        let operations = [];
+        // 0. Landing Page Logic (Consolidated)
+        async function fetchOperations() {
+            try {
+                const res = await fetch(`${API_BASE}/operations`);
+                operations = await res.json();
+                renderOpsList();
+                
+                // Restoration logic
+                const savedOpId = sessionStorage.getItem('active_op_id');
+                if (savedOpId && !currentActiveOp) {
+                    const op = operations.find(o => o.id === savedOpId);
+                    if (op) {
+                        console.log("[SYSTEM] Restoring session:", savedOpId);
+                        enterDashboard(savedOpId);
+                    }
+                }
+            } catch (e) { console.error("Error fetching operations", e); }
+        }
+
+        function renderOpsList() {
+            const body = document.getElementById('opsListBody');
+            if (!body) return;
+            body.innerHTML = '';
+            if (!operations || operations.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" style="padding:40px; text-align:center; color:var(--text-muted); font-size:14px; font-weight:600;">No active operations found. Create your first operation to begin.</td></tr>`;
+                return;
+            }
+            operations.forEach(op => {
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid var(--border)';
+                row.style.cursor = 'pointer';
+                row.onclick = () => enterDashboard(op.id);
+                row.innerHTML = `
+                    <td style="padding: 20px 24px; font-size: 14px; font-weight: 700; color: var(--text-muted);">${op.id}</td>
+                    <td style="padding: 20px 24px; font-size: 15px; font-weight: 800; color: var(--text-main);">${op.name}</td>
+                    <td style="padding: 20px 24px; font-size: 14px; font-weight: 600; color: var(--text-muted);">${op.date}</td>
+                    <td style="padding: 20px 24px;">
+                        <span class="status-badge" style="background: rgba(34,197,94,0.1); color: #16a34a; font-weight: 800; padding: 6px 12px; border-radius: 20px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: block;"></span>
+                            ${op.status || 'Active'}
+                        </span>
+                    </td>
+                    <td style="padding: 20px 24px; text-align: right; display: flex; justify-content: flex-end; gap: 8px;">
+                        <button class="btn btn-primary" style="padding: 8px 16px; border-radius: 10px; font-weight: 700;">
+                            Access Dashboard <i data-lucide="arrow-right" style="width:14px; margin-left:4px;"></i>
+                        </button>
+                        <button class="btn" onclick="event.stopPropagation(); deleteOperation('${op.id}')" style="background:rgba(239,68,68,0.1); color:var(--danger); border:none; padding:8px 12px; border-radius:10px; font-weight:800; font-size:12px;">
+                            DELETE
+                        </button>
+                    </td>
+                `;
+                body.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        async function saveOperation() {
+            let name = document.getElementById('newOpName').value;
+            if (!name) { alert("Please enter an operation name."); return; }
+            if (!opDrawnLayer) { alert("Please mark the operation zone on the map."); return; }
+
+            let zoneData = null;
+            if (opDrawMode === 'radius') {
+                zoneData = { type: 'radius', latlng: opDrawnLayer.getLatLng(), radius: opDrawnLayer.getRadius() };
+            } else {
+                zoneData = { type: 'area', bounds: opDrawnLayer.getBounds() };
+            }
+
+            let d = new Date();
+            let ds = d.toISOString().split('T')[0];
+            let newId = `OP-${String(operations.length + 1).padStart(2, '0')}`;
+            
+            try {
+                await fetch(`${API_BASE}/operations`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: newId, name: name, date: ds, zoneData: zoneData })
+                });
+                showAdminToast(`Operation ${newId} created successfully`);
+                fetchOperations();
+                closeModal('createOpModal');
+            } catch (e) { alert("Failed to save operation: " + e.message); }
+        }
+
+        async function deleteOperation(opId) {
+            if (!confirm(`Are you sure you want to delete Operation ${opId}?`)) return;
+            try {
+                await fetch(`${API_BASE}/operations/${opId}`, { method: 'DELETE' });
+                if (currentActiveOp && currentActiveOp.id === opId) {
+                    sessionStorage.removeItem('active_op_id');
+                    location.reload();
+                } else {
+                    fetchOperations();
+                }
+                showAdminToast(`Operation ${opId} deleted`);
+            } catch (e) { console.error("Delete failed", e); }
+        }
 
         let opMapInstance;
         let opDrawnLayer;
@@ -2349,25 +2707,13 @@
             opMapInstance.on('mousedown', onOpMapClick);
         }
 
-        function renderOpsList() {
-            let html = '';
-            operations.forEach(op => {
-                html += `<tr>
-                    <td style="font-weight:700;">${op.id}</td>
-                    <td>${op.name}</td>
-                    <td>${op.date}</td>
-                    <td><span class="tag tag-green">${op.status}</span></td>
-                    <td style="text-align:right;"><button class="btn btn-primary" onclick="enterDashboard('${op.id}')">Select Operation <i data-lucide="arrow-right" style="width:14px; margin-left:4px;"></i></button></td>
-                </tr>`;
-            });
-            document.getElementById('opsListBody').innerHTML = html;
-            lucide.createIcons();
-        }
-
         function returnToOpsHub() {
+            currentActiveOp = null;
+            sessionStorage.removeItem('active_op_id');
             document.getElementById('operationalHub').style.display = 'flex';
             document.querySelector('.top-nav').style.display = 'none';
             document.getElementById('appWrapper').style.display = 'none';
+            fetchOperations();
         }
 
         function openMainFeedSettingsModal() {
@@ -2477,32 +2823,14 @@
             }
         }
 
-        function saveOperation() {
-            let name = document.getElementById('newOpName').value;
-            if (!name) { alert("Please enter an operation name."); return; }
-            if (!opDrawnLayer) { alert("Please mark the operation zone on the map."); return; }
-
-            let zoneData = null;
-            if (opDrawMode === 'radius') {
-                zoneData = { type: 'radius', latlng: opDrawnLayer.getLatLng(), radius: opDrawnLayer.getRadius() };
-            } else {
-                zoneData = { type: 'area', bounds: opDrawnLayer.getBounds() };
-            }
-
-            let d = new Date();
-            let ds = d.toISOString().split('T')[0];
-            let newId = `OP-${String(operations.length + 1).padStart(2, '0')}`;
-            operations.unshift({ id: newId, name: name, date: ds, status: 'Active', zoneData: zoneData });
-            renderOpsList();
-            closeModal('createOpModal');
-        }
 
         let activeMacroZoneLayer = null;
-        let currentActiveOp = null;
 
         function enterDashboard(opId) {
             let op = operations.find(o => o.id === opId);
+            if (!op) return;
             currentActiveOp = op;
+            sessionStorage.setItem('active_op_id', opId);
             
             document.getElementById('operationalHub').style.display = 'none';
             document.querySelector('.top-nav').style.display = 'flex';
@@ -2548,6 +2876,8 @@
                 dlMapInstance.on('mousemove', onDlMapMove);
                 dlMapInstance.on('mouseup', onDlMapUp);
             });
+
+            if (window.lucide) lucide.createIcons();
         }
 
         function onDlMapMove(e) {
@@ -2604,7 +2934,7 @@
         // 2. Command Tabs
         function switchCmdTab(tab, btnEl) {
             document.getElementById('cmd-live').style.display = 'none';
-            document.getElementById('cmd-completed').style.display = 'none';
+            if (document.getElementById('cmd-completed')) document.getElementById('cmd-completed').style.display = 'none';
 
             document.getElementById('cmd-' + tab).style.display = 'block';
 
@@ -2614,7 +2944,7 @@
 
         // 3. Modals
         async function openOpDetails(type) {
-            const title = type === 'SOS' ? 'SOS Emergency Missions' : 'Food & Supply Distribution';
+            const title = type === 'SOS Calls' || type === 'SOS' ? 'SOS Emergency Missions' : 'Supplies Request';
             document.getElementById('opModalTitle').innerText = title;
             document.getElementById('opDetailsModal').style.display = 'flex';
 
@@ -2624,7 +2954,7 @@
                 const allReqs = await res.json();
 
                 let filtered = [];
-                if (type === 'SOS') {
+                if (type === 'SOS Calls' || type === 'SOS') {
                     filtered = allReqs.filter(r => r.type === 'sos' || r.type === 'medical' || r.type === 'pregnancy');
                 } else {
                     filtered = allReqs.filter(r => r.type === 'food' || r.type === 'delivery' || r.type === 'medical_delivery');
@@ -2638,17 +2968,25 @@
                 }
 
                 filtered.forEach((r, idx) => {
-                    const statusTag = r.status === 'completed' ? 'tag-green' : r.status === 'accepted' ? 'tag-yellow' : 'tag-gray';
+                    const statusTag = r.status === 'completed' ? 'tag-green' : (r.status === 'accepted' || r.status === 'assigned') ? 'tag-yellow' : 'tag-gray';
                     const time = new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     const updateTime = r.updated_at ? new Date(r.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
-                    let itemsStr = '';
+                    let itemsHtml = '';
                     if (r.details) {
                         try {
                             const d = typeof r.details === 'string' ? JSON.parse(r.details) : r.details;
-                            if (d.food) itemsStr += `Food:${d.food} `;
-                            if (d.med) itemsStr += `Med:${d.med} `;
-                            if (d.sanitary) itemsStr += `San:${d.sanitary} `;
+                            const items = [];
+                            if (d.food) items.push(`🍞 Food: <b>${d.food}</b>`);
+                            if (d.med) items.push(`💊 Medicine: <b>${d.med}</b>`);
+                            if (d.sanitary) items.push(`🧻 Sanitary: <b>${d.sanitary}</b>`);
+                            if (d.persons) items.push(`👥 Persons: <b>${d.persons}</b>`);
+
+                            if (items.length > 0) {
+                                itemsHtml = `<div style="margin-top:6px; padding:6px; background:rgba(0,0,0,0.03); border-radius:4px; font-size:11px; line-height: 1.5;">
+                                    ${items.join('<br>')}
+                                </div>`;
+                            }
                         } catch (e) { }
                     }
 
@@ -2657,7 +2995,7 @@
                             <td style="padding: 8px; font-weight: 800; color: var(--text-muted);">${String(idx + 1).padStart(2, '0')}</td>
                             <td style="padding: 8px; font-weight:600;">
                                 ${r.type.toUpperCase()} @ ${r.sector}
-                                <div style="font-size:10px; color:var(--text-muted); font-weight:400;">${itemsStr}</div>
+                                ${itemsHtml}
                             </td>
                             <td style="padding: 8px; font-size: 12px; color: var(--text-muted);">${time}</td>
                             <td style="padding: 8px; font-size: 12px; color: var(--text-muted);">${updateTime}</td>
@@ -2667,7 +3005,7 @@
                 });
 
                 // Update summary stats in modal
-                const accepted = filtered.filter(f => f.status === 'accepted').length;
+                const accepted = filtered.filter(f => f.status === 'accepted' || f.status === 'assigned').length;
                 const completed = filtered.filter(f => f.status === 'completed').length;
                 const pending = filtered.filter(f => f.status === 'pending').length;
 
@@ -2711,6 +3049,7 @@
             historyStatusFilter = status;
             document.getElementById('btnHistOngoing').className = status === 'ongoing' ? 'btn btn-primary' : 'btn btn-outline';
             document.getElementById('btnHistCompleted').className = status === 'completed' ? 'btn btn-primary' : 'btn btn-outline';
+            if (document.getElementById('btnHistAll')) document.getElementById('btnHistAll').className = status === 'all' ? 'btn btn-primary' : 'btn btn-outline';
             renderCmds();
         }
 
@@ -2745,7 +3084,7 @@
             updateTacticalMap();
             setInterval(updateTacticalMap, 5000);
 
-            setTimeout(() => lucide.createIcons(), 100);
+            setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 100);
         }
 
         window.populateCommandForm = function(dbId, type, lat, lng, details) {
@@ -2895,7 +3234,7 @@
                 const [zonesRes, rescuersRes, tasksRes, cmdsRes] = await Promise.all([
                     fetch(`${API_BASE}/zones`),
                     fetch(`${API_BASE}/users?role=rescuer`),
-                    fetch(`${API_BASE}/rescue-requests?status=pending`),
+                    fetch(`${API_BASE}/rescue-requests?status=active`),
                     fetch(`${API_BASE}/commands`)
                 ]);
 
@@ -2999,8 +3338,8 @@
                     }
                 });
 
-                // 3. Render Pending Tasks (with Grouped styling)
-                tasks.forEach(t => {
+                // 3. Render Active Tasks (with Grouped styling)
+                tasks.filter(t => t.status !== 'completed' && t.status !== 'declined').forEach(t => {
                     const activeZones = zones.filter(z => z.status === 'active');
                     const isInZone = activeZones.some(z => {
                         try {
@@ -3016,9 +3355,21 @@
                         return false;
                     });
 
-                    const icon = getTaskIconByType(t.type);
+                    // Skip tasks that have become commands
+                    if (['assigned', 'accepted', 'ongoing'].includes(t.status)) {
+                        const hasCmd = activeCmds.some(c => {
+                            try {
+                                const p = typeof c.command_payload === 'string' ? JSON.parse(c.command_payload) : c.command_payload;
+                                return p && p.rescue_req_id === t.id;
+                            } catch (e) { return false; }
+                        });
+                        if (hasCmd) return; // Let the command marker render instead
+                    }
+
+                    const typeStr = t.type ? t.type.toLowerCase() : 'emergency';
+                    const icon = getTaskIconByType(typeStr);
                     const label = t.serial_number || t.phone || t.device_id;
-                    const m = addMarker(t.lat, t.lng, t.type.toLowerCase(), icon, `Request: ${t.type}<br>Area: ${t.sector}`, label, false, isInZone, t.id, false, t.status);
+                    const m = addMarker(t.lat, t.lng, typeStr, icon, `Request: ${typeStr}<br>Area: ${t.sector}`, label, false, isInZone, t.id, false, t.status);
                     mapLayers.push(m);
                 });
 
@@ -3045,16 +3396,17 @@
                     }
                 });
 
+                if (window.lucide) lucide.createIcons();
             } catch (e) { console.error('Map update error', e); }
         }
 
         function getTaskIconByType(type) {
             type = type.toLowerCase();
-            if (type.includes('food')) return '📦';
-            if (type.includes('medical')) return '💊';
-            if (type.includes('pregnancy')) return '🤰';
-            if (type.includes('sos')) return '🆘';
-            return '📍';
+            if (type.includes('food')) return '<i data-lucide="package" style="width:16px;height:16px;stroke-width:3;"></i>';
+            if (type.includes('medical')) return '<i data-lucide="activity" style="width:16px;height:16px;stroke-width:3;"></i>';
+            if (type.includes('pregnancy')) return '<i data-lucide="baby" style="width:16px;height:16px;stroke-width:3;"></i>';
+            if (type.includes('sos') || type.includes('critical')) return '<i data-lucide="alert-triangle" style="width:16px;height:16px;stroke-width:3;"></i>';
+            return '<i data-lucide="map-pin" style="width:16px;height:16px;stroke-width:3;"></i>';
         }
 
         function setDrawMode(mode) {
@@ -3120,15 +3472,7 @@
             map.getContainer().style.cursor = 'crosshair';
         }
 
-        function showAdminToast(msg) {
-            const toast = document.getElementById('adminToast');
-            const toastMsg = document.getElementById('adminToastMsg');
-            toastMsg.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
+
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
@@ -3203,7 +3547,6 @@
         }
 
         // 5. Command Logic
-        let cmds = [];
 
         let selectedCmdLayer = null;
         function selectTask(id) {
@@ -3293,8 +3636,12 @@
             return m[type] || 'tag-gray';
         }
         function getTagForStatus(status) {
-            if (status === 'Ongoing') return 'tag-yellow';
-            if (status === 'Completed') return 'tag-green';
+            const s = (status || '').toLowerCase();
+            if (s === 'critical' || s === 'pending') return 'tag-red';
+            if (s === 'assigned' || s === 'acknowledged' || s === 'accepted') return 'tag-blue';
+            if (s === 'ongoing' || s === 'in_progress') return 'tag-yellow';
+            if (s === 'completed') return 'tag-green';
+            if (s === 'declined') return 'tag-gray';
             return 'tag-gray';
         }
 
@@ -3327,7 +3674,8 @@
                     <td style="color:var(--text-muted); font-size: 12px;">${c.cmdTime || c.time}</td>
                     <td><span class="tag ${getTagForStatus(c.status)}">${c.status}</span></td>
                     <td>
-                        ${isReassignable ? `<button class="btn btn-outline" style="padding:4px 8px; font-size:10px;" onclick="event.stopPropagation(); openReassignModal('${c.id}')">🔄 Reassign</button>` : '-'}
+                        ${isReassignable ? `<button class="btn btn-outline" style="padding:4px 8px; font-size:10px;" onclick="event.stopPropagation(); openReassignModal('${c.id}')">🔄 Re Assign Task</button>` : '-'}
+                        ${isOngoing ? `<button class="btn btn-primary" style="padding:4px 8px; font-size:10px; background: #10b981; border-color: #10b981; margin-left:4px;" onclick="event.stopPropagation(); closeTaskByAdmin('${c.id}')">✅ Close</button>` : ''}
                     </td>
                 </tr>`;
 
@@ -3337,7 +3685,7 @@
                 // Live: Everything currently active or needing attention
                 // Completed: Only tasks that are fully finished
                 const s = (c.status || '').toLowerCase();
-                const isOngoing = ['ongoing', 'critical', 'pending', 'accepted', 'acknowledged', 'declined', 'in_progress'].includes(s);
+                const isOngoing = ['ongoing', 'critical', 'pending', 'accepted', 'assigned', 'acknowledged', 'declined', 'in_progress'].includes(s);
 
                 if (isOngoing) {
                     if (isCrit) {
@@ -3365,12 +3713,23 @@
                     <td style="color:var(--text-muted); font-size: 12px;">${c.reqTime || c.time}</td>
                     <td style="color:var(--text-muted); font-size: 12px;">${c.cmdTime || c.time}</td>
                     <td><span class="tag ${getTagForStatus(c.status)}">${c.status}</span></td>
-                    <td>
-                        ${isOngoing ? `<button class="btn btn-outline" style="padding:4px 8px; font-size:10px;" onclick="event.stopPropagation(); openReassignModal('${c.id}')">🔄 Reassign</button>` : '-'}
+                    <td style="display: flex; gap: 4px;">
+                        ${isOngoing ? `
+                            <button class="btn btn-outline" style="padding:4px 8px; font-size:10px;" onclick="event.stopPropagation(); openReassignModal('${c.id}')">🔄 Re Assign Task</button>
+                            <button class="btn btn-primary" style="padding:4px 8px; font-size:10px; background: #10b981; border-color: #10b981;" onclick="event.stopPropagation(); closeTaskByAdmin('${c.id}')">✅ Close</button>
+                        ` : '-'}
                     </td>
                 </tr>`;
 
-                if (historyStatusFilter === 'ongoing') {
+                if (historyStatusFilter === 'all') {
+                    if (isCrit) {
+                        critHistCount++;
+                        histCriticalHtml += historyRow.replace('{SNO}', String(critHistCount).padStart(2, '0'));
+                    } else {
+                        normHistCount++;
+                        histNormalHtml += historyRow.replace('{SNO}', String(normHistCount).padStart(2, '0'));
+                    }
+                } else if (historyStatusFilter === 'ongoing') {
                     if (isOngoing) {
                         if (isCrit) {
                             critHistCount++;
@@ -3380,8 +3739,7 @@
                             histNormalHtml += historyRow.replace('{SNO}', String(normHistCount).padStart(2, '0'));
                         }
                     }
-                } else {
-                    // Completed filter
+                } else if (historyStatusFilter === 'completed') {
                     if (!isOngoing) {
                         if (isCrit) {
                             critHistCount++;
@@ -3404,17 +3762,19 @@
                 <th style="width: 80px;">REQ</th>
                 <th style="width: 80px;">CMD</th>
                 <th style="width: 100px;">STATUS</th>
-                <th style="width: 120px;">ACTION</th>
+                <th style="width: 160px;">ACTION</th>
             </tr>`;
 
             // Apply headers to all tables
-            document.querySelectorAll('#cmd-live table thead, #cmd-completed table thead').forEach(thead => {
+            // Apply headers to all tables (Live, Completed, and History)
+            document.querySelectorAll('#cmd-live table thead, #page-history table thead').forEach(thead => {
                 thead.innerHTML = tableHeader;
             });
 
             document.getElementById('liveCmdBodyCritical').innerHTML = liveCritHtml || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">No critical commands</td></tr>';
             document.getElementById('liveCmdBodyNormal').innerHTML = liveNormHtml || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">No normal commands</td></tr>';
-            document.getElementById('compCmdBody').innerHTML = compHtml || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">No completed commands</td></tr>';
+            const compTbody = document.getElementById('compCmdBody');
+            if (compTbody) compTbody.innerHTML = compHtml || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">No completed commands</td></tr>';
 
             document.getElementById('historyTbodyCritical').innerHTML = histCriticalHtml || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">No critical history found</td></tr>';
             document.getElementById('historyTbodyNormal').innerHTML = histNormalHtml || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">No normal history found</td></tr>';
@@ -3440,7 +3800,8 @@
                             ${m.requesterName ? `<br><span style="display:inline-block; margin-top:4px; color:var(--primary); font-weight:700;">👤 Requester: ${m.requesterName}</span>` : ''}
                         </div>
                         <div style="display:flex; gap:8px;">
-                            <button class="btn btn-outline" style="flex:1; padding:6px; font-size:10px; font-weight:700;" onclick="openReassignModal('${m.id}')">🔄 RE-ASSIGN</button>
+                            <button class="btn btn-outline" style="flex:1; padding:6px; font-size:10px; font-weight:700;" onclick="openReassignModal('${m.id}')">🔄 RE ASSIGN TASK</button>
+                            <button class="btn btn-primary" style="flex:1; padding:6px; font-size:10px; font-weight:700; background: #10b981; border-color: #10b981;" onclick="event.stopPropagation(); closeTaskByAdmin('${m.id}')">✅ CLOSE</button>
                             <button class="btn btn-primary" style="flex:1; padding:6px; font-size:10px; font-weight:700;" onclick="selectTask('${m.id}')">👁️ VIEW</button>
                         </div>
                     </div>
@@ -3581,29 +3942,58 @@
             const cmd = cmds.find(c => c.id === id);
             if (!cmd) return;
 
-            // Extract numeric ID for backend
-            const dbId = id.replace('CMD-', '');
-
-            // Use the existing assignModal UI but customize it
-            const modal = document.getElementById('assignModal');
-            document.querySelector('#assignModal .modal-title').innerText = `Reassign Command: ${id}`;
-            document.getElementById('assignReqId').value = 'CMD_REF:' + dbId;
-            document.getElementById('assignReqTitle').innerHTML = `<span style="background: var(--bg-alt); padding: 2px 6px; border-radius: 4px; color: var(--text-muted); margin-right: 6px;">REF</span> RE-ASSIGN: ${cmd.desc}`;
-            document.getElementById('assignReqDetails').innerText = `Currently assigned to: ${cmd.team}`;
+            document.querySelector('#reassignTaskModal .modal-title').innerText = `Re Assign Task: ${id}`;
+            document.getElementById('reassignReqTitle').innerHTML = `<span style="background: var(--bg-alt); padding: 2px 6px; border-radius: 4px; color: var(--text-muted); margin-right: 6px;">REF</span> RE ASSIGN TASK: ${cmd.desc}`;
+            
+            let formattedDetails = cmd.details || 'N/A';
+            if (cmd.details) {
+                try {
+                    const parsed = JSON.parse(cmd.details);
+                    if (parsed && typeof parsed === 'object') {
+                        if (parsed.needs) {
+                            const needsList = [];
+                            if (parsed.needs.people && parsed.needs.people > 0) needsList.push(`${parsed.needs.people} Person(s)`);
+                            if (parsed.needs.food && parsed.needs.food > 0) needsList.push(`${parsed.needs.food} Food packets`);
+                            if (parsed.needs.med && parsed.needs.med > 0) needsList.push('Medical Kits');
+                            if (parsed.needs.sanitary && parsed.needs.sanitary > 0) needsList.push('Sanitary items');
+                            
+                            if (needsList.length > 0) {
+                                formattedDetails = needsList.join(', ');
+                            } else {
+                                formattedDetails = 'General Assistance';
+                            }
+                        } else {
+                            formattedDetails = JSON.stringify(parsed).replace(/["{}]/g, '').replace(/:/g, ': ').replace(/,/g, ', ');
+                        }
+                    }
+                } catch(e) {
+                    // Not valid JSON, keep as is
+                }
+            }
+            document.getElementById('reassignReqDetails').innerHTML = `<strong>Requirements / Details:</strong> ${formattedDetails}`;
+            
+            document.getElementById('reassignReqPublic').innerText = cmd.requesterName || 'Unknown';
+            document.getElementById('reassignReqPhone').innerText = cmd.requesterPhone || 'N/A';
+            document.getElementById('reassignReqType').innerText = cmd.type ? cmd.type.replace('_', ' ').toUpperCase() : 'N/A';
+            document.getElementById('reassignReqLocation').innerText = cmd.zone || 'N/A';
+            document.getElementById('reassignReqStatus').innerText = `Currently assigned to: ${cmd.team} (${cmd.status})`;
 
             // Clear selections
-            document.getElementById('assignPersonSelect').value = '';
-            document.getElementById('assignGroupSelect').value = '';
+            document.getElementById('reassignPersonSelect').value = '';
+            document.getElementById('reassignGroupSelect').value = '';
 
-            // Populate person select if not done
-            populateIndividualSelect('assignPersonSelect');
-            populateAssignDropdowns(); // Ensure groups are also populated
+            // Populate person select
+            populateIndividualSelect('reassignPersonSelect');
+            
+            // Populate group select (using same logic as assignGroupSelect)
+            populateAssignDropdowns();
+            const groupSelect = document.getElementById('reassignGroupSelect');
+            const sourceSelect = document.getElementById('assignGroupSelect');
+            if(groupSelect && sourceSelect) {
+                groupSelect.innerHTML = sourceSelect.innerHTML;
+            }
 
-            // Change button click handler temporarily
-            const dispatchBtn = document.querySelector('#assignModal .btn-primary');
-            dispatchBtn.setAttribute('onclick', 'confirmReassignment()');
-
-            openModal('assignModal');
+            document.getElementById('reassignTaskModal').style.display = 'flex';
         }
 
         function openReassignModalFromDetails() {
@@ -3612,16 +4002,16 @@
         }
 
         async function confirmReassignment() {
-            const personId = document.getElementById('assignPersonSelect').value;
-            const groupId = document.getElementById('assignGroupSelect').value;
+            const personId = document.getElementById('reassignPersonSelect').value;
+            const groupId = document.getElementById('reassignGroupSelect').value;
 
             if (!personId && !groupId) {
                 alert("Please select either a Person or a Group");
                 return;
             }
 
-            const targetName = personId ? document.querySelector(`#assignPersonSelect option[value="${personId}"]`).textContent :
-                document.querySelector(`#assignGroupSelect option[value="${groupId}"]`).textContent;
+            const targetName = personId ? document.querySelector(`#reassignPersonSelect option[value="${personId}"]`).textContent :
+                document.querySelector(`#reassignGroupSelect option[value="${groupId}"]`).textContent;
 
             try {
                 // Use numeric ID for the API
@@ -3643,15 +4033,11 @@
                         cmds[cmdIndex].status = 'Pending';
                         renderCmds();
                     }
-                    closeModal('assignModal');
+                    closeModal('reassignTaskModal');
                     showAdminToast(`Task ${reassigningCmdId} reassigned to ${targetName}`);
                 }
             } catch (e) {
                 console.error("Reassign failed", e);
-            } finally {
-                // Restore original handler for other uses of this modal
-                const dispatchBtn = document.querySelector('#assignModal .btn-primary');
-                dispatchBtn.setAttribute('onclick', 'dispatchAssignment()');
             }
         }
 
@@ -3925,79 +4311,14 @@
         }
 
         // ─── Admin Toast Notification ───────────────────────────────────────────────
-        function showAdminToast(msg) {
-            let toast = document.getElementById('adminToast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'adminToast';
-                toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:99999;box-shadow:0 8px 25px rgba(0,0,0,0.3);transition:all 0.4s;opacity:0;transform:translateY(20px);max-width:360px;line-height:1.4;';
-                document.body.appendChild(toast);
-            }
-            toast.innerText = msg;
-            toast.style.opacity = '1';
-            toast.style.transform = 'translateY(0)';
-            clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(20px)';
-            }, 5000);
-        }
 
-        // ─── Rescue Requests Logic ──────────────────────────────────────────────────
-        let rescueRequests = [];
-        let ws;
-
-        function initWebSocket() {
-            ws = new WebSocket('ws://192.168.1.11:3001');
-            ws.onopen = () => {
-                console.log('[Admin WS] Connected to backend');
-                ws.send(JSON.stringify({ type: 'REGISTER', deviceId: 'WEB_ADMIN_MASTER', room: 'admin' }));
-            };
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data.type === 'NEW_RESCUE_REQUEST') {
-                    fetchRescueRequests();
-                    fetchDashboardStats();
-                    updateTacticalMap();
-                    showAdminToast(`🆘 New ${data.data?.type?.toUpperCase() || 'rescue'} request from ${data.data?.sector || 'field'}`);
-                } else if (data.type === 'RESCUE_REQUEST_ACCEPTED' || data.type === 'RESCUE_REQUEST_DECLINED') {
-                    fetchRescueRequests();
-                    fetchDashboardStats();
-                    updateTacticalMap();
-                } else if (data.type === 'RESCUE_REQUEST_COMPLETED') {
-                    fetchRescueRequests();
-                    fetchDashboardStats();
-                    updateTacticalMap();
-                    showAdminToast(`✅ Mission complete: ${data.data?.sector || 'request'} marked done by rescuer`);
-                    // Mark command as completed in local list
-                    const reqId = data.data?.id;
-                    if (reqId) {
-                        cmds.forEach(c => { if (c.rescueReqId === reqId) c.status = 'Completed'; });
-                        renderCmds();
-                    }
-                } else if (data.type === 'SOS_ALERT') {
-                    showAdminToast(`🚨 SOS Alert: ${data.data?.details?.message || 'Incoming alert'}`);
-                    fetchDashboardStats();
-                    updateTacticalMap();
-                } else if (data.type === 'RESCUER_UPDATE') {
-                    // Update rescuer marker on map if available
-                    const d = data.data;
-                    if (d && d.lat && d.lng && rescuerMarkers) {
-                        if (rescuerMarkers[d.deviceId]) {
-                            rescuerMarkers[d.deviceId].setLatLng([d.lat, d.lng]);
-                        }
-                    }
-                } else if (data.type === 'NEW_COMMAND') {
-                    fetchDashboardStats();
-                }
-            };
-            ws.onclose = () => setTimeout(initWebSocket, 5000); // auto-reconnect
-        }
 
         async function fetchRescueRequests() {
             try {
                 const res = await fetch(`${API_BASE}/rescue-requests?status=pending`);
-                rescueRequests = await res.json();
+                let data = await res.json();
+                data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                rescueRequests = data;
                 renderRescueRequests();
             } catch (e) {
                 console.error("Error fetching rescue requests", e);
@@ -4067,9 +4388,14 @@
 
                 const assignBtnLabel = !isCritical ? 'Assign as Normal Task' : 'Accept & Assign';
 
+                // Escape single quotes and newlines for safe inclusion in onclick attributes
+                const esc = (s) => (s || '').toString().replace(/'/g, "\\'").replace(/\n/g, " ").replace(/\r/g, "");
+                const safeSector = esc(req.sector);
+                const safeType = esc(typeLabel);
+
                 const html = `
                     <div class="notif-item actionable-item" style="align-items: flex-start; border-left: 3px solid ${color}; cursor:pointer; margin-bottom:8px;" 
-                         onclick="openAssignModal('${req.id}', '${typeLabel}', '${req.sector}', '${req.urgency}', '${num}')">
+                         onclick="openAssignModal('${req.id}', '${safeType}', '${safeSector}', '${req.urgency}', '${num}')">
                         <div class="notif-icon" style="background:${bg}; color:${color}; font-weight:900; font-size:12px;">${num}</div>
                         <div class="notif-content">
                             <div class="notif-title" style="color:${color}; font-weight:800; display:flex; justify-content:space-between; align-items:center;">
@@ -4083,8 +4409,10 @@
                                 ${detailsHtml}
                             </div>
                             <div class="actionable-actions">
-                                <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;" onclick="openAssignModal('${req.id}', '${typeLabel}', '${req.sector}', '${req.urgency}', '${num}')">${assignBtnLabel}</button>
+                                <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;" onclick="openAssignModal('${req.id}', '${safeType}', '${safeSector}', '${req.urgency}', '${num}')">${assignBtnLabel}</button>
+                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: var(--accent); border-color: var(--accent);" onclick="event.stopPropagation(); openReplyModal('${req.device_id || req.phone}', '${nickName}')">Reply</button>
                                 <button class="btn btn-outline" style="padding: 6px 12px; font-size: 11px;" onclick="event.stopPropagation(); declineRescueRequest('${req.id}')">Decline</button>
+                                <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px; background: #10b981; border-color: #10b981;" onclick="event.stopPropagation(); closeRescueRequest('${req.id}')">✅ Close</button>
                             </div>
                         </div>
                     </div>
@@ -4195,6 +4523,52 @@
             }
         }
 
+        async function closeRescueRequest(id) {
+            if (!confirm(`Are you sure you want to manually mark this request as completed?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/rescue-requests/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'completed' })
+                });
+                if (res.ok) {
+                    showAdminToast(`Rescue request closed successfully`);
+                    fetchRescueRequests();
+                } else {
+                    alert("Failed to close rescue request");
+                }
+            } catch (e) {
+                console.error("Error closing rescue request", e);
+            }
+        }
+
+        function openReplyModal(deviceId, name) {
+            document.getElementById('replyDeviceId').value = deviceId;
+            document.getElementById('replyTargetInfo').innerText = `Sending message to: ${name} (${deviceId})`;
+            document.getElementById('replyMessage').value = '';
+            document.getElementById('replyModal').style.display = 'flex';
+        }
+
+        async function sendReply() {
+            const deviceId = document.getElementById('replyDeviceId').value;
+            const message = document.getElementById('replyMessage').value;
+            if (!message) return alert("Please enter a message.");
+
+            try {
+                const res = await fetch(`${API_BASE}/messages/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ deviceId, message })
+                });
+                if (res.ok) {
+                    showAdminToast(`Message sent to ${deviceId}`);
+                    closeModal('replyModal');
+                } else {
+                    alert("Failed to send message.");
+                }
+            } catch (e) { console.error(e); }
+        }
+
         async function fetchDashboardStats() {
             try {
                 // 1. Fetch Summary Stats from specialized endpoint
@@ -4237,10 +4611,36 @@
             }
         }
 
+        async function closeTaskByAdmin(fullId) {
+            if (!confirm(`Are you sure you want to manually mark ${fullId} as completed?`)) return;
+            
+            const dbId = fullId.replace('CMD-', '');
+            try {
+                const res = await fetch(`${API_BASE}/commands/${dbId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'completed' })
+                });
+                
+                if (res.ok) {
+                    showAdminToast(`Task ${fullId} closed successfully`);
+                    fetchCommands(); // Refresh list
+                    fetchRescueRequests(); // Refresh linked SOS status
+                } else {
+                    alert("Failed to close task");
+                }
+            } catch (err) {
+                console.error("Error closing task", err);
+            }
+        }
+
         async function fetchCommands() {
             try {
                 const res = await fetch(`${API_BASE}/commands`);
-                const data = await res.json();
+                let data = await res.json();
+                
+                // Sort so newest commands are on top
+                data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
                 // Map the DB commands to the UI format
                 cmds = data.map(c => {
@@ -4255,7 +4655,7 @@
                         zone: payload.sector || payload.zone || 'N/A',
                         team: c.target_phone || (c.group_id ? `Group ${c.group_id}` : 'Unassigned'),
                         time: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        status: c.status.charAt(0).toUpperCase() + c.status.slice(1),
+                        status: (c.status || 'pending').charAt(0).toUpperCase() + (c.status || 'pending').slice(1),
                         rescueReqId: payload.rescue_req_id || c.requester_db_id || null,
                         requesterName: c.requester_name || payload.requester_name || null,
                         requesterPhone: c.requester_phone || payload.requester_phone || null,
@@ -4288,6 +4688,27 @@
                     const displayVal = settings.retry_intervals.includes(',') ? settings.retry_intervals : settings.retry_intervals + 's';
                     document.getElementById('activeRetryValue').innerText = displayVal;
                 }
+                if (settings.sos_buffer_minutes !== undefined) {
+                    const val = parseInt(settings.sos_buffer_minutes);
+                    let displayVal = 'Disabled';
+                    if (val > 0) {
+                        displayVal = val >= 60 ? (val / 60) + ' Hour' + (val >= 120 ? 's' : '') : val + ' Min';
+                        if (val >= 60 && val % 60 === 0) {
+                            document.getElementById('bufferIntervalInput').value = val / 60;
+                            const selectEl = document.getElementById('bufferUnitSelect');
+                            if(selectEl) selectEl.value = 'hr';
+                        } else {
+                            document.getElementById('bufferIntervalInput').value = val;
+                            const selectEl = document.getElementById('bufferUnitSelect');
+                            if(selectEl) selectEl.value = 'min';
+                        }
+                    } else {
+                        document.getElementById('bufferIntervalInput').value = '';
+                        const selectEl = document.getElementById('bufferUnitSelect');
+                        if(selectEl) selectEl.value = 'min';
+                    }
+                    document.getElementById('activeBufferValue').innerText = displayVal;
+                }
             } catch (e) { console.error("Error fetching settings", e); }
         }
 
@@ -4310,6 +4731,48 @@
                     const displayVal = val.includes(',') ? val : val + 's';
                     document.getElementById('activeRetryValue').innerText = displayVal;
                     showAdminToast(`Mobile SOS retry intervals updated to: ${displayVal}`);
+                } else {
+                    console.error("[Admin] Failed to save settings:", response.statusText);
+                    alert("Failed to save settings. Please check backend connection.");
+                }
+            } catch (e) { 
+                console.error("[Admin] Save error:", e);
+                alert("Error connecting to server. Is the backend running?");
+            }
+        }
+
+        function setBufferPreset(val) {
+            document.getElementById('bufferIntervalInput').value = val;
+            const selectEl = document.getElementById('bufferUnitSelect');
+            if (selectEl) selectEl.value = 'min';
+            saveBufferConfig();
+        }
+
+        async function saveBufferConfig() {
+            const val = document.getElementById('bufferIntervalInput').value;
+            const unit = document.getElementById('bufferUnitSelect').value;
+            console.log("[Admin] Saving buffer config:", val, unit);
+            if (val === '') return;
+            
+            let totalMins = parseInt(val);
+            if (unit === 'hr') {
+                totalMins = totalMins * 60;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: 'sos_buffer_minutes', value: totalMins })
+                });
+                if (response.ok) {
+                    const intVal = parseInt(val);
+                    let displayVal = 'Disabled';
+                    if (intVal > 0) {
+                        displayVal = intVal >= 60 ? (intVal / 60) + ' Hour' + (intVal >= 120 ? 's' : '') : intVal + ' Min';
+                    }
+                    document.getElementById('activeBufferValue').innerText = displayVal;
+                    showAdminToast(`SOS Trigger Buffer updated to: ${displayVal}`);
                 } else {
                     console.error("[Admin] Failed to save settings:", response.statusText);
                     alert("Failed to save settings. Please check backend connection.");
@@ -4351,7 +4814,6 @@
 
         // ─── Member DB Logic ────────────────────────────────────────────────────────
         let currentGroups = [];
-        let currentUsers = [];
         let selectedGroupId = null;
 
         async function fetchGroups() {
@@ -4757,13 +5219,21 @@
 
         // Initialize
         window.onload = () => {
-            initMap();
-            renderCmds();
-            renderOpsList();
+            try { initWebSocket(); } catch(e) { console.error("WS Init Error", e); }
+            try { initMap(); } catch(e) { console.error("Map Init Error", e); }
+            
+            // Set periodic refreshes
+            setInterval(fetchDashboardStats, 10000);
+            setInterval(fetchRescueRequests, 5000);
+            setInterval(fetchCommands, 8000);
+            setInterval(updateTacticalMap, 5000);
+            
+            lucide.createIcons();
 
+            // Initial fetch which also triggers session restoration
+            fetchOperations();
             fetchGroups();
             fetchUsers();
-
             fetchRescueRequests();
             fetchDashboardStats();
             fetchCommands();

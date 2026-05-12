@@ -28,16 +28,55 @@ const db = new sqlite3.Database('./rescue.db', (err) => {
 
 const run = (sql, params = []) => new Promise((res, rej) =>
     db.run(sql, params, function (err) { err ? rej(err) : res(this); }));
+const get = (sql, params = []) => new Promise((res, rej) =>
+    db.get(sql, params, (err, row) => err ? rej(err) : res(row)));
+const all = (sql, params = []) => new Promise((res, rej) =>
+    db.all(sql, params, (err, rows) => err ? rej(err) : res(rows)));
 
 // ─── Test Endpoints (For Connectivity Verification) ────────────────────────
 app.get('/api/test', (req, res) => res.json({ status: 'Connected to API' }));
 app.get('/api/auth/test', (req, res) => res.json({ status: 'Connected to Auth API' }));
 
-const all = (sql, params = []) => new Promise((res, rej) =>
-    db.all(sql, params, (err, rows) => { err ? rej(err) : res(rows); }));
+// ─── Operations Management ────────────────────────────────────────────────────
+app.get('/api/operations', async (req, res) => {
+    try {
+        const rows = await all(`SELECT * FROM operation_history ORDER BY created_at DESC`);
+        const formatted = rows.map(r => ({
+            ...r,
+            zoneData: JSON.parse(r.zone_data)
+        }));
+        res.json(formatted);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
-const get = (sql, params = []) => new Promise((res, rej) =>
-    db.get(sql, params, (err, row) => { err ? rej(err) : res(row); }));
+app.post('/api/operations', async (req, res) => {
+    const { id, name, date, zoneData } = req.body;
+    try {
+        await run(`INSERT INTO operation_history (id, name, date, zone_data) VALUES (?, ?, ?, ?)`,
+            [id, name, date, JSON.stringify(zoneData)]);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/operations/:id', async (req, res) => {
+    try {
+        await run(`DELETE FROM operation_history WHERE id = ?`, [req.params.id]);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/messages/send', async (req, res) => {
+    const { deviceId, message } = req.body;
+    if (!deviceId || !message) return res.status(400).json({ error: 'Missing data' });
+    
+    broadcast({
+        type: 'ADMIN_MESSAGE',
+        targetDeviceId: deviceId,
+        data: { message, timestamp: new Date().toISOString() }
+    });
+    res.json({ success: true });
+});
+
 
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS operation_zones (
@@ -108,6 +147,15 @@ db.serialize(() => {
             });
         }
     });
+
+    db.run(`CREATE TABLE IF NOT EXISTS operation_history (
+        id TEXT PRIMARY KEY,
+        name TEXT,
+        date TEXT,
+        zone_data TEXT,
+        status TEXT DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS group_members (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -220,6 +268,15 @@ db.serialize(() => {
         assigned_group_id INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    db.run(`CREATE TABLE IF NOT EXISTS operation_history (
+        id TEXT PRIMARY KEY,
+        name TEXT,
+        date TEXT,
+        status TEXT DEFAULT 'Active',
+        zone_data TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
     // Default settings
@@ -652,7 +709,20 @@ app.get('/api/users/:id/combined-history', async (req, res) => {
 
 app.get('/api/users/:id/history', async (req, res) => {
     try {
-        const history = await all(`SELECT * FROM rescue_requests WHERE assigned_user_id = ? ORDER BY updated_at DESC LIMIT 50`, [req.params.id]);
+        const groups = await all(`SELECT group_id FROM group_members WHERE user_id = ?`, [req.params.id]);
+        const groupIds = groups.map(g => g.group_id);
+        
+        let query = `SELECT * FROM rescue_requests WHERE assigned_user_id = ?`;
+        let params = [req.params.id];
+        
+        if (groupIds.length > 0) {
+            query += ` OR assigned_group_id IN (${groupIds.map(() => '?').join(',')})`;
+            params = params.concat(groupIds);
+        }
+        
+        query += ` ORDER BY updated_at DESC LIMIT 50`;
+        
+        const history = await all(query, params);
         res.json(history);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -945,7 +1015,9 @@ app.get('/api/rescue-requests', async (req, res) => {
     try {
         let query = `SELECT * FROM rescue_requests`;
         let params = [];
-        if (status) {
+        if (status === 'active') {
+            query += ` WHERE status != 'completed' AND status != 'declined'`;
+        } else if (status) {
             query += ` WHERE status = ?`;
             params.push(status);
         }
@@ -957,6 +1029,23 @@ app.get('/api/rescue-requests', async (req, res) => {
 app.post('/api/rescue-requests', async (req, res) => {
     const { device_id, phone, type, lat, lng, details, urgency, sector } = req.body;
     try {
+        // Enforce SOS Buffer
+        const bufferSetting = await get(`SELECT value FROM settings WHERE key = 'sos_buffer_minutes'`);
+        const bufferMinutes = bufferSetting ? parseInt(bufferSetting.value) || 0 : 0;
+        
+        if (bufferMinutes > 0) {
+            const lastReq = await get(`SELECT created_at FROM rescue_requests WHERE phone = ? OR device_id = ? ORDER BY created_at DESC LIMIT 1`, [phone, device_id]);
+            if (lastReq) {
+                const lastTime = new Date(lastReq.created_at).getTime();
+                const now = new Date().getTime();
+                const diffMinutes = (now - lastTime) / (1000 * 60);
+                if (diffMinutes < bufferMinutes) {
+                    const waitTime = Math.ceil(bufferMinutes - diffMinutes);
+                    return res.status(429).json({ error: `SOS BUFFER ACTIVE. Please wait ${waitTime} more minute(s) before submitting another request.` });
+                }
+            }
+        }
+
         const result = await run(`INSERT INTO rescue_requests (device_id, phone, type, lat, lng, details, urgency, sector) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [device_id, phone, type || 'pregnancy', lat, lng, details, urgency || 'high', sector || 'Unknown Zone']);
         const reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [result.lastID]);
@@ -980,7 +1069,7 @@ app.post('/api/rescue-requests', async (req, res) => {
 app.put('/api/rescue-requests/:id/accept', async (req, res) => {
     const { assigned_user_id, assigned_group_id } = req.body;
     try {
-        await run(`UPDATE rescue_requests SET status = 'accepted', assigned_user_id = ?, assigned_group_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        await run(`UPDATE rescue_requests SET status = 'assigned', assigned_user_id = ?, assigned_group_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
             [assigned_user_id, assigned_group_id, req.params.id]);
 
         const reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [req.params.id]);
@@ -1016,6 +1105,8 @@ app.put('/api/rescue-requests/:id/accept', async (req, res) => {
         const cmdPayload = JSON.stringify({
             message: `${reqData.type.toUpperCase()} ${commandType === 'normal' ? 'TASK' : 'RESCUE'} at ${reqData.sector}`,
             sector: reqData.sector,
+            lat: reqData.lat,
+            lng: reqData.lng,
             urgency: reqData.urgency,
             rescue_req_id: reqData.id,
             requester_name: reqData.name,
@@ -1023,7 +1114,7 @@ app.put('/api/rescue-requests/:id/accept', async (req, res) => {
             details: reqData.details // Include quantities if available
         });
 
-        await run(`INSERT INTO command_queue (group_id, target_phone, command_type, command_payload, status, priority) VALUES (?, ?, ?, ?, 'accepted', ?)`,
+        await run(`INSERT INTO command_queue (group_id, target_phone, command_type, command_payload, status, priority) VALUES (?, ?, ?, ?, 'assigned', ?)`,
             [assigned_group_id || null, assignedPhone || assignedDeviceId || null, commandType, cmdPayload, commandType]);
 
         // Notify the original requester
@@ -1073,6 +1164,11 @@ app.put('/api/rescue-requests/:id/status', async (req, res) => {
         }
 
         await run(`UPDATE rescue_requests SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, req.params.id]);
+        
+        // Auto-update any associated commands in command_queue
+        await run(`UPDATE command_queue SET status = ? WHERE command_payload LIKE ?`, [finalStatus, `%"rescue_req_id":${req.params.id}%`]);
+        await run(`UPDATE command_queue SET status = ? WHERE command_payload LIKE ?`, [finalStatus, `%"rescue_req_id":"${req.params.id}"%`]);
+
         reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [req.params.id]);
 
         if (finalStatus === 'completed') {
@@ -1093,7 +1189,7 @@ app.put('/api/rescue-requests/:id/status', async (req, res) => {
                 broadcast('ZONE_DISSOLVED', { zone_name: reqData.sector });
                 await logCommand('ZONE_DISSOLVED', 'System', reqData.sector, {});
             }
-            
+
             broadcast('RESCUE_REQUEST_COMPLETED', reqData);
             await logCommand('RESCUE_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Request ID: ${req.params.id}`, { status: 'completed' });
         } else if (finalStatus === 'in_progress' && status === 'completed') {
@@ -1127,7 +1223,7 @@ app.get('/api/commands', async (req, res) => {
         const commands = await all(`
             SELECT cq.*, 
                    rr.id as requester_db_id,
-                   rr.name as requester_name, 
+                   COALESCE(u.name, rr.device_id) as requester_name, 
                    rr.phone as requester_phone, 
                    rr.details as requester_details,
                    rr.type as requester_type,
@@ -1137,6 +1233,8 @@ app.get('/api/commands', async (req, res) => {
                    rr.created_at as request_time
             FROM command_queue cq
             LEFT JOIN rescue_requests rr ON CAST(rr.id AS TEXT) = CAST(json_extract(cq.command_payload, '$.rescue_req_id') AS TEXT)
+            LEFT JOIN users u ON u.device_id = rr.device_id OR u.phone = rr.phone
+            GROUP BY cq.id
             ORDER BY cq.created_at DESC
         `);
         res.json(commands);
@@ -1245,6 +1343,16 @@ app.put('/api/commands/:id/status', async (req, res) => {
         await run(`UPDATE command_queue SET status = ? WHERE id = ?`, [finalStatus, req.params.id]);
         cmdData = await get(`SELECT * FROM command_queue WHERE id = ?`, [req.params.id]);
 
+        // Propagation: If this command is linked to a rescue_request, update that too
+        try {
+            const payload = typeof cmdData.command_payload === 'string' ? JSON.parse(cmdData.command_payload) : cmdData.command_payload;
+            if (payload && payload.rescue_req_id) {
+                await run(`UPDATE rescue_requests SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, payload.rescue_req_id]);
+                const reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [payload.rescue_req_id]);
+                broadcast('RESCUE_REQUEST_UPDATE', reqData);
+            }
+        } catch (e) { console.error("Propagation error", e); }
+
         broadcast('COMMAND_STATUS_UPDATE', cmdData);
         if (finalStatus === 'in_progress' && status === 'completed') {
             await logCommand('COMMAND_STATUS_UPDATE', rescuer_phone || 'Rescuer', `Command ID: ${req.params.id}`, { status: 'rescuer_completed_waiting' });
@@ -1320,12 +1428,12 @@ app.put('/api/commands/:id/reassign', async (req, res) => {
 app.get('/api/dashboard-stats', async (req, res) => {
     try {
         const [sosCount, sosCompleted, foodCount, foodCompleted, medCount, medCompleted] = await Promise.all([
-            get(`SELECT COUNT(*) as count FROM sos_alerts WHERE status != 'completed'`),
-            get(`SELECT COUNT(*) as count FROM sos_alerts WHERE status = 'completed'`),
-            get(`SELECT COUNT(*) as count FROM command_queue WHERE command_payload LIKE '%food%' AND status != 'completed'`),
-            get(`SELECT COUNT(*) as count FROM command_queue WHERE command_payload LIKE '%food%' AND status = 'completed'`),
-            get(`SELECT COUNT(*) as count FROM command_queue WHERE command_payload LIKE '%medical%' AND status != 'completed'`),
-            get(`SELECT COUNT(*) as count FROM command_queue WHERE command_payload LIKE '%medical%' AND status = 'completed'`),
+            get(`SELECT COUNT(*) as count FROM rescue_requests WHERE type IN ('sos', 'medical', 'pregnancy') AND status != 'completed'`),
+            get(`SELECT COUNT(*) as count FROM rescue_requests WHERE type IN ('sos', 'medical', 'pregnancy') AND status = 'completed'`),
+            get(`SELECT COUNT(*) as count FROM rescue_requests WHERE type IN ('food', 'delivery') AND status != 'completed'`),
+            get(`SELECT COUNT(*) as count FROM rescue_requests WHERE type IN ('food', 'delivery') AND status = 'completed'`),
+            get(`SELECT COUNT(*) as count FROM rescue_requests WHERE type IN ('medical', 'medical_delivery') AND status != 'completed'`),
+            get(`SELECT COUNT(*) as count FROM rescue_requests WHERE type IN ('medical', 'medical_delivery') AND status = 'completed'`),
         ]);
 
         // Simulating some ongoing/completed stats based on data
@@ -1407,4 +1515,4 @@ app.get('/api/export/log', async (req, res) => {
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
 const PORT = 3001;
-server.listen(PORT, () => console.log(`Rescue Backend running on http://localhost:${PORT}`));
+server.listen(PORT, '0.0.0.0', () => console.log(`Rescue Backend running on http://0.0.0.0:${PORT}`));
