@@ -1171,7 +1171,7 @@ app.put('/api/rescue-requests/:id/status', async (req, res) => {
 
         reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [req.params.id]);
 
-        if (finalStatus === 'completed') {
+        if (finalStatus === 'completed' && reqData) {
             // Notify original requester
             if (reqData.device_id) {
                 await run(`INSERT INTO notifications (device_id, type, message, action_required) VALUES (?, ?, ?, ?)`,

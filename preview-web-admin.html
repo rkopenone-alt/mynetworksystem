@@ -2558,16 +2558,11 @@
                         fetchDashboardStats && fetchDashboardStats();
                         updateTacticalMap && updateTacticalMap();
                     } else if (data.type === 'RESCUE_REQUEST_COMPLETED') {
+                        fetchCommands && fetchCommands();
                         fetchRescueRequests && fetchRescueRequests();
                         fetchDashboardStats && fetchDashboardStats();
                         updateTacticalMap && updateTacticalMap();
                         showAdminToast(`✅ Mission complete: ${data.data?.sector || 'request'} marked done`);
-                        
-                        const reqId = data.data?.id;
-                        if (reqId && typeof cmds !== 'undefined') {
-                            cmds.forEach(c => { if (c.rescueReqId === reqId) c.status = 'Completed'; });
-                            renderCmds && renderCmds();
-                        }
                     } else if (data.type === 'SOS_ALERT') {
                         showAdminToast(`🚨 SOS Alert: ${data.data?.details?.message || 'Incoming alert'}`);
                         fetchDashboardStats && fetchDashboardStats();
@@ -3325,7 +3320,7 @@
 
                         // Draw lines for assigned rescue tasks (Public SOS)
                         tasks.forEach(t => {
-                            if (t.status !== 'completed' && (t.assigned_user_id === r.id || isInGroup(t.assigned_group_id))) {
+                            if (t.lat && t.lng && t.status !== 'completed' && (t.assigned_user_id === r.id || isInGroup(t.assigned_group_id))) {
                                 const line = L.polyline([[r.lat, r.lng], [t.lat, t.lng]], {
                                     color: '#f59e0b', // High visibility warning color
                                     weight: 3,
@@ -3339,13 +3334,13 @@
                 });
 
                 // 3. Render Active Tasks (with Grouped styling)
-                tasks.filter(t => t.status !== 'completed' && t.status !== 'declined').forEach(t => {
+                tasks.filter(t => t.lat && t.lng && t.status !== 'completed' && t.status !== 'declined').forEach(t => {
                     const activeZones = zones.filter(z => z.status === 'active');
                     const isInZone = activeZones.some(z => {
                         try {
                             const geo = JSON.parse(z.zone_geometry);
                             const latlng = geo.latlng || geo.center;
-                            if (geo.type === 'Circle' || geo.type === 'radius' || (latlng && geo.radius)) {
+                            if (latlng && (geo.type === 'Circle' || geo.type === 'radius' || geo.radius)) {
                                 const dist = map.distance([t.lat, t.lng], [latlng.lat, latlng.lng]);
                                 return dist <= geo.radius;
                             } else if (geo.bounds) {
@@ -3661,6 +3656,10 @@
             cmds.forEach((c) => {
                 let isReassignable = c.status !== 'Completed';
 
+                const s = (c.status || '').toLowerCase();
+                const isOngoing = ['ongoing', 'critical', 'pending', 'accepted', 'assigned', 'acknowledged', 'declined', 'in_progress'].includes(s);
+                const isCrit = c.priority === 'critical' || ['sos', 'medical', 'pregnancy', 'critical', 'rescue'].includes(c.type.toLowerCase());
+
                 let row = `<tr onclick="selectTask('${c.id}')" style="cursor:pointer;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                     <td style="font-weight: 800; color: var(--text-muted);">{SNO}</td>
                     <td style="font-weight:700;">${c.id}</td>
@@ -3678,14 +3677,6 @@
                         ${isOngoing ? `<button class="btn btn-primary" style="padding:4px 8px; font-size:10px; background: #10b981; border-color: #10b981; margin-left:4px;" onclick="event.stopPropagation(); closeTaskByAdmin('${c.id}')">✅ Close</button>` : ''}
                     </td>
                 </tr>`;
-
-                const isCrit = c.priority === 'critical' || ['sos', 'medical', 'pregnancy', 'critical', 'rescue'].includes(c.type.toLowerCase());
-
-                // Logic for Live vs Completed separation
-                // Live: Everything currently active or needing attention
-                // Completed: Only tasks that are fully finished
-                const s = (c.status || '').toLowerCase();
-                const isOngoing = ['ongoing', 'critical', 'pending', 'accepted', 'assigned', 'acknowledged', 'declined', 'in_progress'].includes(s);
 
                 if (isOngoing) {
                     if (isCrit) {
