@@ -100,16 +100,15 @@
 
         /* Screen Management */
         .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: relative;
+            flex: 1;
             width: 100%;
-            height: 100%;
             display: none;
             flex-direction: column;
             background: var(--bg);
             z-index: 10;
             animation: fadeIn 0.3s ease-out;
+            overflow-y: auto;
         }
 
         .screen.active {
@@ -195,9 +194,76 @@
             text-transform: uppercase;
         }
 
-        .input-field {
+        /* Global App Header */
+        .app-header {
+            padding: 18px 20px;
+            background: white;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #f1f5f9;
+            z-index: 100;
+        }
+        .app-header-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--dark);
+            letter-spacing: -0.5px;
+        }
+
+        .selection-card {
+            background: white;
+            padding: 18px 15px;
+            border-radius: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .selection-card:active {
+            transform: scale(0.96);
+        }
+        .selection-card.selected {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            border-width: 3px !important;
+        }
+        .selection-card .icon-sphere {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: inset -3px -3px 10px rgba(0,0,0,0.15), 3px 3px 10px rgba(255,255,255,0.7);
+        }
+        
+        .btn-confirm-proceed {
+            background: #87cefa;
+            color: white;
+            border: none;
             width: 100%;
-            padding: 18px;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px 0 rgba(135, 206, 250, 0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .btn-confirm-proceed:disabled {
+            background: #e2e8f0;
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
             border-radius: var(--radius);
             border: 2px solid var(--border);
             background: var(--surface);
@@ -856,6 +922,19 @@
 
     <div class="phone-mockup">
         <div class="phone-inner">
+            <div id="appHeader" class="app-header">
+                <div style="font-size: 19px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px;">Citizen SOS</div>
+                <div style="display: flex; align-items: center; gap: 12px; text-align: right;">
+                    <div style="display: flex; flex-direction: column;">
+                        <div id="headerUserName" style="font-size: 13px; font-weight: 900; color: #1e293b; line-height: 1.1;">...</div>
+                        <div id="headerUserDetails" style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: 2px;">...</div>
+                    </div>
+                    <div onclick="core.nav('Settings')" style="width:38px; height:38px; background:#f8fafc; border-radius:12px; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; cursor:pointer; transition: 0.2s;" onmousedown="this.style.transform='scale(0.9)'" onmouseup="this.style.transform='scale(1)'">
+                        <span style="font-size:18px;">👤</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Global Notification Panel (Top 10%) -->
             <div id="globalNotificationPanel" class="notification-panel">
                 <div class="notif-item">
@@ -904,52 +983,36 @@
                 </div>
             </div>
 
-            <!-- SCREEN 2: FINAL SOS PAGE -->
-            <div class="screen" id="screenHome">
-                <div class="header" style="text-align:center; padding: 20px;">
-                    <h1 style="font-size:24px; font-weight:900; color:var(--danger); margin:0;">Final SOS Page</h1>
-                    <p style="font-size:12px; font-weight:700; color:var(--text-muted); margin:5px 0 0 0;">Details Captured • Tactical Standby</p>
+            <!-- SCREEN 2: EMERGENCY TYPE SELECTION (COMPACT) -->
+            <div class="screen" id="screenEmergencyType">
+                <div class="header" style="text-align:center; padding: 25px 20px 10px 20px;">
+                    <h1 style="font-size:24px; font-weight:900; color:#1e293b; margin:0;">Select Emergency Type</h1>
+                    <p style="font-size:12px; font-weight:600; color:#64748b; margin:5px 0 0 0;">Choose the severity of your situation</p>
                 </div>
 
-                    <div style="width:100%; margin-top:15px; background:white; padding:15px; border-radius:18px; border:1px solid #eef2f6; box-shadow: var(--shadow-sm);">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <span style="font-size:11px; font-weight:900; color:var(--text-main); letter-spacing:0.5px;">SITUATIONAL DETAILS</span>
-                            <span style="font-size:10px; font-weight:700; color:var(--primary);">Ready</span>
-                        </div>
-                        <p style="font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:12px;">All details and media captured in the previous step will be transmitted.</p>
-                    </div>
-
-                    <div class="sos-btn-outer">
-                        <div class="pulse-ring"></div>
-                        <div class="sos-btn-inner" onmousedown="core.startSOS()" onmouseup="core.cancelSOS()"
-                            ontouchstart="core.startSOS()" ontouchend="core.cancelSOS()">
-                            <span>SOS</span>
-                            <p>EMERGENCY</p>
+                <div class="form-content" style="padding: 10px 20px; display: flex; flex-direction: column; gap: 15px; justify-content: center;">
+                    <div class="selection-card" id="btnSelectCritical" onclick="core.setEmergencyCategory('critical')" 
+                        style="background: #fff1f2; border: 1.5px solid #fecdd3;">
+                        <div class="icon-sphere" style="background: linear-gradient(145deg, #fb7185, #e11d48);">🔴</div>
+                        <div>
+                            <h2 style="color: #e11d48; font-size: 18px; font-weight: 900; margin: 0; text-transform: uppercase;">Critical SOS</h2>
+                            <p style="color: #9f1239; font-size: 11px; font-weight: 700; margin-top: 4px;">Immediate Response</p>
                         </div>
                     </div>
 
-                    <!-- REAL-TIME STATUS TICKER -->
-                    <div id="sosStatusTicker" style="margin-top: 20px; text-align: center; display: none;">
-                        <div id="tickerIcon" style="font-size: 24px; margin-bottom: 8px;">📡</div>
-                        <div id="tickerLabel"
-                            style="font-size: 14px; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 1px;">
-                            Ready</div>
-                        <div id="tickerSub"
-                            style="font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 4px;">System
-                            Online</div>
-                    </div>
-
-                    <button onclick="core.nav('Settings')" style="margin-top:20px; background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; padding:8px 15px; border-radius:20px; font-size:11px; font-weight:800; display:flex; align-items:center; gap:6px;">
-                        📍 FIX GPS / OVERRIDE LOCATION
-                    </button>
-
-                    <div class="mode-selector">
-                        <div class="mode-btn active" onclick="core.setMode('medical', this)">
-                            <i>🏥</i><span>Medical</span></div>
-                        <div class="mode-btn" onclick="core.setMode('pregnancy', this)"><i>🤰</i><span>Pregnancy</span>
+                    <div class="selection-card" id="btnSelectNormal" onclick="core.setEmergencyCategory('normal')" 
+                        style="background: #fffbeb; border: 1.5px solid #fef3c7;">
+                        <div class="icon-sphere" style="background: linear-gradient(145deg, #fbbf24, #d97706);">🟡</div>
+                        <div>
+                            <h2 style="color: #d97706; font-size: 18px; font-weight: 900; margin: 0; text-transform: uppercase;">Normal SOS</h2>
+                            <p style="color: #92400e; font-size: 11px; font-weight: 700; margin-top: 4px;">Detailed Request</p>
                         </div>
-                        <div class="mode-btn" onclick="core.setMode('sos', this)"><i>🚨</i><span>Rescue</span></div>
                     </div>
+                </div>
+
+                <div style="padding: 15px 20px; background: white;">
+                    <button id="btnConfirmProceed" class="btn-confirm-proceed" disabled
+                        onclick="core.proceedFromSelection()">Confirm & Proceed</button>
                 </div>
 
                 <div class="bottom-nav">
@@ -959,10 +1022,78 @@
                 </div>
             </div>
 
-            <!-- SCREEN 3: HOME (DETAILS) -->
+            <!-- SCREEN 2B: CRITICAL SOS QUICK ACTIONS (RESTRUCTURED) -->
+            <div class="screen" id="screenCriticalSOS">
+                <input type="file" id="critFileInput" accept="image/*" capture="camera" style="display:none" onchange="core.handleSOSImage(this)">
+                
+                <div class="header" style="text-align:center; padding: 20px 20px;">
+                    <div style="display:flex; align-items:center; gap:10px; justify-content:center;">
+                        <div style="width:12px; height:12px; background:#e11d48; border-radius:50%; animation: pulse 1s infinite;"></div>
+                        <h1 style="font-size:22px; font-weight:900; color:#e11d48; margin:0;">Critical Emergency</h1>
+                    </div>
+                </div>
+
+                <div class="form-content" style="padding: 10px 20px; flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                    <!-- TOP: Emergency Buttons -->
+                    <div style="display:flex; gap:12px;">
+                        <div class="critical-action-btn" onclick="core.triggerQuickSOS('pregnancy')" 
+                            style="flex:1; background:white; border:2px solid #fb7185; padding:15px; border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+                            <div style="font-size:32px;">🤰</div>
+                            <h3 style="margin:0; font-size:14px; font-weight:900; color:#e11d48; text-align:center;">Pregnancy</h3>
+                        </div>
+
+                        <div class="critical-action-btn" onclick="core.triggerQuickSOS('medical')" 
+                            style="flex:1; background:white; border:2px solid #38bdf8; padding:15px; border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+                            <div style="font-size:32px;">🏥</div>
+                            <h3 style="margin:0; font-size:14px; font-weight:900; color:#0369a1; text-align:center;">Medical</h3>
+                        </div>
+                    </div>
+
+                    <!-- MID: Location & Media Details Bar -->
+                    <div style="margin-top:5px;">
+                        <div style="font-size:11px; font-weight:800; color:#64748b; text-align:left; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; padding-left:5px;">Location & Media Details</div>
+                        <div style="background:white; border-radius:16px; padding:12px; border:1px solid #e2e8f0; display:flex; gap:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+                            <textarea id="crit_address" placeholder="Enter full address, landmarks..." style="flex:1; border:none; background:transparent; font-size:14px; color:#1e293b; resize:none; height:70px; outline:none; font-family:inherit; padding:5px;"></textarea>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                 <!-- Photo Button -->
+                                 <div id="critPhotoBtn" onclick="core.captureNeed('photo')" style="width:55px; height:45px; border-radius:10px; border:1px solid #3b82f6; background:#eff6ff; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition: all 0.3s;">
+                                     <span style="font-size:18px;">📷</span>
+                                     <span id="critPhotoLabel" style="font-size:7px; font-weight:900; color:#2563eb; margin-top:1px;">PHOTO</span>
+                                 </div>
+                                 <!-- Audio Button -->
+                                 <div style="width:55px; height:45px; border-radius:10px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+                                     <span style="font-size:18px;">🎙️</span>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM: Main SOS Triggering -->
+                    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                        <div class="sos-btn-outer" style="width:180px; height:180px; margin: 0 auto;">
+                            <div class="pulse-ring" style="border-color:#e11d48;"></div>
+                            <div class="sos-btn-inner" style="background:linear-gradient(135deg, #fb7185, #e11d48); width:140px; height:140px;"
+                                onmousedown="core.startSOS('critical')" onmouseup="core.cancelSOS()"
+                                ontouchstart="core.startSOS('critical')" ontouchend="core.cancelSOS()">
+                                <span style="font-size:32px;">🚨</span>
+                                <p style="font-size:12px; margin-top:5px; font-weight:800;">MAIN TRIGGER</p>
+                            </div>
+                        </div>
+                        <p style="font-size:11px; color:#ef4444; font-weight:700; margin-top:15px; letter-spacing:1px; animation: blink 1.5s infinite;">HOLD TO DISPATCH HQ</p>
+                    </div>
+                </div>
+
+                <div class="bottom-nav">
+                    <div class="nav-link" onclick="core.nav('Home')"><i>🏠</i><span>HOME</span></div>
+                    <div class="nav-link" onclick="core.nav('Status')"><i>📋</i><span>HISTORY</span></div>
+                    <div class="nav-link" onclick="core.nav('Settings')"><i>⚙️</i><span>SETTINGS</span></div>
+                </div>
+            </div>
+
+            <!-- SCREEN 3: NORMAL SOS FORM (DETAILS) -->
             <div class="screen" id="screenForm">
                 <div class="header" style="padding: 16px 20px; border-bottom: 1px solid var(--border);">
-                    <h1 style="font-size:24px; font-weight:900; margin:0;">Home (Details)</h1>
+                    <h1 style="font-size:24px; font-weight:900; margin:0;">Normal SOS Form</h1>
                     <p style="font-size:13px; font-weight:700; color:var(--text-muted); margin:4px 0 0 0;">Capture Incident Intel</p>
                 </div>
 
@@ -1229,7 +1360,11 @@
         const core = {
             API: `http://${window.location.hostname || 'localhost'}:3001/api`,
             WS_URL: `ws://${window.location.hostname || 'localhost'}:3001`,
-            user: null,
+            user: {
+                name: "Arjun Singh",
+                serial_number: "PUB-1024",
+                phone: "918000000099"
+            },
             sosTimer: null,
             socket: null,
             mode: 'medical',
@@ -1238,6 +1373,10 @@
             backoff: [3000, 7000, 12000],
             currentLocation: { lat: 13.085, lng: 80.272 },
             isSimulating: false,
+            mediaCapabilities: {
+                image: true,
+                mic: true
+            },
 
             setManualLocation() {
                 const lat = parseFloat(document.getElementById('manualLat').value);
@@ -1387,6 +1526,7 @@
 
             async init() {
                 this.setupKeyboardHandling();
+                this.bootstrap(); // Initialize header with dummy data or state
                 const savedToken = localStorage.getItem('citizen_token');
                 const savedUser = localStorage.getItem('citizen_user');
                 if (savedToken && savedUser) {
@@ -1399,7 +1539,7 @@
                             const data = await res.json();
                             this.user = data.user;
                             localStorage.setItem('citizen_user', JSON.stringify(this.user));
-                            this.showScreen('screenForm');
+                            this.showScreen('screenEmergencyType');
                             this.bootstrap();
                             this.connectGateway();
                             this.startLocationTracking();
@@ -1412,7 +1552,7 @@
                         // Offline mode: proceed with local data if network fails
                         console.log("Offline mode, relying on local session");
                         this.user = JSON.parse(savedUser);
-                        this.showScreen('screenForm');
+                        this.showScreen('screenEmergencyType');
                         this.bootstrap();
                         this.connectGateway();
                         this.startLocationTracking();
@@ -1435,12 +1575,49 @@
                         if (intervals.length > 0 && !intervals.some(isNaN)) {
                             this.backoff = intervals;
                             console.log('[SYNC] Retry intervals updated:', this.backoff);
-                            this.refreshInterval = parseInt(settings.retry_intervals.split(',')[0]) || 15;
-                            const el = document.getElementById('dispSyncInterval');
-                            if(el) el.innerText = this.refreshInterval + 's (Admin Set)';
                         }
                     }
+
+                    if (settings.refresh_interval) {
+                        const newInterval = parseInt(settings.refresh_interval);
+                        if (newInterval > 0 && newInterval !== this.refreshInterval) {
+                            console.log(`[SYNC] Refresh interval updated to ${newInterval}s`);
+                            this.refreshInterval = newInterval;
+                            const el = document.getElementById('dispSyncInterval');
+                            if (el) el.innerText = this.refreshInterval + 's (Admin Set)';
+                        }
+                    }
+
+                    if (settings.public_image_enabled !== undefined) {
+                        this.mediaCapabilities.image = settings.public_image_enabled === 'true';
+                    }
+                    if (settings.public_mic_enabled !== undefined) {
+                        this.mediaCapabilities.mic = settings.public_mic_enabled === 'true';
+                    }
+                    this.applyMediaSettings();
+
                 } catch (e) { console.error('[SYNC] Failed to fetch settings', e); }
+            },
+
+            applyMediaSettings() {
+                // Apply Image/Camera restrictions
+                const critPhotoBtn = document.getElementById('critPhotoBtn');
+                if (critPhotoBtn) {
+                    critPhotoBtn.style.opacity = this.mediaCapabilities.image ? '1' : '0.5';
+                    critPhotoBtn.style.pointerEvents = this.mediaCapabilities.image ? 'auto' : 'none';
+                }
+                const photoCard = document.querySelector('div[onclick="core.openCamera()"]');
+                if (photoCard) {
+                    photoCard.style.opacity = this.mediaCapabilities.image ? '1' : '0.5';
+                    photoCard.style.pointerEvents = this.mediaCapabilities.image ? 'auto' : 'none';
+                }
+
+                // Apply Mic restrictions
+                const micCard = document.querySelector('div[onclick*="Voice input currently disabled"]');
+                if (micCard) {
+                    micCard.style.opacity = this.mediaCapabilities.mic ? '1' : '0.5';
+                    micCard.style.pointerEvents = this.mediaCapabilities.mic ? 'auto' : 'none';
+                }
             },
 
             async login() {
@@ -1469,7 +1646,7 @@
                         this.user = data.user;
                         localStorage.setItem('citizen_token', data.token);
                         localStorage.setItem('citizen_user', JSON.stringify(this.user));
-                        this.showScreen('screenForm');
+                        this.showScreen('screenEmergencyType');
                         this.bootstrap();
                         this.connectGateway();
                         this.startLocationTracking();
@@ -1502,6 +1679,21 @@
                 document.getElementById('dispName').innerText = this.user.name;
                 document.getElementById('profName').innerText = this.user.name;
                 document.getElementById('profId').innerText = `ID: ${this.user.serial_number || 'PUB-01'}`;
+                
+                // Update Header
+                const headerName = document.getElementById('headerUserName');
+                const headerDetails = document.getElementById('headerUserDetails');
+                if (headerName) headerName.innerText = this.user.name;
+                if (headerDetails) {
+                    headerDetails.innerText = `ID: ${this.user.serial_number || 'PUB-01'} | MOB: ${this.user.phone || 'N/A'}`;
+                }
+
+                const runSync = async () => {
+                    await this.fetchSettings();
+                    await this.fetchMyHistory();
+                    this.syncTimer = setTimeout(runSync, this.refreshInterval * 1000);
+                };
+                runSync();
             },
 
             updateGlobalNotification(title, body, icon, status) {
@@ -1683,6 +1875,36 @@
                 } catch (e) { console.error("History fetch failed", e); }
             },
 
+            emergencyCategory: null,
+
+            setEmergencyCategory(cat) {
+                this.emergencyCategory = cat;
+                document.getElementById('btnSelectCritical').style.borderColor = cat === 'critical' ? '#e11d48' : '#fecdd3';
+                document.getElementById('btnSelectCritical').style.background = cat === 'critical' ? '#fff1f2' : '#ffffff';
+                
+                document.getElementById('btnSelectNormal').style.borderColor = cat === 'normal' ? '#d97706' : '#fef3c7';
+                document.getElementById('btnSelectNormal').style.background = cat === 'normal' ? '#fffbeb' : '#ffffff';
+
+                const proceedBtn = document.getElementById('btnConfirmProceed');
+                proceedBtn.disabled = false;
+                proceedBtn.style.opacity = '1';
+                this.toast(`${cat.toUpperCase()} CATEGORY SELECTED`, '✅');
+            },
+
+            proceedFromSelection() {
+                if (this.emergencyCategory === 'critical') {
+                    this.showScreen('screenCriticalSOS');
+                } else {
+                    this.showScreen('screenForm');
+                }
+            },
+
+            triggerQuickSOS(type) {
+                this.mode = type;
+                this.toast(`CRITICAL ${type.toUpperCase()} TRIGGERED`, '🚨');
+                this.triggerSOS('critical');
+            },
+
             updateStatusUI(stage, message, icon) {
                 const ticker = document.getElementById('sosStatusTicker');
                 if (ticker) ticker.style.display = 'block';
@@ -1697,13 +1919,21 @@
             showScreen(id) {
                 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 document.getElementById(id).classList.add('active');
+                
+                // Show/Hide Header
+                const header = document.getElementById('appHeader');
+                if (id === 'screenLogin') {
+                    header.style.display = 'none';
+                } else {
+                    header.style.display = 'flex';
+                }
             },
 
             nav(tab) {
                 document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                if (tab === 'Home') this.showScreen('screenForm');
-                else if (tab === 'SOS') this.showScreen('screenHome');
-                else if (tab === 'Form') this.showScreen('screenForm'); // TASKS also points here for now
+                if (tab === 'Home') this.showScreen('screenEmergencyType');
+                else if (tab === 'SOS') this.showScreen('screenEmergencyType'); // Redirect SOS to selection
+                else if (tab === 'Form') this.showScreen('screenForm');
                 else if (tab === 'Status') {
                     this.showScreen('screenStatus');
                     this.fetchStatus();
@@ -1848,10 +2078,10 @@
                 document.getElementById('n_' + key).value = this.needs[key];
             },
 
-            startSOS() {
+            startSOS(priority = 'normal') {
                 document.querySelector('.pulse-ring').style.opacity = '1';
                 this.sosTimer = setTimeout(() => {
-                    this.triggerSOS();
+                    this.triggerSOS(priority);
                 }, 2000);
             },
 
@@ -1860,17 +2090,39 @@
                 clearTimeout(this.sosTimer);
             },
 
+            captureNeed(type) {
+                if (type === 'photo') {
+                    const input = document.getElementById('critFileInput') || document.getElementById('camInput');
+                    if (input) input.click();
+                }
+            },
+
             sosImageData: null,
             handleSOSImage(input) {
                 if (input.files && input.files[0]) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         this.sosImageData = e.target.result;
+                        this.needs.photo = e.target.result; // Sync for both flows
+                        
                         const preview = document.getElementById('sosImagePreview');
                         if (preview) {
                             preview.style.backgroundImage = `url(${e.target.result})`;
                             preview.style.display = 'block';
                         }
+                        
+                        // Update Critical SOS UI
+                        const btn = document.getElementById('critPhotoBtn');
+                        const label = document.getElementById('critPhotoLabel');
+                        if (btn) {
+                            btn.style.boxShadow = '0 0 15px rgba(59,130,246,0.4)';
+                            btn.style.borderColor = '#2563eb';
+                        }
+                        if (label) {
+                            label.innerText = 'ACTIVE';
+                            label.style.color = '#1d4ed8';
+                        }
+                        
                         this.toast('PHOTO CAPTURED', '📸');
                     };
                     reader.readAsDataURL(input.files[0]);
@@ -1884,8 +2136,9 @@
                 if (input) input.value = '';
             },
 
-            async triggerSOS() {
-                this.updateStatusUI('TRIGGERED', 'SOS initiated locally', '🚨');
+            async triggerSOS(priorityOverride) {
+                const priority = priorityOverride || (this.emergencyCategory === 'critical' ? 'critical' : 'normal');
+                this.updateStatusUI('TRIGGERED', `${priority.toUpperCase()} SOS initiated`, '🚨');
 
                 // Check for manual overrides from Settings
                 const overLat = parseFloat(document.getElementById('overLat')?.value);
@@ -1899,7 +2152,7 @@
                     console.log("[SOS] Using Manual Coordinate Override:", finalLat, finalLng);
                 }
 
-                const customDetails = document.getElementById('inpLoc')?.value.trim() || '';
+                const customDetails = document.getElementById('inpLoc')?.value.trim() || document.getElementById('crit_address')?.value.trim() || '';
 
                 const payload = {
                     phone: this.user ? this.user.phone : 'Unknown',
@@ -1913,9 +2166,10 @@
                         sector: customDetails,
                         comments: customDetails
                     }),
-                    image_data: this.needs.photo,
-                    urgency: 'critical',
-                    sector: customDetails || 'Detected Location'
+                    image_data: this.sosImageData || this.needs.photo,
+                    urgency: priority === 'critical' ? 'critical' : 'high',
+                    sector: customDetails || 'Detected Location',
+                    priority: priority
                 };
 
                 if (navigator.onLine) {

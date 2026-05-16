@@ -156,7 +156,7 @@ function LoginScreen({ onLogin }) {
 }
 
 // ─── Screen 2: Requirements ───────────────────────────────────────────────────
-function RequirementsScreen({ user, onNext, onBack }) {
+function RequirementsScreen({ user, imageEnabled = true, micEnabled = true, onNext, onBack }) {
   const [transportMode, setTransportMode] = useState('AIR');
   const [needs, setNeeds] = useState([6, 2, 1, 2]);
   const [peopleCount, setPeopleCount] = useState('5');
@@ -215,12 +215,25 @@ function RequirementsScreen({ user, onNext, onBack }) {
             />
           </View>
           <View style={{ flex: 2.5, gap: 6 }}>
-            <TouchableOpacity style={[s.attachBtn, { width: '100%', flex: 1, height: undefined, borderRadius: 12, padding: 8 }]}>
-              <Text style={{ fontSize: 20 }}>📷</Text>
-              <Text style={{ fontSize: 8, fontWeight: '900', color: C.primary }}>ACTIVE</Text>
+            <TouchableOpacity 
+              style={[s.attachBtn, { width: '100%', flex: 1, height: undefined, borderRadius: 12, padding: 8 }, !imageEnabled && { opacity: 0.5, backgroundColor: '#f1f5f9' }]}
+              disabled={!imageEnabled}
+              onPress={() => imageEnabled && Alert.alert("Media", "Camera opened")}
+            >
+              <Text style={{ fontSize: 20 }}>{imageEnabled ? '📷' : '🚫'}</Text>
+              <Text style={{ fontSize: 8, fontWeight: '900', color: imageEnabled ? C.primary : C.danger, textAlign: 'center' }}>
+                {imageEnabled ? 'ACTIVE' : 'DISABLED'}
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[s.attachBtn, { width: '100%', flex: 1, height: undefined, borderRadius: 12, padding: 8, opacity: 0.5 }]}>
-              <Text style={{ fontSize: 20 }}>🎙️</Text>
+            <TouchableOpacity 
+              style={[s.attachBtn, { width: '100%', flex: 1, height: undefined, borderRadius: 12, padding: 8 }, !micEnabled && { opacity: 0.5, backgroundColor: '#f1f5f9' }]}
+              disabled={!micEnabled}
+              onPress={() => micEnabled && Alert.alert("Media", "Microphone opened")}
+            >
+              <Text style={{ fontSize: 20 }}>{micEnabled ? '🎙️' : '🚫'}</Text>
+              <Text style={{ fontSize: 8, fontWeight: '900', color: micEnabled ? C.primary : C.danger, textAlign: 'center' }}>
+                {micEnabled ? 'ACTIVE' : 'DISABLED'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -644,12 +657,46 @@ export default function App() {
   const [screen, setScreen] = useState('login'); // login | requirements | trigger | status | profile
   const [details, setDetails] = useState(null);
   const [checking, setChecking] = useState(true);
+  const [imageEnabled, setImageEnabled] = useState(true);
+  const [micEnabled, setMicEnabled] = useState(true);
 
   useEffect(() => {
     AsyncStorage.getItem('sosUser').then(saved => {
       if (saved) { setUser(JSON.parse(saved)); setScreen('home'); }
       setChecking(false);
     });
+    
+    AsyncStorage.getItem('imageEnabled').then(val => {
+      if (val !== null) setImageEnabled(val === 'true');
+    });
+    AsyncStorage.getItem('micEnabled').then(val => {
+      if (val !== null) setMicEnabled(val === 'true');
+    });
+
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch(`${API_URL}/settings`);
+        if (res.ok) {
+          const settings = await res.json();
+          if (settings.public_image_enabled !== undefined) {
+            const isEn = settings.public_image_enabled === 'true';
+            setImageEnabled(isEn);
+            AsyncStorage.setItem('imageEnabled', isEn ? 'true' : 'false');
+          }
+          if (settings.public_mic_enabled !== undefined) {
+            const isEn = settings.public_mic_enabled === 'true';
+            setMicEnabled(isEn);
+            AsyncStorage.setItem('micEnabled', isEn ? 'true' : 'false');
+          }
+        }
+      } catch (e) {
+        // Keep using cached if offline
+      }
+    };
+    
+    fetchConfig();
+    const interval = setInterval(fetchConfig, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleLogout = async () => {
@@ -673,7 +720,7 @@ export default function App() {
   const renderScreen = () => {
     switch(screen) {
       case 'home': 
-        if (!details) return <RequirementsScreen user={user} onNext={(d) => { setDetails(d); }} onBack={handleLogout} />;
+        if (!details) return <RequirementsScreen user={user} imageEnabled={imageEnabled} micEnabled={micEnabled} onNext={(d) => { setDetails(d); }} onBack={handleLogout} />;
         return <SOSTriggerScreen user={user} details={details} onBack={() => setDetails(null)} />;
       case 'history': 
         return <HistoryScreen user={user} onBack={() => setScreen('home')} />;
