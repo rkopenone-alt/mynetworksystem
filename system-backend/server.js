@@ -204,6 +204,8 @@ db.serialize(() => {
     db.run(`ALTER TABLE command_queue ADD COLUMN target_phone TEXT`, (err) => { /* ignore */ });
     db.run(`ALTER TABLE command_queue ADD COLUMN command_type TEXT DEFAULT 'zone'`, (err) => { /* ignore */ });
     db.run(`ALTER TABLE command_queue ADD COLUMN priority TEXT DEFAULT 'normal'`, (err) => { /* ignore */ });
+    db.run(`ALTER TABLE command_queue ADD COLUMN updated_at DATETIME`, (err) => { /* ignore */ });
+
 
     db.run(`CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY,
@@ -1422,14 +1424,24 @@ app.post('/api/commands', async (req, res) => {
         await logCommand('COMMAND_ISSUED', actor || 'Commander', target_phone || `Group ${group_id}`, command_payload);
 
         // TACTICAL SYNC: If this is a group/cluster mission, update all associated rescue requests
-        if (command_type === 'group' && command_payload && command_payload.request_ids && Array.isArray(command_payload.request_ids)) {
-            const ids = command_payload.request_ids;
+        let payloadObj = command_payload;
+        if (typeof command_payload === 'string') {
+            try { payloadObj = JSON.parse(command_payload); } catch(e) {}
+        }
+
+        if (command_type === 'group' && payloadObj && payloadObj.request_ids && Array.isArray(payloadObj.request_ids)) {
+            const ids = payloadObj.request_ids;
             const placeholders = ids.map(() => '?').join(',');
             await run(`UPDATE rescue_requests SET status = 'assigned', assigned_group_id = ?, assigned_user_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id IN (${placeholders})`, 
                 [group_id || null, target_user_id || null, ...ids]);
             
             // Notify clients to refresh
             broadcast('RESCUE_REQUESTS_UPDATED', { ids, status: 'assigned', group_id, target_user_id });
+        } else if (payloadObj && payloadObj.rescue_req_id) {
+            const reqId = payloadObj.rescue_req_id;
+            await run(`UPDATE rescue_requests SET status = 'assigned', assigned_group_id = ?, assigned_user_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+                [group_id || null, target_user_id || null, reqId]);
+            broadcast('RESCUE_REQUESTS_UPDATED', { ids: [reqId], status: 'assigned', group_id, target_user_id });
         }
 
         res.json(cmd);

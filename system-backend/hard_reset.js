@@ -7,14 +7,10 @@ const rescuers = [
     { name: 'Neha Sharma', phone: '919000000004', sn: 'MEM-04', pin: '123456', group: 'Alpha Rescue' },
     { name: 'Vikram Rao', phone: '919000000003', sn: 'MEM-03', pin: '123456', group: 'Bravo Delivery' },
     { name: 'David Miller', phone: '919000000005', sn: 'MEM-05', pin: '123456', group: 'Bravo Delivery' },
-    { name: 'Maria Gomez', phone: '919000000006', sn: 'MEM-06', pin: '123456', group: 'Bravo Delivery' },
-    { name: 'Test Rescuer 1', phone: '919000000011', sn: 'TEST-R1', pin: '123456', group: 'Testing Group' },
-    { name: 'Test Rescuer 2', phone: '919000000012', sn: 'TEST-R2', pin: '123456', group: 'Testing Group' },
-    { name: 'Test Rescuer 3', phone: '919000000013', sn: 'TEST-R3', pin: '123456', group: 'Testing Group' }
+    { name: 'Maria Gomez', phone: '919000000006', sn: 'MEM-06', pin: '123456', group: 'Bravo Delivery' }
 ];
 
 const publicUsers = [
-    { name: 'Test Citizen', phone: '918000000099', sn: 'PUB-99', pin: '123456' },
     { name: 'Amit Kumar', phone: '918000000001', sn: 'PUB-01', pin: '123456' },
     { name: 'Sneha Reddy', phone: '918000000002', sn: 'PUB-02', pin: '123456' },
     { name: 'Priya Sharma', phone: '918000000003', sn: 'PUB-03', pin: '123456' }
@@ -22,8 +18,7 @@ const publicUsers = [
 
 const groups = [
     { name: 'Alpha Rescue', role: 'rescuer', desc: 'Primary emergency response and life saving' },
-    { name: 'Bravo Delivery', role: 'rescuer', desc: 'Food, medical supplies and logistics' },
-    { name: 'Testing Group', role: 'rescuer', desc: 'Group for task testing and completion logic' }
+    { name: 'Bravo Delivery', role: 'rescuer', desc: 'Food, medical supplies and logistics' }
 ];
 
 async function hardReset() {

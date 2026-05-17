@@ -2172,32 +2172,50 @@
                         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                             <h3 style="margin: 0;">Public App Media Sync</h3>
                         </div>
-                        <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Enable or disable Image/Mic capture for the public SOS application. Syncs with devices when network is available.</p>
+                        <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Enable or disable
+                            Image/Mic capture for the public SOS application. Syncs with devices when network is
+                            available.</p>
                     </div>
                     <div>
                         <div class="input-group" style="margin-bottom: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Camera / Image Capture</label>
-                                <div id="imageStatusBadge" style="background: rgba(37, 99, 235, 0.1); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid var(--accent);">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label class="input-label"
+                                    style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Camera
+                                    / Image Capture</label>
+                                <div id="imageStatusBadge"
+                                    style="background: rgba(37, 99, 235, 0.1); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid var(--accent);">
                                     Status: <span id="activeImageStatus">ON</span>
                                 </div>
                             </div>
                             <div style="display:flex; gap:6px;">
-                                <button id="imgEnableBtn" class="btn btn-outline" style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;" onclick="setImageCapture(true)">Enable</button>
-                                <button id="imgDisableBtn" class="btn btn-outline" style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;" onclick="setImageCapture(false)">Disable</button>
+                                <button id="imgEnableBtn" class="btn btn-outline"
+                                    style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;"
+                                    onclick="setImageCapture(true)">Enable</button>
+                                <button id="imgDisableBtn" class="btn btn-outline"
+                                    style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;"
+                                    onclick="setImageCapture(false)">Disable</button>
                             </div>
                         </div>
-                        
+
                         <div class="input-group" style="margin-bottom: 0;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label class="input-label" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Microphone / Voice</label>
-                                <div id="micStatusBadge" style="background: rgba(37, 99, 235, 0.1); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid var(--accent);">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label class="input-label"
+                                    style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Microphone
+                                    / Voice</label>
+                                <div id="micStatusBadge"
+                                    style="background: rgba(37, 99, 235, 0.1); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid var(--accent);">
                                     Status: <span id="activeMicStatus">ON</span>
                                 </div>
                             </div>
                             <div style="display:flex; gap:6px;">
-                                <button id="micEnableBtn" class="btn btn-outline" style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;" onclick="setMicCapture(true)">Enable</button>
-                                <button id="micDisableBtn" class="btn btn-outline" style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;" onclick="setMicCapture(false)">Disable</button>
+                                <button id="micEnableBtn" class="btn btn-outline"
+                                    style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;"
+                                    onclick="setMicCapture(true)">Enable</button>
+                                <button id="micDisableBtn" class="btn btn-outline"
+                                    style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;"
+                                    onclick="setMicCapture(false)">Disable</button>
                             </div>
                         </div>
                     </div>
@@ -2892,8 +2910,11 @@
                     style="height: 250px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); z-index: 1;">
                 </div>
 
-                <div style="background: rgba(168, 85, 247, 0.05); padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(168, 85, 247, 0.2);">
-                    <h4 style="margin: 0 0 12px 0; font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Instant Assignment (Optional)</h4>
+                <div
+                    style="background: rgba(168, 85, 247, 0.05); padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(168, 85, 247, 0.2);">
+                    <h4
+                        style="margin: 0 0 12px 0; font-size: 13px; color: var(--text-muted); text-transform: uppercase;">
+                        Instant Assignment (Optional)</h4>
                     <div style="display: flex; gap: 12px;">
                         <div class="input-group" style="flex: 1;">
                             <label class="input-label">Target Type</label>
@@ -4839,7 +4860,7 @@
                                 const parsed = JSON.parse(cmd.details);
                                 if (parsed.custom_polygon) existingPolygon = parsed.custom_polygon;
                             }
-                        } catch (e) {}
+                        } catch (e) { }
 
                         if (coords.length > 0) {
                             let polygonCoords = existingPolygon || generateTacticalPolygon(coords);
@@ -5248,12 +5269,14 @@
             criticalList.innerHTML = '';
             normalList.innerHTML = '';
 
-            if (rescueRequests.length === 0) {
+            const pendingReqs = rescueRequests.filter(r => (r.status || '').toLowerCase() === 'pending');
+
+            if (pendingReqs.length === 0) {
                 normalList.innerHTML = '<div style="padding:12px; text-align:center; color:var(--text-muted); font-size:12px;">No pending requests</div>';
                 return;
             }
 
-            rescueRequests.forEach((req, index) => {
+            pendingReqs.forEach((req, index) => {
                 let typeLabel = req.type.charAt(0).toUpperCase() + req.type.slice(1) + ' Rescue';
                 let color = 'var(--special)';
                 let bg = '#f3e8ff';
@@ -5455,7 +5478,7 @@
                     }
 
                     if (assignMarker) assignMapInstance.removeLayer(assignMarker);
-                    
+
                     assignMarker = L.marker([req.lat, req.lng], {
                         icon: L.divIcon({
                             className: 'custom-sos-icon',
@@ -5464,7 +5487,7 @@
                             iconAnchor: [15, 15]
                         })
                     }).addTo(assignMapInstance);
-                    
+
                     // Add a pulse effect to the marker
                     const pulse = L.circle([req.lat, req.lng], {
                         color: 'var(--critical)',
@@ -5473,9 +5496,9 @@
                         radius: 150,
                         weight: 1
                     }).addTo(assignMapInstance);
-                    
+
                     assignMarker.pulseLayer = pulse;
-                    
+
                     assignMapInstance.fitBounds(pulse.getBounds(), { padding: [20, 20], maxZoom: 16 });
                 } else {
                     mapEl.style.display = 'none';
@@ -5950,7 +5973,7 @@
             if (refreshTimer) clearInterval(refreshTimer);
             if (!seconds || seconds < 1) seconds = 5; // Fallback
             console.log(`[Admin] Starting consolidated auto-refresh every ${seconds} seconds`);
-            
+
             const runAll = () => {
                 fetchUsers();
                 fetchGroups();
@@ -5959,7 +5982,7 @@
                 fetchCommands();
                 if (typeof updateTacticalMap === 'function') updateTacticalMap();
             };
-            
+
             refreshTimer = setInterval(runAll, seconds * 1000);
         }
 
@@ -6708,7 +6731,7 @@
             populateAssignDropdowns();
             document.getElementById('groupingTargetType').value = 'individual';
             toggleGroupingAssignType();
-            
+
             const listArea = document.getElementById('groupingListArea');
             if (!listArea) return;
             listArea.innerHTML = '';
@@ -6866,8 +6889,8 @@
             // Check assignment
             const assignType = document.getElementById('groupingTargetType').value;
             const targetId = assignType === 'individual' ? document.getElementById('groupingPersonSelect').value : document.getElementById('groupingTeamSelect').value;
-            
-            const targetName = assignType === 'individual' 
+
+            const targetName = assignType === 'individual'
                 ? (targetId ? document.querySelector(`#groupingPersonSelect option[value="${targetId}"]`).textContent : '')
                 : (targetId ? document.querySelector(`#groupingTeamSelect option[value="${targetId}"]`).textContent : '');
 
@@ -6969,7 +6992,7 @@
 
         function generateTacticalPolygon(coords) {
             if (!coords || coords.length === 0) return [];
-            
+
             const offset = 0.0001; // ~10 meters
 
             if (coords.length >= 3) {
@@ -6977,11 +7000,11 @@
                 // Expand hull by 10 meters outwards from the center
                 const centerLat = hull.reduce((sum, p) => sum + p[0], 0) / hull.length;
                 const centerLng = hull.reduce((sum, p) => sum + p[1], 0) / hull.length;
-                
+
                 return hull.map(p => {
                     const dLat = p[0] - centerLat;
                     const dLng = p[1] - centerLng;
-                    const dist = Math.sqrt(dLat*dLat + dLng*dLng);
+                    const dist = Math.sqrt(dLat * dLat + dLng * dLng);
                     if (dist === 0) return [p[0] + offset, p[1] + offset];
                     const ratio = (dist + offset) / dist;
                     return [centerLat + dLat * ratio, centerLng + dLng * ratio];
@@ -7271,7 +7294,7 @@
 
             if (coords.length > 0) {
                 bulkGroupMapInstance.fitBounds(L.latLngBounds(coords), { padding: [30, 30] });
-                
+
                 // Draw Convex Hull or Auto-Boundary
                 if (coords.length > 0) {
                     const polygonCoords = generateTacticalPolygon(coords);
@@ -7611,7 +7634,7 @@
                     if (!mapCont) return;
                     const dMap = L.map('mgmtDetailMap', { zoomControl: false, attributionControl: false });
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(dMap);
-                    
+
                     const coords = data.requests.map(r => [r.lat, r.lng]).filter(c => c[0] && c[1]);
                     coords.forEach((c, idx) => {
                         const r = data.requests[idx];
@@ -7628,7 +7651,7 @@
 
                     if (coords.length > 0) {
                         dMap.fitBounds(L.latLngBounds(coords), { padding: [20, 20] });
-                        
+
                         // Draw Polygon (Saved or Auto)
                         const polyCoords = data.custom_polygon || generateTacticalPolygon(coords);
                         if (polyCoords.length > 0) {

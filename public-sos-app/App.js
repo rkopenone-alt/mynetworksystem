@@ -14,8 +14,8 @@ const Store = {
 };
 const AsyncStorage = Store;
 
-const API_URL = 'https://antigravity-rescue.loca.lt/api';
-const WS_URL = 'wss://antigravity-rescue.loca.lt';
+const API_URL = 'http://192.168.1.8:3001/api';
+const WS_URL = 'ws://192.168.1.8:3001';
 const { width } = Dimensions.get('window');
 
 const C = {
@@ -34,7 +34,7 @@ const C = {
 
 // ─── Location Status Bar ──────────────────────────────────────────────────
 function LocationStatusBar() {
-  const [status, setStatus] = useState('checking'); // checking | on | off
+  const [status, setStatus] = useState('checking'); // checking | on | off | no_permission
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -42,11 +42,21 @@ function LocationStatusBar() {
       try {
         let { status: permission } = await Location.getForegroundPermissionsAsync();
         if (permission !== 'granted') {
-          // Don't request immediately on login page, just check
-          setStatus('off');
-        } else {
+          // Automatically request permission if not already granted
+          const { status: askPerm } = await Location.requestForegroundPermissionsAsync();
+          if (askPerm !== 'granted') {
+            setStatus('no_permission');
+            Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }).start();
+            return;
+          }
+          permission = 'granted';
+        }
+        
+        try {
           let enabled = await Location.hasServicesEnabledAsync();
           setStatus(enabled ? 'on' : 'off');
+        } catch (e) {
+          setStatus('on'); // Fallback if checked service throws but permission is granted
         }
       } catch (e) {
         setStatus('off');
@@ -61,20 +71,29 @@ function LocationStatusBar() {
 
   if (status === 'checking') return null;
 
+  const handleEnable = async () => {
+    if (status === 'no_permission') {
+      await Location.requestForegroundPermissionsAsync();
+    } else {
+      if (Platform.OS === 'ios') {
+        Linking.openSettings();
+      } else {
+        Location.enableNetworkProviderAsync().catch(() => Linking.openSettings());
+      }
+    }
+  };
+
   return (
     <Animated.View style={[s.locBar, status === 'on' ? s.locBarOn : s.locBarOff, { opacity: fadeAnim }]}>
       <View style={s.locBarInner}>
         <View style={[s.locDot, { backgroundColor: status === 'on' ? C.success : C.danger }]} />
         <Text style={s.locBarText}>
-          {status === 'on' ? 'Location Auto detect ON' : 'Location setting OFF - need to turn on'}
+          {status === 'on' ? 'Location Auto detect ON' : status === 'no_permission' ? 'App Location Permission Required' : 'Location setting OFF - need to turn on'}
         </Text>
       </View>
-      {status === 'off' && (
-        <TouchableOpacity 
-          style={s.locBtn} 
-          onPress={() => Platform.OS === 'ios' ? Linking.openSettings() : Location.enableNetworkProviderAsync().catch(() => Linking.openSettings())}
-        >
-          <Text style={s.locBtnText}>ENABLE</Text>
+      {status !== 'on' && (
+        <TouchableOpacity style={s.locBtn} onPress={handleEnable}>
+          <Text style={s.locBtnText}>{status === 'no_permission' ? 'GRANT' : 'ENABLE'}</Text>
         </TouchableOpacity>
       )}
     </Animated.View>
@@ -632,8 +651,248 @@ function HistoryScreen({ user, onBack }) {
   );
 }
 
+// ─── Screen 2A: SOS Selection ────────────────────────────────────────────────
+function SelectionScreen({ onSelect, onBack }) {
+  const [selected, setSelected] = useState(null); // 'critical' | 'normal'
+  const fadeIn = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+  }, []);
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.white }}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.white} />
+      <View style={[s.header, { paddingVertical: 12, paddingHorizontal: 16 }]}>
+        <TouchableOpacity onPress={onBack}><Text style={{ fontSize: 26, fontWeight: '900' }}>←</Text></TouchableOpacity>
+        <Text style={[s.headerTitle, { fontSize: 22 }]}>Emergency System</Text>
+        <View style={{ width: 30 }} />
+      </View>
+
+      <Animated.ScrollView contentContainerStyle={{ padding: 20, flexGrow: 1, justifyContent: 'center' }} style={{ opacity: fadeIn }}>
+        <View style={{ alignItems: 'center', marginBottom: 30 }}>
+          <Text style={{ fontSize: 26, fontWeight: '900', color: C.dark, textAlign: 'center' }}>Select Emergency Type</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.light, marginTop: 6, textAlign: 'center' }}>Choose the severity of your situation</Text>
+        </View>
+
+        <TouchableOpacity 
+          style={[
+            s.selectionCard, 
+            { 
+              backgroundColor: '#fff1f2', 
+              borderColor: selected === 'critical' ? '#e11d48' : '#fecdd3',
+              borderWidth: selected === 'critical' ? 2.5 : 1.5
+            }
+          ]} 
+          onPress={() => setSelected('critical')}
+          activeOpacity={0.9}
+        >
+          <View style={[s.iconSphere, { backgroundColor: '#e11d48' }]}>
+            <Text style={{ fontSize: 24 }}>🔴</Text>
+          </View>
+          <View style={{ flex: 1, marginLeft: 15 }}>
+            <Text style={{ color: '#e11d48', fontSize: 18, fontWeight: '900', textTransform: 'uppercase' }}>Critical SOS</Text>
+            <Text style={{ color: '#9f1239', fontSize: 11, fontWeight: '700', marginTop: 4 }}>Immediate Response Required</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[
+            s.selectionCard, 
+            { 
+              backgroundColor: '#fffbeb', 
+              borderColor: selected === 'normal' ? '#d97706' : '#fef3c7',
+              borderWidth: selected === 'normal' ? 2.5 : 1.5
+            }
+          ]} 
+          onPress={() => setSelected('normal')}
+          activeOpacity={0.9}
+        >
+          <View style={[s.iconSphere, { backgroundColor: '#d97706' }]}>
+            <Text style={{ fontSize: 24 }}>🟡</Text>
+          </View>
+          <View style={{ flex: 1, marginLeft: 15 }}>
+            <Text style={{ color: '#d97706', fontSize: 18, fontWeight: '900', textTransform: 'uppercase' }}>Normal SOS</Text>
+            <Text style={{ color: '#92400e', fontSize: 11, fontWeight: '700', marginTop: 4 }}>Detailed Request & Support</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[
+            s.confirmBtn, 
+            { backgroundColor: selected ? C.primary : '#cbd5e1' }
+          ]} 
+          disabled={!selected}
+          onPress={() => onSelect(selected)}
+          activeOpacity={0.85}
+        >
+          <Text style={{ color: C.white, fontWeight: '900', fontSize: 16 }}>Confirm & Proceed</Text>
+        </TouchableOpacity>
+      </Animated.ScrollView>
+      <LocationStatusBar />
+    </SafeAreaView>
+  );
+}
+
+// ─── Screen 2B: Critical SOS Screen ──────────────────────────────────────────
+function CriticalSOSScreen({ user, imageEnabled, micEnabled, onBack }) {
+  const [address, setAddress] = useState('');
+  const [isSosLocked, setIsSosLocked] = useState(false);
+  const [toast, setToast] = useState(null);
+  const toastAnim = useRef(new Animated.Value(0)).current;
+  const sosScale = useRef(new Animated.Value(1)).current;
+
+  const showToast = (msg, icon = '⏳', duration = 3000) => {
+    setToast({ msg, icon });
+    Animated.spring(toastAnim, { toValue: 1, useNativeDriver: true }).start();
+    if (duration) {
+      setTimeout(() => {
+        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => setToast(null));
+      }, duration);
+    }
+  };
+
+  const triggerSOS = async (type = 'sos') => {
+    if (isSosLocked) { showToast('Please wait for the current time slot to clear.', '⚠️'); return; }
+
+    Vibration.vibrate([0, 200, 100, 200]);
+    Animated.sequence([
+      Animated.timing(sosScale, { toValue: 0.9, duration: 100, useNativeDriver: true }),
+      Animated.spring(sosScale, { toValue: 1, useNativeDriver: true }),
+    ]).start();
+
+    showToast('Connecting to server...', '⏳', 0);
+    setIsSosLocked(true);
+
+    try {
+      let location = null;
+      try {
+        location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      } catch (e) {
+        // Handle location error/missing
+      }
+
+      const payload = {
+        phone: user.phone,
+        device_id: user.serial_number || 'PUB-MOB',
+        type: type,
+        lat: location ? location.coords.latitude : 13.085,
+        lng: location ? location.coords.longitude : 80.272,
+        details: address.trim() || 'Critical Emergency Triggered',
+        urgency: 'critical',
+        sector: 'Detected via GPS'
+      };
+
+      const res = await fetch(`${API_URL}/rescue-requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        showToast('Your info is collected and help is being dispatched.', '✅', 4000);
+      } else {
+        setIsSosLocked(false);
+        showToast('Server error. Resending...', '❌');
+      }
+    } catch (e) {
+      setIsSosLocked(false);
+      showToast('Network issue. Try again.', '❌');
+    }
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.white }}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.white} />
+      <View style={[s.header, { paddingVertical: 12, paddingHorizontal: 16 }]}>
+        <TouchableOpacity onPress={onBack}><Text style={{ fontSize: 26, fontWeight: '900' }}>←</Text></TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: C.danger }} />
+          <Text style={[s.headerTitle, { fontSize: 20, color: C.danger, fontWeight: '900' }]}>Critical Emergency</Text>
+        </View>
+        <View style={{ width: 30 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: 20, flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        {/* Quick Actions Row */}
+        <View style={{ flexDirection: 'row', gap: 15, marginBottom: 20 }}>
+          <TouchableOpacity 
+            style={[s.critCard, { borderColor: '#fb7185' }]} 
+            onPress={() => triggerSOS('pregnancy')}
+            activeOpacity={0.85}
+          >
+            <Text style={{ fontSize: 36 }}>🤰</Text>
+            <Text style={{ fontSize: 14, fontWeight: '900', color: '#e11d48', marginTop: 5 }}>Pregnancy</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[s.critCard, { borderColor: '#38bdf8' }]} 
+            onPress={() => triggerSOS('medical')}
+            activeOpacity={0.85}
+          >
+            <Text style={{ fontSize: 36 }}>🏥</Text>
+            <Text style={{ fontSize: 14, fontWeight: '900', color: '#0369a1', marginTop: 5 }}>Medical</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Location & Media Details Bar */}
+        <View style={{ marginBottom: 25 }}>
+          <Text style={{ fontSize: 11, fontWeight: '800', color: C.light, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Location & Media Details</Text>
+          <View style={{ backgroundColor: C.white, borderRadius: 16, padding: 12, borderWidth: 1, borderColor: C.border, flexDirection: 'row', gap: 12 }}>
+            <TextInput 
+              style={{ flex: 1, fontSize: 14, color: C.dark, height: 75, textAlignVertical: 'top', fontWeight: '600' }}
+              placeholder="Enter full address, landmarks..."
+              placeholderTextColor={C.light}
+              multiline
+              value={address}
+              onChangeText={setAddress}
+            />
+            <View style={{ flexDirection: 'column', gap: 8 }}>
+              {imageEnabled && (
+                <TouchableOpacity style={[s.mediaBtn, { borderColor: '#3b82f6', backgroundColor: '#eff6ff' }]} activeOpacity={0.8}>
+                  <Text style={{ fontSize: 18 }}>📷</Text>
+                  <Text style={{ fontSize: 7, fontWeight: '900', color: '#2563eb', marginTop: 1 }}>PHOTO</Text>
+                </TouchableOpacity>
+              )}
+              {micEnabled && (
+                <TouchableOpacity style={[s.mediaBtn, { borderColor: C.border, backgroundColor: '#f8fafc' }]} activeOpacity={0.8}>
+                  <Text style={{ fontSize: 18 }}>🎙️</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* Pulsing Outer Trigger Button */}
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginVertical: 30 }}>
+          <Animated.View style={[s.sosOuterRing, { transform: [{ scale: sosScale }] }]}>
+            <TouchableOpacity 
+              style={s.sosInnerBtn}
+              onPress={() => triggerSOS('sos')}
+              activeOpacity={0.9}
+            >
+              <Text style={{ fontSize: 36 }}>🚨</Text>
+              <Text style={{ fontSize: 12, fontWeight: '900', color: C.white, marginTop: 5 }}>MAIN TRIGGER</Text>
+            </TouchableOpacity>
+          </Animated.View>
+          <Text style={{ fontSize: 11, color: C.danger, fontWeight: '800', marginTop: 15, letterSpacing: 1 }}>PRESS TO DISPATCH HQ</Text>
+        </View>
+      </ScrollView>
+
+      {/* Toast Alert */}
+      {toast && (
+        <Animated.View style={[s.toastContainer, { opacity: toastAnim, transform: [{ translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
+          <Text style={{ fontSize: 18 }}>{toast.icon}</Text>
+          <Text style={s.toastText}>{toast.msg}</Text>
+        </Animated.View>
+      )}
+    </SafeAreaView>
+  );
+}
+
 // ─── Bottom Nav ──────────────────────────────────────────────────────────────
 function BottomNav({ current, onNav }) {
+  const isHomeActive = ['home', 'critical_sos', 'selection'].includes(current);
   const tabs = [
     { key: 'home', label: 'HOME', icon: '🏠' },
     { key: 'history', label: 'HISTORY', icon: '📋' },
@@ -641,12 +900,15 @@ function BottomNav({ current, onNav }) {
   ];
   return (
     <View style={s.bottomNav}>
-      {tabs.map(t => (
-        <TouchableOpacity key={t.key} style={s.navItem} onPress={() => onNav(t.key)}>
-          <Text style={{ fontSize: 20, opacity: current === t.key ? 1 : 0.5 }}>{t.icon}</Text>
-          <Text style={[s.navLabel, current === t.key && s.navLabelActive]}>{t.label}</Text>
-        </TouchableOpacity>
-      ))}
+      {tabs.map(t => {
+        const isActive = t.key === 'home' ? isHomeActive : current === t.key;
+        return (
+          <TouchableOpacity key={t.key} style={s.navItem} onPress={() => onNav(t.key === 'home' ? 'selection' : t.key)}>
+            <Text style={{ fontSize: 20, opacity: isActive ? 1 : 0.5 }}>{t.icon}</Text>
+            <Text style={[s.navLabel, isActive && s.navLabelActive]}>{t.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
@@ -662,7 +924,7 @@ export default function App() {
 
   useEffect(() => {
     AsyncStorage.getItem('sosUser').then(saved => {
-      if (saved) { setUser(JSON.parse(saved)); setScreen('home'); }
+      if (saved) { setUser(JSON.parse(saved)); setScreen('selection'); }
       setChecking(false);
     });
     
@@ -714,16 +976,26 @@ export default function App() {
   }
 
   if (screen === 'login') {
-    return <LoginScreen onLogin={(u) => { setUser(u); setScreen('home'); }} />;
+    return <LoginScreen onLogin={(u) => { setUser(u); setScreen('selection'); }} />;
   }
 
   const renderScreen = () => {
     switch(screen) {
+      case 'selection':
+        return <SelectionScreen onSelect={(type) => {
+          if (type === 'critical') {
+            setScreen('critical_sos');
+          } else {
+            setScreen('home');
+          }
+        }} onBack={handleLogout} />;
+      case 'critical_sos':
+        return <CriticalSOSScreen user={user} imageEnabled={imageEnabled} micEnabled={micEnabled} onBack={() => setScreen('selection')} />;
       case 'home': 
-        if (!details) return <RequirementsScreen user={user} imageEnabled={imageEnabled} micEnabled={micEnabled} onNext={(d) => { setDetails(d); }} onBack={handleLogout} />;
+        if (!details) return <RequirementsScreen user={user} imageEnabled={imageEnabled} micEnabled={micEnabled} onNext={(d) => { setDetails(d); }} onBack={() => setScreen('selection')} />;
         return <SOSTriggerScreen user={user} details={details} onBack={() => setDetails(null)} />;
       case 'history': 
-        return <HistoryScreen user={user} onBack={() => setScreen('home')} />;
+        return <HistoryScreen user={user} onBack={() => setScreen('selection')} />;
       case 'settings': 
         return <ProfileScreen user={user} onLogout={handleLogout} />;
       default: return null;
@@ -843,4 +1115,14 @@ const s = StyleSheet.create({
   locBarText: { fontSize: 13, fontWeight: '700', color: C.dark },
   locBtn: { backgroundColor: C.dark, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   locBtnText: { color: C.white, fontSize: 10, fontWeight: '900' },
+
+  // Emergency selection & critical styles
+  selectionCard: { flexDirection: 'row', alignItems: 'center', padding: 18, borderRadius: 20, marginBottom: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
+  iconSphere: { width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center' },
+  confirmBtn: { paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginTop: 15, shadowColor: C.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
+  critCard: { flex: 1, backgroundColor: C.white, borderWidth: 2, padding: 15, borderRadius: 20, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  mediaBtn: { width: 55, height: 45, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  sosOuterRing: { width: 170, height: 170, borderRadius: 85, borderWidth: 4, borderColor: '#fecdd3', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff1f2' },
+  sosInnerBtn: { width: 140, height: 140, borderRadius: 70, backgroundColor: '#e11d48', alignItems: 'center', justifyContent: 'center', shadowColor: '#e11d48', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 15, elevation: 8 },
+  toastContainer: { position: 'absolute', bottom: 30, left: 20, right: 20, backgroundColor: C.dark, borderRadius: 30, padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 10 },
 });

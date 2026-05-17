@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, SafeAreaView, StatusBar, Alert, ActivityIndicator,
-  Animated, Dimensions
+  Animated, Dimensions, Image
 } from 'react-native';
-import MapView, { Marker, Polyline, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
+import { WebView } from 'react-native-webview';
 // Simple persistent storage using global state + JSON
 const Store = {
   _data: {},
@@ -14,12 +14,14 @@ const Store = {
 };
 const AsyncStorage = Store;
 
-const API_URL = 'https://antigravity-rescue.loca.lt/api';
+import { Platform } from 'react-native';
+const API_URL = 'http://192.168.1.8:3001/api';
 const { width } = Dimensions.get('window');
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const C = {
   primary: '#0ea5e9', // Cyber Blue
+  primaryLight: '#e0f2fe',
   secondary: '#10b981', // Emerald
   danger: '#f43f5e', // Rose
   warning: '#f59e0b', // Amber
@@ -30,6 +32,32 @@ const C = {
   light: '#94a3b8', // Slate 400
   border: '#334155', // Slate 700
   white: '#ffffff',
+};
+
+// ─── Dynamic Styles ───────────────────────────────────────────────────────────
+const dynamicStyles = {
+  filterBtnActive: (type) => ({
+    backgroundColor: type === 'sos' ? C.danger + '33' : type === 'medical' ? C.secondary + '33' : C.warning + '33',
+    borderColor: type === 'sos' ? C.danger : type === 'medical' ? C.secondary : C.warning
+  }),
+  filterBtnTextActive: (type) => ({
+    color: type === 'sos' ? C.danger : type === 'medical' ? C.secondary : C.warning
+  }),
+  typeBadge: (type) => ({
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.bg,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 6
+  }),
+  priorityBadge: (urgency) => ({
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: urgency === 'critical' ? C.danger : C.surfaceLight
+  }),
 };
 
 // ─── Utility ──────────────────────────────────────────────────────────────────
@@ -48,6 +76,9 @@ const urgencyBg = (u) =>
   ({ critical: '#fee2e2', high: '#ffedd5', medium: '#fef3c7', low: '#e0f2fe' }[u] || C.bg);
 const urgencyText = (u) =>
   ({ critical: C.danger, high: '#ea580c', medium: C.warning, low: '#0284c7' }[u] || C.light);
+
+
+
 
 // ─── Login Screen ─────────────────────────────────────────────────────────────
 function LoginScreen({ onLogin }) {
@@ -70,18 +101,25 @@ function LoginScreen({ onLogin }) {
     setLoading(true);
     let user;
     try {
-      const res = await fetch(`${API_URL}/login`, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.trim(), password: pass }),
+        body: JSON.stringify({ idOrPhone: phone.trim(), pin: pass, deviceId: 'MEM-MOB' }),
       });
       if (res.ok) {
-        user = await res.json();
+        const data = await res.json();
+        user = data.user;
       } else {
-        user = { id: Date.now(), name: 'Field Rescuer', role: 'rescuer', phone: phone.trim() };
+        const err = await res.json();
+        Alert.alert('Login Failed', err.error || 'Invalid PIN');
+        setLoading(false);
+        return;
       }
-    } catch {
-      user = { id: Date.now(), name: 'Field Rescuer', role: 'rescuer', phone: phone.trim() };
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Network Error', 'Could not connect to the server. Please check your connection.');
+      setLoading(false);
+      return;
     }
     await AsyncStorage.setItem('rescueUser', JSON.stringify(user));
     setLoading(false);
@@ -92,11 +130,14 @@ function LoginScreen({ onLogin }) {
     <SafeAreaView style={s.loginContainer}>
       <StatusBar barStyle="dark-content" backgroundColor={C.primaryLight} />
       <Animated.View style={[s.loginCard, { transform: [{ translateX: shake }] }]}>
-        <View style={s.logoCircle}>
-          <Text style={{ fontSize: 40 }}>🚁</Text>
+        <View style={{ width: 90, height: 90, borderRadius: 24, overflow: 'hidden', marginBottom: 20, shadowColor: C.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 5 }}>
+          <Image
+            source={require('./assets/official_rescuer_icon.png')}
+            style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
+          />
         </View>
-        <Text style={s.loginTitle}>Rescue Auth</Text>
-        <Text style={s.loginSub}>SECURE FIELD ACCESS</Text>
+        <Text style={s.loginTitle}>Rescuer Ops</Text>
+        <Text style={s.loginSub}>EMERGENCY FIELD OPERATIONS</Text>
 
         <TextInput
           style={s.input}
@@ -117,7 +158,7 @@ function LoginScreen({ onLogin }) {
         <TouchableOpacity style={s.loginBtn} onPress={doLogin} disabled={loading} activeOpacity={0.85}>
           {loading
             ? <ActivityIndicator color={C.white} />
-            : <Text style={s.loginBtnText}>AUTHENTICATE</Text>}
+            : <Text style={s.loginBtnText}>LOGIN</Text>}
         </TouchableOpacity>
       </Animated.View>
     </SafeAreaView>
@@ -137,11 +178,11 @@ function TaskCard({ task, onAccept, onDecline, onComplete, isActive }) {
       isActive && s.taskCardActive
     ]}>
       <View style={s.taskHeader}>
-        <View style={s.typeBadge(task.type)}>
+        <View style={dynamicStyles.typeBadge(task.type)}>
           <Text style={s.typeIcon}>{taskIcon(task.type)}</Text>
           <Text style={s.typeText}>{(task.type || 'TASK').toUpperCase()}</Text>
         </View>
-        <View style={s.priorityBadge(task.urgency)}>
+        <View style={dynamicStyles.priorityBadge(task.urgency)}>
           <Text style={s.priorityText}>{task.urgency?.toUpperCase()}</Text>
         </View>
       </View>
@@ -223,27 +264,69 @@ function DashboardScreen({ user, onLogout }) {
 
   const fetchTasks = async () => {
     try {
-      const [reqRes, sosRes] = await Promise.all([
-        fetch(`${API_URL}/rescue-requests?status=pending`),
-        fetch(`${API_URL}/sos`),
-      ]);
-      const requests = await reqRes.json();
-      const sosAlerts = await sosRes.json();
-      const merged = [];
-      requests.forEach(r => merged.push({
-        id: `req_${r.id}`, type: r.type, lat: r.lat || 13.085, lng: r.lng || 80.272,
-        sector: r.sector || 'Unknown Zone', urgency: r.urgency, dbId: r.id, source: 'rescue_requests',
-      }));
-      sosAlerts.forEach(s => {
-        if (s.status === 'completed') return;
-        merged.push({
-          id: `sos_${s.id}`, type: 'sos', lat: s.lat || 13.09, lng: s.lng || 80.275,
-          sector: 'Coordinate Point', urgency: s.is_priority ? 'critical' : 'high',
-          dbId: s.id, source: 'sos_alerts',
-        });
+      const res = await fetch(`${API_URL}/users/${user.id}/combined-history`);
+      if (!res.ok) return;
+      const historyData = await res.json();
+
+      // Sort: Latest on top
+      historyData.sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
+
+      // Filter: All active statuses
+      const activeData = historyData.filter(t =>
+        ['assigned', 'pending', 'accepted', 'ongoing', 'in_progress', 'acknowledged'].includes((t.status || '').toLowerCase())
+      );
+
+      const merged = activeData.map(t => {
+        // Parse details for messaging / custom properties
+        let msg = t.details;
+        let isGroup = false;
+        let subMissions = [];
+        let customPolygon = null;
+
+        if (t.details && typeof t.details === 'string' && t.details.startsWith('{')) {
+          try {
+            const parsed = JSON.parse(t.details);
+            if (parsed.isGroup) {
+              isGroup = true;
+              subMissions = parsed.missions || [];
+              customPolygon = parsed.custom_polygon || null;
+              msg = `Group Mission with ${subMissions.length} tasks`;
+            } else {
+              msg = parsed.message || parsed.comments || t.details;
+            }
+          } catch (e) {}
+        }
+
+        // Normalize type for UI filters, icons and colors
+        let rawType = (t.type || 'sos').toLowerCase();
+        let uiType = 'sos';
+        if (['medical', 'pregnancy', 'medical_delivery'].includes(rawType)) {
+          uiType = rawType === 'pregnancy' ? 'pregnancy' : 'medical';
+        } else if (['food', 'delivery', 'supplies'].includes(rawType)) {
+          uiType = 'food';
+        }
+
+        return {
+          id: t.source === 'command' ? `cmd_${t.id}` : `req_${t.id}`,
+          type: uiType,
+          lat: t.lat ? parseFloat(t.lat) : 13.0700,
+          lng: t.lng ? parseFloat(t.lng) : 80.2600,
+          sector: t.sector || 'Assigned Target',
+          urgency: t.priority === 'critical' ? 'critical' : (t.urgency || 'high'),
+          dbId: t.id,
+          source: t.source === 'request' ? 'rescue_requests' : 'command',
+          message: msg,
+          status: t.status,
+          isGroup,
+          subMissions,
+          customPolygon
+        };
       });
+
       setTasks(merged);
-    } catch { /* silent */ }
+    } catch (e) {
+      console.error("Error fetching rescuer tasks:", e);
+    }
   };
 
   const doSync = async () => {
@@ -265,15 +348,12 @@ function DashboardScreen({ user, onLogout }) {
 
       // Restore interrupted task if backend has it and we don't have an active task
       if (data.user?.interrupted_task_id && !activeTask && !interruptedTask) {
-        // Try to find the interrupted task in current task list
         const restored = tasks.find(t => t.id === data.user.interrupted_task_id);
         if (restored) {
           setActiveTask(restored);
           showNotif("Restoring interrupted normal task...", false);
         } else {
-            // If not in current tasks, we might need to fetch it or just wait for next fetchTasks
-            // For now, let's trigger fetchTasks
-            fetchTasks();
+          await fetchTasks();
         }
       }
 
@@ -284,25 +364,9 @@ function DashboardScreen({ user, onLogout }) {
           const payload = typeof critCmd.command_payload === 'string' ? JSON.parse(critCmd.command_payload) : critCmd.command_payload;
           setCriticalAlert({ cmdId: critCmd.id, message: payload?.message || 'Critical response required.' });
         }
-        // Also merge commands as tasks
-        setTasks(prev => {
-          const cmdIds = new Set(prev.filter(t => t.source === 'command').map(t => t.dbId));
-          const newCmds = data.commands
-            .filter(c => !cmdIds.has(c.id) && c.status === 'pending')
-            .map(c => {
-              const p = typeof c.command_payload === 'string' ? JSON.parse(c.command_payload) : c.command_payload;
-              return {
-                id: `cmd_${c.id}`, type: c.command_type === 'critical' ? 'sos' : 'sos',
-                command_type: c.command_type,
-                lat: 13.0700, lng: 80.2600,
-                sector: 'Direct Command', urgency: c.command_type === 'critical' ? 'critical' : 'high',
-                message: p?.message, dbId: c.id, source: 'command',
-              };
-            });
-          return [...prev, ...newCmds];
-        });
-        fetchTasks();
       }
+
+      await fetchTasks();
     } catch { /* silent */ }
   };
 
@@ -608,10 +672,10 @@ function DashboardScreen({ user, onLogout }) {
               {['sos', 'medical', 'food'].map(type => (
                 <TouchableOpacity
                   key={type}
-                  style={[s.filterBtn, filters[type] && s.filterBtnActive(type)]}
+                  style={[s.filterBtn, filters[type] && dynamicStyles.filterBtnActive(type)]}
                   onPress={() => toggleFilter(type)}
                 >
-                  <Text style={[s.filterBtnText, filters[type] && s.filterBtnTextActive(type)]}>
+                  <Text style={[s.filterBtnText, filters[type] && dynamicStyles.filterBtnTextActive(type)]}>
                     {type === 'sos' ? '🚨 SOS' : type === 'medical' ? '🏥 Medical' : '🍱 Food'}
                   </Text>
                 </TouchableOpacity>
@@ -620,53 +684,60 @@ function DashboardScreen({ user, onLogout }) {
 
             {/* 📍 Map View Integration */}
             <View style={s.mapContainer}>
-              <MapView
-                ref={mapRef}
+              <WebView
+                source={{ html: `
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                    <style>
+                      body, html { margin: 0; padding: 0; height: 100%; }
+                      #map { height: 100%; width: 100%; }
+                      .leaflet-div-icon { background: transparent; border: none; }
+                      .marker-badge { text-align: center; font-size: 20px; line-height: 24px; background: white; border-radius: 20px; padding: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid; }
+                    </style>
+                  </head>
+                  <body>
+                    <div id="map"></div>
+                    <script>
+                      var map = L.map('map', { zoomControl: false }).setView([13.0700, 80.2600], 12);
+                      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+                      L.marker([13.0700, 80.2600], {
+                        icon: L.divIcon({ className: 'leaflet-div-icon', html: '<div class="marker-badge" style="border-color: #0ea5e9;">🚁</div>', iconSize: [40, 40] })
+                      }).addTo(map);
+                      
+                      var markers = ${JSON.stringify(
+                        (!activeTask ? tasks.filter(t =>
+                          (t.type === 'sos' && filters.sos) ||
+                          ((t.type === 'medical' || t.type === 'pregnancy') && filters.medical) ||
+                          (t.type === 'food' && filters.food)
+                        ) : [activeTask]).map(t => ({
+                          id: t.id, lat: t.lat, lng: t.lng, type: t.type,
+                          icon: taskIcon(t.type), color: taskColor(t.type)
+                        }))
+                      )};
+
+                      markers.forEach(function(m) {
+                        L.marker([m.lat, m.lng], {
+                          icon: L.divIcon({ className: 'leaflet-div-icon', html: '<div class="marker-badge" style="border-color: '+m.color+';">' + m.icon + '</div>', iconSize: [40, 40] })
+                        }).addTo(map);
+                      });
+
+                      ${activeTask ? `
+                        var latlngs = [ [13.0700, 80.2600], [${activeTask.lat}, ${activeTask.lng}] ];
+                        L.polyline(latlngs, { color: '#0ea5e9', weight: 4, dashArray: '10, 10' }).addTo(map);
+                        map.fitBounds(L.polyline(latlngs).getBounds(), { padding: [50, 50] });
+                      ` : ''}
+                    </script>
+                  </body>
+                  </html>
+                ` }}
                 style={s.map}
-                provider={PROVIDER_GOOGLE}
-                initialRegion={region}
-                onRegionChangeComplete={setRegion}
-              >
-                {/* Self Marker */}
-                <Marker coordinate={{ latitude: 13.0700, longitude: 80.2600 }}>
-                  <View style={s.selfMarker}>
-                    <Text style={{ fontSize: 16 }}>🚁</Text>
-                  </View>
-                </Marker>
-
-                {/* Task Markers */}
-                {!activeTask && tasks.filter(t =>
-                  (t.type === 'sos' && filters.sos) ||
-                  ((t.type === 'medical' || t.type === 'pregnancy') && filters.medical) ||
-                  (t.type === 'food' && filters.food)
-                ).map(t => (
-                  <Marker key={t.id} coordinate={{ latitude: t.lat, longitude: t.lng }}>
-                    <View style={[s.markerContainer, { borderColor: taskColor(t.type) }]}>
-                      <Text style={{ fontSize: 16 }}>{taskIcon(t.type)}</Text>
-                    </View>
-                  </Marker>
-                ))}
-
-                {/* Active Task Special Marker & Route */}
-                {activeTask && (
-                  <>
-                    <Marker coordinate={{ latitude: activeTask.lat, longitude: activeTask.lng }}>
-                      <View style={[s.markerContainer, { borderColor: C.danger, transform: [{ scale: 1.2 }] }]}>
-                        <Text style={{ fontSize: 20 }}>{taskIcon(activeTask.type)}</Text>
-                      </View>
-                    </Marker>
-                    <Polyline
-                      coordinates={[
-                        { latitude: 13.0700, longitude: 80.2600 },
-                        { latitude: activeTask.lat, longitude: activeTask.lng }
-                      ]}
-                      strokeColor={C.primary}
-                      strokeWidth={4}
-                      lineDashPattern={[10, 5]}
-                    />
-                  </>
-                )}
-              </MapView>
+                originWhitelist={['*']}
+                scrollEnabled={false}
+              />
 
               {/* Map Controls / Labels */}
               <View style={s.mapOverlay}>
@@ -822,9 +893,7 @@ const s = StyleSheet.create({
   // Tabs / Filters
   filterRow: { flexDirection: 'row', padding: 15, gap: 10, backgroundColor: C.bg },
   filterBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
-  filterBtnActive: (type) => ({ backgroundColor: type === 'sos' ? C.danger + '33' : type === 'medical' ? C.secondary + '33' : C.warning + '33', borderColor: type === 'sos' ? C.danger : type === 'medical' ? C.secondary : C.warning }),
   filterBtnText: { color: C.light, fontSize: 12, fontWeight: '800' },
-  filterBtnTextActive: (type) => ({ color: type === 'sos' ? C.danger : type === 'medical' ? C.secondary : C.warning }),
 
   // Map
   mapContainer: { height: 260, margin: 15, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: C.border, backgroundColor: C.surface, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 15, elevation: 10 },
@@ -843,10 +912,8 @@ const s = StyleSheet.create({
   taskCardCritical: { borderColor: C.danger, borderWidth: 2, backgroundColor: C.surfaceLight },
   taskCardActive: { borderColor: C.primary, borderWidth: 2 },
   taskHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  typeBadge: (type) => ({ flexDirection: 'row', alignItems: 'center', backgroundColor: C.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, gap: 6 }),
   typeIcon: { fontSize: 14 },
   typeText: { color: C.text, fontSize: 11, fontWeight: '900' },
-  priorityBadge: (urgency) => ({ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: urgency === 'critical' ? C.danger : C.surfaceLight }),
   priorityText: { color: C.text, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   taskBody: { marginBottom: 20 },
   taskLocation: { color: C.text, fontSize: 16, fontWeight: '800', marginBottom: 8 },
