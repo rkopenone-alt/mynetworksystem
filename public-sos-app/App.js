@@ -5,6 +5,9 @@ import {
   Animated, Dimensions, Vibration, Alert, Linking, Platform
 } from 'react-native';
 import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import { Audio } from 'expo-av';
 // Simple persistent storage shim
 const Store = {
   _data: {},
@@ -14,9 +17,13 @@ const Store = {
 };
 const AsyncStorage = Store;
 
-const API_URL = 'http://192.168.1.8:3001/api';
-const WS_URL = 'ws://192.168.1.8:3001';
+const API_URL = 'http://192.168.1.5:3001/api';
+const WS_URL = 'ws://192.168.1.5:3001';
 const { width } = Dimensions.get('window');
+
+const GlobalState = {
+  sosLockedUntil: 0,
+};
 
 const C = {
   primary: '#0284c7',
@@ -197,6 +204,52 @@ function RequirementsScreen({ user, imageEnabled = true, micEnabled = true, onNe
 
   const needLabels = ['Food Rations', 'Medical Tablets', 'Asthma Kit', 'Sanitary Kit'];
 
+  const handleCameraPress = () => {
+    Alert.alert(
+      "Image Capture",
+      "Choose an option",
+      [
+        { text: "Take Photo", onPress: async () => {
+          let result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.5 });
+          if (!result.canceled) Alert.alert("Success", "Photo captured");
+        }},
+        { text: "Choose from Gallery", onPress: async () => {
+          let result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.5 });
+          if (!result.canceled) Alert.alert("Success", "Photo selected");
+        }},
+        { text: "Cancel", style: "cancel" }
+      ]
+    );
+  };
+
+  const handleMicPress = () => {
+    Alert.alert(
+      "Audio Capture",
+      "Choose an option",
+      [
+        { text: "Record Audio", onPress: async () => {
+          try {
+            await Audio.requestPermissionsAsync();
+            const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+            Alert.alert("Recording started", "Press OK to stop", [
+              { text: "Stop", onPress: async () => {
+                await recording.stopAndUnloadAsync();
+                Alert.alert("Success", "Audio recorded");
+              }}
+            ]);
+          } catch (e) { Alert.alert("Error", e.message); }
+        }},
+        { text: "Upload Audio", onPress: async () => {
+          try {
+            let result = await DocumentPicker.getDocumentAsync({ type: 'audio/*' });
+            if (!result.canceled) Alert.alert("Success", "Audio selected");
+          } catch (e) { Alert.alert("Error", e.message); }
+        }},
+        { text: "Cancel", style: "cancel" }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.white }}>
       <StatusBar barStyle="dark-content" backgroundColor={C.white} />
@@ -237,7 +290,7 @@ function RequirementsScreen({ user, imageEnabled = true, micEnabled = true, onNe
             <TouchableOpacity 
               style={[s.attachBtn, { width: '100%', flex: 1, height: undefined, borderRadius: 12, padding: 8 }, !imageEnabled && { opacity: 0.5, backgroundColor: '#f1f5f9' }]}
               disabled={!imageEnabled}
-              onPress={() => imageEnabled && Alert.alert("Media", "Camera opened")}
+              onPress={() => imageEnabled && handleCameraPress()}
             >
               <Text style={{ fontSize: 20 }}>{imageEnabled ? '📷' : '🚫'}</Text>
               <Text style={{ fontSize: 8, fontWeight: '900', color: imageEnabled ? C.primary : C.danger, textAlign: 'center' }}>
@@ -247,7 +300,7 @@ function RequirementsScreen({ user, imageEnabled = true, micEnabled = true, onNe
             <TouchableOpacity 
               style={[s.attachBtn, { width: '100%', flex: 1, height: undefined, borderRadius: 12, padding: 8 }, !micEnabled && { opacity: 0.5, backgroundColor: '#f1f5f9' }]}
               disabled={!micEnabled}
-              onPress={() => micEnabled && Alert.alert("Media", "Microphone opened")}
+              onPress={() => micEnabled && handleMicPress()}
             >
               <Text style={{ fontSize: 20 }}>{micEnabled ? '🎙️' : '🚫'}</Text>
               <Text style={{ fontSize: 8, fontWeight: '900', color: micEnabled ? C.primary : C.danger, textAlign: 'center' }}>
@@ -379,30 +432,13 @@ function ProfileScreen({ user, onLogout }) {
 }
 
 // ─── Screen 3: SOS Trigger ────────────────────────────────────────────────────
-function SOSTriggerScreen({ user, details, onBack }) {
+function SOSTriggerScreen({ user, details, isSosLocked, countdown, onTriggerSOS, onBack }) {
   const [emergencyType, setEmergencyType] = useState(null);
-  const [isSosLocked, setIsSosLocked] = useState(false);
-  const [countdown, setCountdown] = useState(15 * 60);
   const [missionStatus, setMissionStatus] = useState(null);
   const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(false);
   const sosScale = useRef(new Animated.Value(1)).current;
   const toastAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) { setIsSosLocked(false); return 15 * 60; }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => { clearInterval(timer); };
-  }, []);
-
-  const formatTime = (secs) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
 
   const showToast = (msg, icon = '⏳', duration = 3000) => {
     setToast({ msg, icon });
@@ -416,6 +452,7 @@ function SOSTriggerScreen({ user, details, onBack }) {
 
   const triggerSOS = async () => {
     if (isSosLocked) { showToast('Please wait for the current time slot to clear.', '⚠️'); return; }
+    if (loading) return;
 
     if (!emergencyType) { showToast('Please select an emergency type.', '⚠️'); return; }
 
@@ -426,7 +463,7 @@ function SOSTriggerScreen({ user, details, onBack }) {
     ]).start();
 
     showToast('Connecting to server...', '⏳', 0);
-    setIsSosLocked(true);
+    setLoading(true);
 
     try {
       let location = null;
@@ -455,12 +492,29 @@ function SOSTriggerScreen({ user, details, onBack }) {
 
       if (res.ok) {
         showToast('Your info is collected and help is being dispatched.', '✅', 4000);
+        let buf = 15;
+        try {
+          const cached = await AsyncStorage.getItem('sosBufferMinutes');
+          if (cached !== null) {
+            const p = parseInt(cached, 10);
+            buf = isNaN(p) ? 15 : p;
+          }
+        } catch (err) {}
+        onTriggerSOS(buf * 60);
       } else {
-        throw new Error('Server rejected');
+        if (res.status === 429) {
+          const errData = await res.json();
+          showToast(errData.error || 'SOS Buffer Active.', '⚠️');
+          onTriggerSOS(300);
+        } else {
+          showToast('Server rejected request', '⚠️');
+        }
       }
     } catch (e) {
       showToast('Network error: Request queued for retry offline.', '⏳', 4000);
       // Fallback local storage logic could be added here
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -497,9 +551,15 @@ function SOSTriggerScreen({ user, details, onBack }) {
           </TouchableOpacity>
         </Animated.View>
 
-        <View style={s.timerBox}>
-          <Text style={s.timerLabel}>Next Sync Slot: </Text>
-          <Text style={s.timerVal}>{formatTime(countdown)}</Text>
+        <View style={[s.timerBox, isSosLocked ? { backgroundColor: '#fff1f2', borderColor: '#fecdd3' } : { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' }]}>
+          {isSosLocked ? (
+            <>
+              <Text style={[s.timerLabel, { color: '#e11d48' }]}>SOS BUFFER: </Text>
+              <Text style={[s.timerVal, { color: '#e11d48' }]}>{Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}</Text>
+            </>
+          ) : (
+            <Text style={[s.timerVal, { color: '#10b981', fontSize: 14, textTransform: 'uppercase' }]}>SOS READY TO DISPATCH</Text>
+          )}
         </View>
       </ScrollView>
 
@@ -735,10 +795,11 @@ function SelectionScreen({ onSelect, onBack }) {
 }
 
 // ─── Screen 2B: Critical SOS Screen ──────────────────────────────────────────
-function CriticalSOSScreen({ user, imageEnabled, micEnabled, onBack }) {
+function CriticalSOSScreen({ user, imageEnabled, micEnabled, isSosLocked, onTriggerSOS, onBack }) {
   const [address, setAddress] = useState('');
-  const [isSosLocked, setIsSosLocked] = useState(false);
+  const [selectedType, setSelectedType] = useState('sos');
   const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(false);
   const toastAnim = useRef(new Animated.Value(0)).current;
   const sosScale = useRef(new Animated.Value(1)).current;
 
@@ -752,8 +813,9 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, onBack }) {
     }
   };
 
-  const triggerSOS = async (type = 'sos') => {
+  const triggerSOS = async () => {
     if (isSosLocked) { showToast('Please wait for the current time slot to clear.', '⚠️'); return; }
+    if (loading) return;
 
     Vibration.vibrate([0, 200, 100, 200]);
     Animated.sequence([
@@ -762,7 +824,7 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, onBack }) {
     ]).start();
 
     showToast('Connecting to server...', '⏳', 0);
-    setIsSosLocked(true);
+    setLoading(true);
 
     try {
       let location = null;
@@ -775,7 +837,7 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, onBack }) {
       const payload = {
         phone: user.phone,
         device_id: user.serial_number || 'PUB-MOB',
-        type: type,
+        type: selectedType,
         lat: location ? location.coords.latitude : 13.085,
         lng: location ? location.coords.longitude : 80.272,
         details: address.trim() || 'Critical Emergency Triggered',
@@ -791,13 +853,28 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, onBack }) {
 
       if (res.ok) {
         showToast('Your info is collected and help is being dispatched.', '✅', 4000);
+        let buf = 15;
+        try {
+          const cached = await AsyncStorage.getItem('sosBufferMinutes');
+          if (cached !== null) {
+            const p = parseInt(cached, 10);
+            buf = isNaN(p) ? 15 : p;
+          }
+        } catch (err) {}
+        onTriggerSOS(buf * 60);
       } else {
-        setIsSosLocked(false);
-        showToast('Server error. Resending...', '❌');
+        if (res.status === 429) {
+          const errData = await res.json();
+          showToast(errData.error || 'SOS Buffer Active.', '⚠️');
+          onTriggerSOS(300);
+        } else {
+          showToast('Server rejected request', '⚠️');
+        }
       }
     } catch (e) {
-      setIsSosLocked(false);
       showToast('Network issue. Try again.', '❌');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -817,21 +894,21 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, onBack }) {
         {/* Quick Actions Row */}
         <View style={{ flexDirection: 'row', gap: 15, marginBottom: 20 }}>
           <TouchableOpacity 
-            style={[s.critCard, { borderColor: '#fb7185' }]} 
-            onPress={() => triggerSOS('pregnancy')}
+            style={[s.critCard, { borderColor: selectedType === 'pregnancy' ? '#fb7185' : C.border, backgroundColor: selectedType === 'pregnancy' ? '#fff1f2' : C.white }]} 
+            onPress={() => setSelectedType(prev => prev === 'pregnancy' ? 'sos' : 'pregnancy')}
             activeOpacity={0.85}
           >
             <Text style={{ fontSize: 36 }}>🤰</Text>
-            <Text style={{ fontSize: 14, fontWeight: '900', color: '#e11d48', marginTop: 5 }}>Pregnancy</Text>
+            <Text style={{ fontSize: 14, fontWeight: '900', color: selectedType === 'pregnancy' ? '#e11d48' : C.light, marginTop: 5 }}>Pregnancy</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[s.critCard, { borderColor: '#38bdf8' }]} 
-            onPress={() => triggerSOS('medical')}
+            style={[s.critCard, { borderColor: selectedType === 'medical' ? '#38bdf8' : C.border, backgroundColor: selectedType === 'medical' ? '#f0f9ff' : C.white }]} 
+            onPress={() => setSelectedType(prev => prev === 'medical' ? 'sos' : 'medical')}
             activeOpacity={0.85}
           >
             <Text style={{ fontSize: 36 }}>🏥</Text>
-            <Text style={{ fontSize: 14, fontWeight: '900', color: '#0369a1', marginTop: 5 }}>Medical</Text>
+            <Text style={{ fontSize: 14, fontWeight: '900', color: selectedType === 'medical' ? '#0369a1' : C.light, marginTop: 5 }}>Medical</Text>
           </TouchableOpacity>
         </View>
 
@@ -868,14 +945,25 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, onBack }) {
           <Animated.View style={[s.sosOuterRing, { transform: [{ scale: sosScale }] }]}>
             <TouchableOpacity 
               style={s.sosInnerBtn}
-              onPress={() => triggerSOS('sos')}
+              onPress={() => triggerSOS()}
               activeOpacity={0.9}
             >
               <Text style={{ fontSize: 36 }}>🚨</Text>
               <Text style={{ fontSize: 12, fontWeight: '900', color: C.white, marginTop: 5 }}>MAIN TRIGGER</Text>
             </TouchableOpacity>
           </Animated.View>
-          <Text style={{ fontSize: 11, color: C.danger, fontWeight: '800', marginTop: 15, letterSpacing: 1 }}>PRESS TO DISPATCH HQ</Text>
+          <Text style={{ fontSize: 11, color: C.danger, fontWeight: '800', marginTop: 15, letterSpacing: 1, marginBottom: 20 }}>PRESS TO DISPATCH HQ</Text>
+
+          <View style={[s.timerBox, isSosLocked ? { backgroundColor: '#fff1f2', borderColor: '#fecdd3' } : { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' }]}>
+            {isSosLocked ? (
+              <>
+                <Text style={[s.timerLabel, { color: '#e11d48' }]}>SOS BUFFER: </Text>
+                <Text style={[s.timerVal, { color: '#e11d48' }]}>{Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}</Text>
+              </>
+            ) : (
+              <Text style={[s.timerVal, { color: '#10b981', fontSize: 14, textTransform: 'uppercase' }]}>SOS READY TO DISPATCH</Text>
+            )}
+          </View>
         </View>
       </ScrollView>
 
@@ -921,6 +1009,41 @@ export default function App() {
   const [checking, setChecking] = useState(true);
   const [imageEnabled, setImageEnabled] = useState(true);
   const [micEnabled, setMicEnabled] = useState(true);
+  const [isSosLocked, setIsSosLocked] = useState(false);
+  const [sosCountdown, setSosCountdown] = useState(0);
+
+  useEffect(() => {
+    let timer;
+    if (isSosLocked && sosCountdown > 0) {
+      timer = setInterval(() => {
+        setSosCountdown(prev => {
+          if (prev <= 1) {
+            setIsSosLocked(false);
+            GlobalState.sosLockedUntil = 0;
+            AsyncStorage.removeItem('sosLockedUntil');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isSosLocked, sosCountdown]);
+
+  const handleStartSosLock = (seconds) => {
+    if (seconds <= 0) {
+      setIsSosLocked(false);
+      setSosCountdown(0);
+      GlobalState.sosLockedUntil = 0;
+      AsyncStorage.removeItem('sosLockedUntil');
+    } else {
+      setIsSosLocked(true);
+      setSosCountdown(seconds);
+      const lockedUntil = Date.now() + seconds * 1000;
+      GlobalState.sosLockedUntil = lockedUntil;
+      AsyncStorage.setItem('sosLockedUntil', lockedUntil.toString());
+    }
+  };
 
   useEffect(() => {
     AsyncStorage.getItem('sosUser').then(saved => {
@@ -933,6 +1056,19 @@ export default function App() {
     });
     AsyncStorage.getItem('micEnabled').then(val => {
       if (val !== null) setMicEnabled(val === 'true');
+    });
+    AsyncStorage.getItem('sosLockedUntil').then(val => {
+      if (val !== null) {
+        const lockedUntil = parseInt(val, 10);
+        const remaining = Math.floor((lockedUntil - Date.now()) / 1000);
+        if (remaining > 0) {
+          setIsSosLocked(true);
+          setSosCountdown(remaining);
+          GlobalState.sosLockedUntil = lockedUntil;
+        } else {
+          AsyncStorage.removeItem('sosLockedUntil');
+        }
+      }
     });
 
     const fetchConfig = async () => {
@@ -949,6 +1085,9 @@ export default function App() {
             const isEn = settings.public_mic_enabled === 'true';
             setMicEnabled(isEn);
             AsyncStorage.setItem('micEnabled', isEn ? 'true' : 'false');
+          }
+          if (settings.sos_buffer_minutes !== undefined) {
+            AsyncStorage.setItem('sosBufferMinutes', settings.sos_buffer_minutes.toString());
           }
         }
       } catch (e) {
@@ -990,10 +1129,10 @@ export default function App() {
           }
         }} onBack={handleLogout} />;
       case 'critical_sos':
-        return <CriticalSOSScreen user={user} imageEnabled={imageEnabled} micEnabled={micEnabled} onBack={() => setScreen('selection')} />;
+        return <CriticalSOSScreen user={user} imageEnabled={imageEnabled} micEnabled={micEnabled} isSosLocked={isSosLocked} countdown={sosCountdown} onTriggerSOS={handleStartSosLock} onBack={() => setScreen('selection')} />;
       case 'home': 
         if (!details) return <RequirementsScreen user={user} imageEnabled={imageEnabled} micEnabled={micEnabled} onNext={(d) => { setDetails(d); }} onBack={() => setScreen('selection')} />;
-        return <SOSTriggerScreen user={user} details={details} onBack={() => setDetails(null)} />;
+        return <SOSTriggerScreen user={user} details={details} isSosLocked={isSosLocked} countdown={sosCountdown} onTriggerSOS={handleStartSosLock} onBack={() => setDetails(null)} />;
       case 'history': 
         return <HistoryScreen user={user} onBack={() => setScreen('selection')} />;
       case 'settings': 

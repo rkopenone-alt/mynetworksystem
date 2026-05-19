@@ -1210,6 +1210,22 @@
                 </div>
                 
                 <div class="form-content" style="padding: 0 24px; flex: 1; overflow-y: auto; padding-bottom: 20px; -webkit-overflow-scrolling: touch;">
+                    <!-- Buffer Cooldown Status Banner -->
+                    <div id="bufferCooldownBanner" style="display:none; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1.5px solid #fca5a5; border-radius: 16px; padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm);">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <span style="font-size: 24px;">⏳</span>
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 800; color: #991b1b;">SOS Dispatch Buffer Lockout</h4>
+                                <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: 600; color: #b91c1c; line-height: 1.4;">To prevent accidental triggers or server overload, a cooling buffer is active. You cannot dispatch another emergency at this time.</p>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 10px; font-weight: 800; color: #ef4444; background: white; padding: 4px 8px; border-radius: 8px; border: 1px solid #fee2e2;">
+                                        LOCKOUT ENDS IN: <span id="bufferCooldownTimer">00:00</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Tactical Search Bar -->
                     <div style="background:var(--white); border:2px solid #eef2f6; border-radius:20px; padding:12px 18px; display:flex; align-items:center; gap:12px; margin-bottom:15px;">
                         <i style="color:#6366f1; font-style:normal; font-size:18px;">🔍</i>
@@ -1376,6 +1392,25 @@
             mediaCapabilities: {
                 image: true,
                 mic: true
+            },
+            sosBufferMinutes: 15,
+
+            updateBufferCooldown() {
+                const banner = document.getElementById('bufferCooldownBanner');
+                const timerSpan = document.getElementById('bufferCooldownTimer');
+                if (!banner || !timerSpan) return;
+
+                const lockedUntil = parseInt(localStorage.getItem('sosLockedUntil') || '0');
+                const remaining = Math.max(0, Math.floor((lockedUntil - Date.now()) / 1000));
+
+                if (remaining > 0) {
+                    banner.style.display = 'block';
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    timerSpan.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                } else {
+                    banner.style.display = 'none';
+                }
             },
 
             setManualLocation() {
@@ -1563,6 +1598,8 @@
                 this.updateLocationStatus();
                 setInterval(() => this.updateLocationStatus(), 10000);
                 await this.fetchSettings();
+                this.updateBufferCooldown();
+                setInterval(() => this.updateBufferCooldown(), 1000);
                 this.processRetryQueue();
             },
 
@@ -1593,6 +1630,9 @@
                     }
                     if (settings.public_mic_enabled !== undefined) {
                         this.mediaCapabilities.mic = settings.public_mic_enabled === 'true';
+                    }
+                    if (settings.sos_buffer_minutes !== undefined) {
+                        this.sosBufferMinutes = parseInt(settings.sos_buffer_minutes) || 15;
                     }
                     this.applyMediaSettings();
 
@@ -1893,6 +1933,16 @@
 
             proceedFromSelection() {
                 if (this.emergencyCategory === 'critical') {
+                    this.mode = 'sos';
+                    // Reset styling of critical action buttons
+                    document.querySelectorAll('.critical-action-btn').forEach(btn => {
+                        btn.style.background = 'white';
+                        if (btn.querySelector('h3').innerText.toLowerCase() === 'pregnancy') {
+                            btn.style.borderColor = '#fb7185';
+                        } else {
+                            btn.style.borderColor = '#38bdf8';
+                        }
+                    });
                     this.showScreen('screenCriticalSOS');
                 } else {
                     this.showScreen('screenForm');
@@ -1900,9 +1950,30 @@
             },
 
             triggerQuickSOS(type) {
-                this.mode = type;
-                this.toast(`CRITICAL ${type.toUpperCase()} TRIGGERED`, '🚨');
-                this.triggerSOS('critical');
+                if (this.mode === type) {
+                    this.mode = 'sos';
+                    document.querySelectorAll('.critical-action-btn').forEach(btn => {
+                        btn.style.background = 'white';
+                        if (btn.querySelector('h3').innerText.toLowerCase() === 'pregnancy') {
+                            btn.style.borderColor = '#fb7185';
+                        } else {
+                            btn.style.borderColor = '#38bdf8';
+                        }
+                    });
+                } else {
+                    this.mode = type;
+                    document.querySelectorAll('.critical-action-btn').forEach(btn => {
+                        const isPreg = btn.querySelector('h3').innerText.toLowerCase() === 'pregnancy';
+                        if ((type === 'pregnancy' && isPreg) || (type === 'medical' && !isPreg)) {
+                            btn.style.background = type === 'pregnancy' ? '#fff1f2' : '#f0f9ff';
+                            btn.style.borderColor = type === 'pregnancy' ? '#e11d48' : '#0369a1';
+                        } else {
+                            btn.style.background = 'white';
+                            btn.style.borderColor = isPreg ? '#fb7185' : '#38bdf8';
+                        }
+                    });
+                    this.toast(`${type.toUpperCase()} SELECTED`, '✅');
+                }
             },
 
             updateStatusUI(stage, message, icon) {
@@ -1930,6 +2001,14 @@
             },
 
             nav(tab) {
+                const lockedUntil = parseInt(localStorage.getItem('sosLockedUntil') || '0');
+                const isLocked = lockedUntil > Date.now();
+
+                if (isLocked && (tab === 'Home' || tab === 'SOS' || tab === 'Form')) {
+                    this.toast('SOS LOCKED: Cooldown active.', '⏳');
+                    tab = 'Status';
+                }
+
                 document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
                 if (tab === 'Home') this.showScreen('screenEmergencyType');
                 else if (tab === 'SOS') this.showScreen('screenEmergencyType'); // Redirect SOS to selection
@@ -1940,7 +2019,8 @@
                 }
                 else if (tab === 'Settings') this.showScreen('screenSettings');
 
-                const activeLink = Array.from(document.querySelectorAll('.nav-link')).find(l => l.innerText.includes(tab));
+                const highlightText = tab === 'Status' ? 'HISTORY' : tab;
+                const activeLink = Array.from(document.querySelectorAll('.nav-link')).find(l => l.innerText.includes(highlightText));
                 if (activeLink) activeLink.classList.add('active');
             },
 
@@ -2185,11 +2265,20 @@
                             this.updateStatusUI('DELIVERED', `SOS #${result.id || ''} Delivered Successfully`, '✅');
                             this.updateGlobalNotification('SOS Received', 'Your SOS request received by Server', '📡', 'Received');
                             this.toast('SOS DELIVERED', '✅');
+                            
+                            const minutes = this.sosBufferMinutes || 15;
+                            localStorage.setItem('sosLockedUntil', (Date.now() + minutes * 60 * 1000).toString());
+                            this.updateBufferCooldown();
+
                             this.nav('Status');
                         } else if (res.status === 429) {
                             const errData = await res.json();
                             this.updateStatusUI('BLOCKED', errData.error || 'SOS blocked by buffer time limit.', '⏳');
                             this.toast(errData.error || 'You cannot submit an SOS at this time due to buffer restrictions.', '⏳', 2000);
+                            
+                            localStorage.setItem('sosLockedUntil', (Date.now() + 5 * 60 * 1000).toString());
+                            this.updateBufferCooldown();
+
                             this.nav('Status');
                             return;
                         } else throw new Error('Server reject');

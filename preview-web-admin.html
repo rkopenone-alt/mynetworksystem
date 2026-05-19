@@ -2165,68 +2165,12 @@
                     </div>
                 </div>
 
-                <!-- Box 5: Public Media Capabilities -->
+                <!-- Box 5: Public App Media Capabilities (Merged) -->
                 <div class="card"
                     style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                            <h3 style="margin: 0;">Public App Media Sync</h3>
-                        </div>
-                        <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Enable or disable
-                            Image/Mic capture for the public SOS application. Syncs with devices when network is
-                            available.</p>
-                    </div>
-                    <div>
-                        <div class="input-group" style="margin-bottom: 12px;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label class="input-label"
-                                    style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Camera
-                                    / Image Capture</label>
-                                <div id="imageStatusBadge"
-                                    style="background: rgba(37, 99, 235, 0.1); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid var(--accent);">
-                                    Status: <span id="activeImageStatus">ON</span>
-                                </div>
-                            </div>
-                            <div style="display:flex; gap:6px;">
-                                <button id="imgEnableBtn" class="btn btn-outline"
-                                    style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;"
-                                    onclick="setImageCapture(true)">Enable</button>
-                                <button id="imgDisableBtn" class="btn btn-outline"
-                                    style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;"
-                                    onclick="setImageCapture(false)">Disable</button>
-                            </div>
-                        </div>
-
-                        <div class="input-group" style="margin-bottom: 0;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label class="input-label"
-                                    style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Microphone
-                                    / Voice</label>
-                                <div id="micStatusBadge"
-                                    style="background: rgba(37, 99, 235, 0.1); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; border: 1px solid var(--accent);">
-                                    Status: <span id="activeMicStatus">ON</span>
-                                </div>
-                            </div>
-                            <div style="display:flex; gap:6px;">
-                                <button id="micEnableBtn" class="btn btn-outline"
-                                    style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;"
-                                    onclick="setMicCapture(true)">Enable</button>
-                                <button id="micDisableBtn" class="btn btn-outline"
-                                    style="flex:1; height: 36px; font-size: 12px; font-weight: 700; border-radius: 6px;"
-                                    onclick="setMicCapture(false)">Disable</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Box 6: Public App Media Capture -->
-                <div class="card"
-                    style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div>
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                            <h3 style="margin: 0;">Public App Media Permissions</h3>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                            <h3 style="margin: 0;">Public App Media Capabilities</h3>
                             <div style="display: flex; gap: 6px;">
                                 <div id="imageStatusBadge"
                                     style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; display: flex; align-items: center; gap: 4px; border: 1px solid #10b981;">
@@ -2240,43 +2184,34 @@
                                 </div>
                             </div>
                         </div>
-                        <p style="color:var(--text-muted);font-size:11px; margin-bottom: 16px;">Independently control
-                            image capture and voice recording availability for the mobile app.</p>
+                        <p style="color:var(--text-muted);font-size:12px; margin-bottom: 16px;">Independently control
+                            image capture and voice recording availability for the mobile app. Syncs with devices when network is available.</p>
                     </div>
-                    <div style="gap: 8px; display: flex; flex-direction: column;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
                         <!-- Image Toggle -->
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);">
-                            <label class="input-label" style="margin: 0; font-size: 11px; font-weight: 700;">IMAGE
-                                CAPTURE</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);">
+                            <label class="input-label" style="margin: 0; font-size: 11px; font-weight: 700;">IMAGE CAPTURE</label>
                             <div style="display: flex; gap: 6px;">
                                 <button id="imgEnableBtn" class="btn btn-outline"
-                                    style="padding: 4px 12px; font-size: 10px; font-weight: 800; border-radius: 6px;"
+                                    style="padding: 6px 16px; font-size: 11px; font-weight: 800; border-radius: 6px; transition: all 0.2s;"
                                     onclick="setImageCapture(true)">Enable</button>
                                 <button id="imgDisableBtn" class="btn btn-outline"
-                                    style="padding: 4px 12px; font-size: 10px; font-weight: 800; border-radius: 6px;"
+                                    style="padding: 6px 16px; font-size: 11px; font-weight: 800; border-radius: 6px; transition: all 0.2s;"
                                     onclick="setImageCapture(false)">Disable</button>
                             </div>
                         </div>
                         <!-- Mic Toggle -->
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);">
-                            <label class="input-label" style="margin: 0; font-size: 11px; font-weight: 700;">MIC
-                                RECORDING</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);">
+                            <label class="input-label" style="margin: 0; font-size: 11px; font-weight: 700;">MIC RECORDING</label>
                             <div style="display: flex; gap: 6px;">
                                 <button id="micEnableBtn" class="btn btn-outline"
-                                    style="padding: 4px 12px; font-size: 10px; font-weight: 800; border-radius: 6px;"
+                                    style="padding: 6px 16px; font-size: 11px; font-weight: 800; border-radius: 6px; transition: all 0.2s;"
                                     onclick="setMicCapture(true)">Enable</button>
                                 <button id="micDisableBtn" class="btn btn-outline"
-                                    style="padding: 4px 12px; font-size: 10px; font-weight: 800; border-radius: 6px;"
+                                    style="padding: 6px 16px; font-size: 11px; font-weight: 800; border-radius: 6px; transition: all 0.2s;"
                                     onclick="setMicCapture(false)">Disable</button>
                             </div>
                         </div>
-                        <p
-                            style="margin:0; font-size:10px; color:var(--text-muted); font-style: italic; margin-top: 4px;">
-                            <i data-lucide="zap" style="width:10px; vertical-align: middle; color: var(--warning);"></i>
-                            Granular permissions sync to mobile app.
-                        </p>
                     </div>
                 </div>
             </div>
@@ -4297,7 +4232,7 @@
                 const downloadBtn = document.getElementById('btnDownloadEvidence');
 
                 if (cmd.requesterImageUrl) {
-                    const fullUrl = `http://${window.location.hostname}:3001${cmd.requesterImageUrl}`;
+                    const fullUrl = `http://${window.location.hostname || 'localhost'}:3001${cmd.requesterImageUrl}`;
                     imgContainer.innerHTML = `<img src="${fullUrl}" style="width:100%; height:100%; object-fit:cover;">`;
                     downloadBtn.style.display = 'block';
                     window.downloadEvidence = () => {
@@ -4436,7 +4371,7 @@
 
                 let evidenceThumb = '-';
                 if (c.requesterImageUrl) {
-                    const thumbUrl = c.requesterImageUrl.startsWith('http') ? c.requesterImageUrl : `http://${window.location.hostname}:3001${c.requesterImageUrl}`;
+                    const thumbUrl = c.requesterImageUrl.startsWith('http') ? c.requesterImageUrl : `http://${window.location.hostname || 'localhost'}:3001${c.requesterImageUrl}`;
                     evidenceThumb = `<img src="${thumbUrl}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:2px solid ${isCrit ? '#ef4444' : 'var(--border) '};" onclick="event.stopPropagation(); window.open('${thumbUrl}', '_blank');">`;
                 }
 
@@ -5346,7 +5281,7 @@
                                 <b>Priority:</b> <span style="color:${isCritical ? '#e11d48' : 'var(--text-muted)'}; font-weight:900;">${(req.priority || (isCritical ? 'CRITICAL' : 'NORMAL')).toUpperCase()}</span><br>
                                 <b>Urgency:</b> <span style="color:${req.urgency === 'critical' ? 'var(--critical)' : 'inherit'}; font-weight:700;">${req.urgency.toUpperCase()}</span>
                                 ${detailsHtml}
-                                ${req.image_url ? `<div style="margin-top:8px;"><img src="http://${window.location.hostname}:3001${req.image_url}" style="width:60px; height:60px; border-radius:6px; object-fit:cover; border:1px solid var(--border);"></div>` : ''}
+                                ${req.image_url ? `<div style="margin-top:8px;"><img src="http://${window.location.hostname || 'localhost'}:3001${req.image_url}" style="width:60px; height:60px; border-radius:6px; object-fit:cover; border:1px solid var(--border);"></div>` : ''}
                             </div>
                             <div class="actionable-actions">
                                 <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;" onclick="openAssignModal('${req.id}', '${safeType}', '${safeSector}', '${req.urgency}', '${num}')">${assignBtnLabel}</button>
@@ -5904,13 +5839,13 @@
             if (!btnEn || !btnDis) return;
 
             if (isEnabled) {
-                btnEn.style.backgroundColor = 'var(--accent)'; btnEn.style.color = 'white';
-                btnDis.style.backgroundColor = 'transparent'; btnDis.style.color = 'inherit';
+                btnEn.style.backgroundColor = '#10b981'; btnEn.style.color = 'white'; btnEn.style.borderColor = '#10b981';
+                btnDis.style.backgroundColor = 'transparent'; btnDis.style.color = 'inherit'; btnDis.style.borderColor = 'var(--border)';
                 if (badge) badge.innerText = 'ON';
                 if (container) { container.style.backgroundColor = 'rgba(16, 185, 129, 0.1)'; container.style.color = '#10b981'; container.style.borderColor = '#10b981'; }
             } else {
-                btnDis.style.backgroundColor = 'var(--danger)'; btnDis.style.color = 'white';
-                btnEn.style.backgroundColor = 'transparent'; btnEn.style.color = 'inherit';
+                btnDis.style.backgroundColor = 'var(--danger)'; btnDis.style.color = 'white'; btnDis.style.borderColor = 'var(--danger)';
+                btnEn.style.backgroundColor = 'transparent'; btnEn.style.color = 'inherit'; btnEn.style.borderColor = 'var(--border)';
                 if (badge) badge.innerText = 'OFF';
                 if (container) { container.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'; container.style.color = '#ef4444'; container.style.borderColor = '#ef4444'; }
             }
@@ -5924,13 +5859,13 @@
             if (!btnEn || !btnDis) return;
 
             if (isEnabled) {
-                btnEn.style.backgroundColor = 'var(--accent)'; btnEn.style.color = 'white';
-                btnDis.style.backgroundColor = 'transparent'; btnDis.style.color = 'inherit';
+                btnEn.style.backgroundColor = '#10b981'; btnEn.style.color = 'white'; btnEn.style.borderColor = '#10b981';
+                btnDis.style.backgroundColor = 'transparent'; btnDis.style.color = 'inherit'; btnDis.style.borderColor = 'var(--border)';
                 if (badge) badge.innerText = 'ON';
                 if (container) { container.style.backgroundColor = 'rgba(16, 185, 129, 0.1)'; container.style.color = '#10b981'; container.style.borderColor = '#10b981'; }
             } else {
-                btnDis.style.backgroundColor = 'var(--danger)'; btnDis.style.color = 'white';
-                btnEn.style.backgroundColor = 'transparent'; btnEn.style.color = 'inherit';
+                btnDis.style.backgroundColor = 'var(--danger)'; btnDis.style.color = 'white'; btnDis.style.borderColor = 'var(--danger)';
+                btnEn.style.backgroundColor = 'transparent'; btnEn.style.color = 'inherit'; btnEn.style.borderColor = 'var(--border)';
                 if (badge) badge.innerText = 'OFF';
                 if (container) { container.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'; container.style.color = '#ef4444'; container.style.borderColor = '#ef4444'; }
             }
@@ -6846,7 +6781,7 @@
                                     <b>Priority:</b> <span style="color:${isCritical ? '#e11d48' : 'var(--text-muted)'}; font-weight:900;">${(req.priority || (isCritical ? 'CRITICAL' : 'NORMAL')).toUpperCase()}</span><br>
                                     <b>Urgency:</b> <span style="color:${(req.urgency || '').toLowerCase() === 'critical' ? 'var(--critical)' : 'inherit'}; font-weight:700;">${(req.urgency || '').toUpperCase()}</span>
                                     ${detailsHtml}
-                                    ${req.image_url ? `<div style="margin-top:8px;"><img src="http://${window.location.hostname}:3001${req.image_url}" style="width:60px; height:60px; border-radius:6px; object-fit:cover; border:1px solid var(--border);"></div>` : ''}
+                                    ${req.image_url ? `<div style="margin-top:8px;"><img src="http://${window.location.hostname || 'localhost'}:3001${req.image_url}" style="width:60px; height:60px; border-radius:6px; object-fit:cover; border:1px solid var(--border);"></div>` : ''}
                                 </div>
                                 <div class="actionable-actions">
                                     <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;" onclick="openAssignModal('${req.id}', '${safeType}', '${safeSector}', '${req.urgency}', '${num}')">${assignBtnLabel}</button>
