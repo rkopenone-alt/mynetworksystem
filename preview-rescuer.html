@@ -684,6 +684,55 @@
             cursor: pointer;
         }
 
+        /* Camera Capture Button */
+        .btn-camera {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1.5px solid rgba(255, 255, 255, 0.6);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-camera:active {
+            transform: scale(0.92);
+        }
+
+        .btn-camera.captured {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: #10b981;
+        }
+
+        .btn-camera-card {
+            background: #e0f2fe;
+            border: 1.5px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-camera-card:active {
+            transform: scale(0.95);
+        }
+
+        .btn-camera-card.captured {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #059669;
+        }
+
         /* Loader */
         .full-loader {
             position: absolute;
@@ -789,7 +838,10 @@
                             <h4 id="missType">Medical Rescue</h4>
                             <p id="missLoc">Sector 4, Block A</p>
                         </div>
-                        <button class="btn-complete" onclick="core.completeMission()">COMPLETE</button>
+                        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                            <button class="btn-camera" id="bannerCameraBtn" title="Capture Completion Photo" onclick="core.triggerCamera('__banner__', 'banner')">📷</button>
+                            <button class="btn-complete" onclick="core.completeMission()">COMPLETE</button>
+                        </div>
                     </div>
 
                     <div class="notif-label" style="margin-top:10px;">
@@ -977,6 +1029,9 @@
         </div>
     </div>
 
+    <!-- Hidden Camera / File Input for completion photo capture -->
+    <input type="file" id="hiddenCameraInput" accept="image/*" capture="environment" style="display:none;">
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -998,6 +1053,7 @@
             navPolyline: null,
             pos: { lat: 13.0750, lng: 80.2600 },
             allHistory: [],
+            capturedImages: {},
 
             init() {
                 const saved = localStorage.getItem('rescue_user_v3');
@@ -1252,7 +1308,12 @@
                     let badgeHtml = '';
 
                     if (isOngoing) {
-                        btnHtml = `<button class="btn-action" style="background:#ef4444; color:white; width:100%;" onclick="core.completeTask('${t.id}', '${t.source}')">COMPLETE MISSION</button>`;
+                        const hasCaptured = !!this.capturedImages[t.id];
+                        const cameraLabel = hasCaptured ? '✅ Photo' : '📷 Photo';
+                        const cameraCls = hasCaptured ? 'btn-camera-card captured' : 'btn-camera-card';
+                        btnHtml = `
+                            <button class="${cameraCls}" id="camBtn_${t.id}" onclick="core.triggerCamera('${t.id}', '${t.source}')">${cameraLabel}</button>
+                            <button class="btn-action" style="background:#ef4444; color:white; flex:1;" onclick="core.completeTask('${t.id}', '${t.source}')">COMPLETE MISSION</button>`;
                         badgeHtml = `<span class="notif-badge" style="background:var(--warning); color:white;">ONGOING - ${t.type.toUpperCase()}</span>`;
                     } else {
                         btnHtml = `<button class="btn-action" style="background:#0ea5e9; color:white;" onclick="core.accept('${t.id}', '${t.type}', '${t.sector}', ${t.lat}, ${t.lng}, '${t.source}')">ACCEPT</button>
@@ -1538,18 +1599,130 @@
 
             async completeMission() {
                 if (!this.activeMission) return;
+                // Merge banner capture into the active mission ID slot
+                if (this.capturedImages['__banner__'] && !this.capturedImages[this.activeMission.id]) {
+                    this.capturedImages[this.activeMission.id] = this.capturedImages['__banner__'];
+                    delete this.capturedImages['__banner__'];
+                }
                 await this.completeTask(this.activeMission.id, this.activeMission.source);
             },
 
+            // ───────────────────────────────────────────────────
+            // CAMERA CAPTURE & CANVAS COMPRESSION
+            // ───────────────────────────────────────────────────
+
+            triggerCamera(id, source) {
+                const input = document.getElementById('hiddenCameraInput');
+                if (!input) return;
+
+                // Detach previous listener to avoid stacking
+                input.onchange = null;
+
+                input.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    input.value = ''; // Reset so same file can be re-chosen
+
+                    try {
+                        const base64 = await this._compressImage(file, 1280, 720, 500 * 1024);
+                        this.capturedImages[id] = base64;
+
+                        // Update banner camera button icon
+                        const bannerBtn = document.getElementById('bannerCameraBtn');
+                        if (bannerBtn && (id === '__banner__' || (this.activeMission && String(this.activeMission.id) === String(id)))) {
+                            bannerBtn.textContent = '✅';
+                            bannerBtn.classList.add('captured');
+                        }
+
+                        // Update card camera button
+                        const cardBtn = document.getElementById('camBtn_' + id);
+                        if (cardBtn) {
+                            cardBtn.textContent = '✅ Photo';
+                            cardBtn.classList.add('captured');
+                        }
+
+                        this.toast('📷 Photo attached!', '✅');
+                    } catch (err) {
+                        console.error('[Camera] Compression failed:', err);
+                        this.toast('Photo capture failed', '❌');
+                    }
+                };
+
+                input.click();
+            },
+
+            // Compress & resize an image File to JPEG base64 ≤ maxBytes
+            _compressImage(file, maxW, maxH, maxBytes) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            let w = img.naturalWidth;
+                            let h = img.naturalHeight;
+
+                            // Downscale to fit within maxW x maxH
+                            if (w > maxW || h > maxH) {
+                                const ratio = Math.min(maxW / w, maxH / h);
+                                w = Math.floor(w * ratio);
+                                h = Math.floor(h * ratio);
+                            }
+
+                            const canvas = document.createElement('canvas');
+                            canvas.width = w;
+                            canvas.height = h;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+
+                            // Iteratively lower quality until under maxBytes
+                            let quality = 0.85;
+                            let dataUrl;
+                            do {
+                                dataUrl = canvas.toDataURL('image/jpeg', quality);
+                                const byteLen = Math.ceil((dataUrl.length - dataUrl.indexOf(',') - 1) * 0.75);
+                                if (byteLen <= maxBytes || quality <= 0.2) break;
+                                quality -= 0.1;
+                            } while (true);
+
+                            resolve(dataUrl); // full data URL
+                        };
+                        img.onerror = reject;
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            },
+            // ───────────────────────────────────────────────────
+
             async completeTask(id, source = 'request') {
+                // ── Photo verification gate ──────────────────────────────
+                const photoBase64 = this.capturedImages[id] || this.capturedImages['__banner__'] || null;
+                if (!photoBase64) {
+                    this.toast('Please capture a completion photo first! 📷', '⚠️');
+                    // Trigger camera automatically so user doesn't have to hunt for the button
+                    this.triggerCamera(id, source);
+                    return;
+                }
+                // ─────────────────────────────────────────────────────────
+
                 this.showLoader(true);
                 try {
                     const endpoint = (source === 'command' || this.activeMission?.source === 'command') ? 'commands' : 'rescue-requests';
                     await fetch(`${this.API}/${endpoint}/${id}/status`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: 'completed', rescuer_phone: this.user.phone })
+                        body: JSON.stringify({
+                            status: 'completed',
+                            rescuer_phone: this.user.phone,
+                            completion_image: photoBase64
+                        })
                     });
+
+                    // Clear captured image after successful submit
+                    delete this.capturedImages[id];
+                    delete this.capturedImages['__banner__'];
+
                     this.toast('MISSION SUCCESSFUL', '✅');
                     if (this.activeMission && String(this.activeMission.id) === String(id)) {
                         this.endMission();

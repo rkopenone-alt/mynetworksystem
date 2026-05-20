@@ -156,11 +156,12 @@ db.serialize(() => {
         registered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         interrupted_task_id TEXT
     )`);
-    // Alter existing table to add columns if not exists
     db.run(`ALTER TABLE users ADD COLUMN password TEXT`, (err) => { /* ignore */ });
     db.run(`ALTER TABLE users ADD COLUMN serial_number TEXT`, (err) => { /* ignore */ });
     db.run(`ALTER TABLE rescue_requests ADD COLUMN assigned_phone TEXT`, (err) => { /* ignore */ });
     db.run(`ALTER TABLE rescue_requests ADD COLUMN phone TEXT`, (err) => { /* ignore */ });
+    db.run(`ALTER TABLE rescue_requests ADD COLUMN completion_image_url TEXT`, (err) => { /* ignore */ });
+    db.run(`ALTER TABLE command_queue ADD COLUMN completion_image_url TEXT`, (err) => { /* ignore */ });
 
     // Backfill serial numbers for existing users
     db.all("SELECT id, role FROM users WHERE serial_number IS NULL", [], (err, rows) => {
@@ -447,6 +448,42 @@ const logCommand = async (action, actor, target, details) => {
     } catch (e) { console.error('Log error:', e); }
 };
 
+function saveCompletionImage(image_data) {
+    if (!image_data) return null;
+    try {
+        const matches = image_data.match(/^data:image\/([a-zA-Z+]+);base64,(.+)$/s);
+        let extension = 'jpg';
+        let base64Data = '';
+
+        if (matches && matches.length === 3) {
+            extension = matches[1].toLowerCase();
+            base64Data = matches[2];
+        } else if (image_data.includes('base64,')) {
+            const parts = image_data.split('base64,');
+            base64Data = parts[1];
+            if (parts[0].includes('png')) extension = 'png';
+        } else {
+            base64Data = image_data;
+        }
+
+        if (base64Data) {
+            base64Data = base64Data.replace(/\s+/g, '');
+            const fileName = `comp_task_${Date.now()}.${extension === 'png' ? 'png' : 'jpg'}`;
+            const uploadsDir = path.join(__dirname, 'uploads');
+            if (!fs.existsSync(uploadsDir)) {
+                fs.mkdirSync(uploadsDir, { recursive: true });
+            }
+            const uploadPath = path.join(uploadsDir, fileName);
+            fs.writeFileSync(uploadPath, base64Data, 'base64');
+            return `/uploads/${fileName}`;
+        }
+    } catch (err) {
+        console.error('Completion image upload error:', err);
+    }
+    return null;
+}
+
+
 const getDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // km
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -711,7 +748,7 @@ app.get('/api/users/:id/combined-history', async (req, res) => {
         const groupIds = groups.map(g => g.group_id);
 
         // Personal & Group Rescue Requests
-        let personalReqQuery = `SELECT 'request' as source, id, type, sector, status, lat, lng, created_at, updated_at, image_url, details, priority FROM rescue_requests WHERE (assigned_user_id = ?)`;
+        let personalReqQuery = `SELECT 'request' as source, id, type, sector, status, lat, lng, created_at, updated_at, image_url, completion_image_url, details, priority FROM rescue_requests WHERE (assigned_user_id = ?)`;
         let reqParams = [userId];
         if (groupIds.length > 0) {
             personalReqQuery += ` OR (assigned_group_id IN (${groupIds.map(() => '?').join(',')}))`;
@@ -723,7 +760,7 @@ app.get('/api/users/:id/combined-history', async (req, res) => {
         const cleanPhone = (user.phone || '').replace(/\D/g, '').slice(-10); // Last 10 digits
         const cleanDeviceId = (user.device_id || '').replace(/\D/g, '').slice(-10);
         
-        let commandQuery = `SELECT 'command' as source, cq.id, cq.command_type as type, 'HQ Order' as sector, cq.status, cq.created_at, cq.updated_at, cq.command_payload, cq.priority, rr.image_url, rr.details as rescue_details 
+        let commandQuery = `SELECT 'command' as source, cq.id, cq.command_type as type, 'HQ Order' as sector, cq.status, cq.created_at, cq.updated_at, cq.command_payload, cq.priority, rr.image_url, cq.completion_image_url, rr.details as rescue_details 
                            FROM command_queue cq
                            LEFT JOIN rescue_requests rr ON CAST(rr.id AS TEXT) = CAST(json_extract(cq.command_payload, '$.rescue_req_id') AS TEXT)
                            WHERE (REPLACE(REPLACE(cq.target_phone, '+', ''), ' ', '') LIKE ?)`;
@@ -757,6 +794,7 @@ app.get('/api/users/:id/combined-history', async (req, res) => {
                 lat: payload.lat || (groupMissions.length > 0 ? groupMissions[0].lat : null),
                 lng: payload.lng || (groupMissions.length > 0 ? groupMissions[0].lng : null),
                 image_url: c.image_url,
+                completion_image_url: c.completion_image_url || (personalReqs.find(pr => String(pr.id) === String(payload.rescue_req_id))?.completion_image_url) || null,
                 priority: c.priority || 'normal',
                 details: c.type === 'group' ? JSON.stringify({ isGroup: true, missions: groupMissions, custom_polygon: payload.custom_polygon || null }) : (c.rescue_details || payload.details || null),
                 requester_phone: payload.requester_phone || null,
@@ -1290,7 +1328,7 @@ app.put('/api/rescue-requests/:id/decline', async (req, res) => {
 
 // Status update for rescuer to mark completed
 app.put('/api/rescue-requests/:id/status', async (req, res) => {
-    const { status, rescuer_phone } = req.body;
+    const { status, rescuer_phone, completion_image } = req.body;
     const validStatuses = ['pending', 'accepted', 'completed', 'declined', 'in_progress'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
     try {
@@ -1313,11 +1351,20 @@ app.put('/api/rescue-requests/:id/status', async (req, res) => {
             }
         }
 
-        await run(`UPDATE rescue_requests SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, req.params.id]);
-        
-        // Auto-update any associated commands in command_queue
-        await run(`UPDATE command_queue SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE command_payload LIKE ?`, [finalStatus, `%"rescue_req_id":${req.params.id}%`]);
-        await run(`UPDATE command_queue SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE command_payload LIKE ?`, [finalStatus, `%"rescue_req_id":"${req.params.id}"%`]);
+        let compImageUrl = null;
+        if (completion_image) {
+            compImageUrl = saveCompletionImage(completion_image);
+        }
+
+        if (compImageUrl) {
+            await run(`UPDATE rescue_requests SET status = ?, completion_image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, compImageUrl, req.params.id]);
+            await run(`UPDATE command_queue SET status = ?, completion_image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE command_payload LIKE ?`, [finalStatus, compImageUrl, `%"rescue_req_id":${req.params.id}%`]);
+            await run(`UPDATE command_queue SET status = ?, completion_image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE command_payload LIKE ?`, [finalStatus, compImageUrl, `%"rescue_req_id":"${req.params.id}"%`]);
+        } else {
+            await run(`UPDATE rescue_requests SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, req.params.id]);
+            await run(`UPDATE command_queue SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE command_payload LIKE ?`, [finalStatus, `%"rescue_req_id":${req.params.id}%`]);
+            await run(`UPDATE command_queue SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE command_payload LIKE ?`, [finalStatus, `%"rescue_req_id":"${req.params.id}"%`]);
+        }
 
         reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [req.params.id]);
 
@@ -1521,7 +1568,7 @@ app.put('/api/commands/:id/acknowledge', async (req, res) => {
 
 // Update command status (accept, decline, complete)
 app.put('/api/commands/:id/status', async (req, res) => {
-    const { status, rescuer_phone } = req.body;
+    const { status, rescuer_phone, completion_image } = req.body;
     const validStatuses = ['pending', 'accepted', 'declined', 'completed', 'acknowledged', 'in_progress'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
     try {
@@ -1544,14 +1591,27 @@ app.put('/api/commands/:id/status', async (req, res) => {
             }
         }
 
-        await run(`UPDATE command_queue SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, req.params.id]);
+        let compImageUrl = null;
+        if (completion_image) {
+            compImageUrl = saveCompletionImage(completion_image);
+        }
+
+        if (compImageUrl) {
+            await run(`UPDATE command_queue SET status = ?, completion_image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, compImageUrl, req.params.id]);
+        } else {
+            await run(`UPDATE command_queue SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, req.params.id]);
+        }
         cmdData = await get(`SELECT * FROM command_queue WHERE id = ?`, [req.params.id]);
 
         // Propagation: If this command is linked to a rescue_request, update that too
         try {
             const payload = typeof cmdData.command_payload === 'string' ? JSON.parse(cmdData.command_payload) : cmdData.command_payload;
             if (payload && payload.rescue_req_id) {
-                await run(`UPDATE rescue_requests SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, payload.rescue_req_id]);
+                if (compImageUrl) {
+                    await run(`UPDATE rescue_requests SET status = ?, completion_image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, compImageUrl, payload.rescue_req_id]);
+                } else {
+                    await run(`UPDATE rescue_requests SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [finalStatus, payload.rescue_req_id]);
+                }
                 const reqData = await get(`SELECT * FROM rescue_requests WHERE id = ?`, [payload.rescue_req_id]);
                 broadcast('RESCUE_REQUEST_UPDATE', reqData);
             }

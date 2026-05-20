@@ -8,14 +8,7 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
-// Simple persistent storage shim
-const Store = {
-  _data: {},
-  async setItem(key, val) { this._data[key] = val; },
-  async getItem(key) { return this._data[key] || null; },
-  async removeItem(key) { delete this._data[key]; },
-};
-const AsyncStorage = Store;
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = 'http://192.168.1.5:3001/api';
 const WS_URL = 'ws://192.168.1.5:3001';
@@ -133,6 +126,7 @@ function LoginScreen({ onLogin }) {
       if (res.ok) {
         const data = await res.json();
         await AsyncStorage.setItem('sosUser', JSON.stringify(data.user));
+        if (data.token) await AsyncStorage.setItem('sosToken', data.token);
         onLogin(data.user);
       } else {
         const errData = await res.json();
@@ -266,16 +260,36 @@ function RequirementsScreen({ user, imageEnabled = true, micEnabled = true, onNe
   const handleMicPress = () => {
     Alert.alert(
       "Audio Capture",
-      "Choose an option",
+      "Choose an option (max 10 sec, 200 KB)",
       [
         { text: "Record Audio", onPress: async () => {
           try {
-            await Audio.requestPermissionsAsync();
+            const { status } = await Audio.requestPermissionsAsync();
+            if (status !== 'granted') { Alert.alert('Permission Required', 'Microphone access is needed.'); return; }
+            await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
             const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-            Alert.alert("Recording started", "Press OK to stop", [
+            // Auto-stop after 10 seconds
+            const stopTimer = setTimeout(async () => {
+              try { await recording.stopAndUnloadAsync(); } catch (_) {}
+              Alert.alert('Recording Stopped', 'Maximum 10-second audio clip saved.');
+            }, 10000);
+            Alert.alert("Recording...", "Press Stop when done (max 10 seconds)", [
               { text: "Stop", onPress: async () => {
-                await recording.stopAndUnloadAsync();
-                Alert.alert("Success", "Audio recorded");
+                clearTimeout(stopTimer);
+                try {
+                  await recording.stopAndUnloadAsync();
+                  const uri = recording.getURI();
+                  // Validate size via fetch blob
+                  try {
+                    const resp = await fetch(uri);
+                    const blob = await resp.blob();
+                    if (blob.size > 200 * 1024) {
+                      Alert.alert('Audio Too Large', `File is ${Math.round(blob.size / 1024)} KB. Maximum allowed is 200 KB. Please record a shorter clip.`);
+                      return;
+                    }
+                  } catch (_) { /* skip size check if blob fails */ }
+                  Alert.alert('Success', 'Audio recorded (≤10 sec, ≤200 KB)');
+                } catch (e) { Alert.alert('Error', e.message); }
               }}
             ]);
           } catch (e) { Alert.alert("Error", e.message); }
@@ -283,7 +297,14 @@ function RequirementsScreen({ user, imageEnabled = true, micEnabled = true, onNe
         { text: "Upload Audio", onPress: async () => {
           try {
             let result = await DocumentPicker.getDocumentAsync({ type: 'audio/*' });
-            if (!result.canceled) Alert.alert("Success", "Audio selected");
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+              const asset = result.assets[0];
+              if (asset.size && asset.size > 200 * 1024) {
+                Alert.alert('Audio Too Large', `File is ${Math.round(asset.size / 1024)} KB. Maximum allowed is 200 KB.`);
+                return;
+              }
+              Alert.alert('Success', 'Audio file attached successfully.');
+            }
           } catch (e) { Alert.alert("Error", e.message); }
         }},
         { text: "Cancel", style: "cancel" }
@@ -485,13 +506,27 @@ function SOSTriggerScreen({ user, details, isSosLocked, countdown, onTriggerSOS,
   const [loading, setLoading] = useState(false);
   const sosScale = useRef(new Animated.Value(1)).current;
   const toastAnim = useRef(new Animated.Value(0)).current;
+  const isMounted = useRef(true);
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const showToast = (msg, icon = '⏳', duration = 3000) => {
+    if (!isMounted.current) return;
     setToast({ msg, icon });
     Animated.spring(toastAnim, { toValue: 1, useNativeDriver: true }).start();
     if (duration) {
-      setTimeout(() => {
-        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => setToast(null));
+      toastTimerRef.current = setTimeout(() => {
+        if (!isMounted.current) return;
+        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => {
+          if (isMounted.current) setToast(null);
+        });
       }, duration);
     }
   };
@@ -502,6 +537,9 @@ function SOSTriggerScreen({ user, details, isSosLocked, countdown, onTriggerSOS,
 
     if (!emergencyType) { showToast('Please select an emergency type.', '⚠️'); return; }
 
+    // Guard: details may have been cleared if user navigated away during async ops
+    if (!details) { showToast('Session expired. Please go back and try again.', '⚠️'); return; }
+
     Vibration.vibrate([0, 200, 100, 200]);
     Animated.sequence([
       Animated.timing(sosScale, { toValue: 0.9, duration: 100, useNativeDriver: true }),
@@ -509,7 +547,7 @@ function SOSTriggerScreen({ user, details, isSosLocked, countdown, onTriggerSOS,
     ]).start();
 
     showToast('Connecting to server...', '⏳', 0);
-    setLoading(true);
+    if (isMounted.current) setLoading(true);
 
     try {
       let location = null;
@@ -519,7 +557,10 @@ function SOSTriggerScreen({ user, details, isSosLocked, countdown, onTriggerSOS,
         // Fallback or handle missing location
       }
 
-      const { imageBase64, ...cleanDetails } = details;
+      // Check if component is still mounted before continuing
+      if (!isMounted.current) return;
+
+      const { imageBase64, ...cleanDetails } = details || {};
       const payload = {
         phone: user.phone,
         device_id: user.serial_number || 'PUB-MOB',
@@ -537,6 +578,8 @@ function SOSTriggerScreen({ user, details, isSosLocked, countdown, onTriggerSOS,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
+      if (!isMounted.current) return;
 
       if (res.ok) {
         showToast('Your info is collected and help is being dispatched.', '✅', 4000);
@@ -559,10 +602,9 @@ function SOSTriggerScreen({ user, details, isSosLocked, countdown, onTriggerSOS,
         }
       }
     } catch (e) {
-      showToast('Network error: Request queued for retry offline.', '⏳', 4000);
-      // Fallback local storage logic could be added here
+      if (isMounted.current) showToast('Network error: Request queued for retry offline.', '⏳', 4000);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 
@@ -851,30 +893,56 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, isSosLocked, onTrig
   const toastAnim = useRef(new Animated.Value(0)).current;
   const sosScale = useRef(new Animated.Value(1)).current;
   const [imageBase64, setImageBase64] = useState(null);
+  const isMounted = useRef(true);
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  // Helper: enforce 500 KB max, single image
+  const attachImageCritical = (asset, source) => {
+    const mimeType = asset.mimeType || (asset.uri.endsWith('.png') ? 'image/png' : 'image/jpeg');
+    const base64Str = `data:${mimeType};base64,${asset.base64}`;
+    const sizeBytes = Math.round(asset.base64.length * 0.75);
+    if (sizeBytes > 500 * 1024) {
+      Alert.alert('Image Too Large', `Image is ${Math.round(sizeBytes / 1024)} KB. Maximum allowed is 500 KB.`);
+      return;
+    }
+    setImageBase64(base64Str);
+    Alert.alert('Success', source === 'camera' ? 'Photo captured and attached!' : 'Photo selected and attached!');
+  };
 
   const handleCameraPress = () => {
+    if (imageBase64) {
+      Alert.alert('Image Already Attached', 'Only one photo is allowed. Remove the current image first?', [
+        { text: 'Remove & Recapture', onPress: () => setImageBase64(null) },
+        { text: 'Keep Current', style: 'cancel' }
+      ]);
+      return;
+    }
     Alert.alert(
       "Image Capture",
-      "Choose an option",
+      "Choose an option (max 1 photo, 500 KB)",
       [
         { text: "Take Photo", onPress: async () => {
           try {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
             if (status !== 'granted') {
-              Alert.alert("Permission Required", "Camera permission is required to take photos.");
+              Alert.alert("Permission Required", "Camera permission is required.");
               return;
             }
             let result = await ImagePicker.launchCameraAsync({
               mediaTypes: ['images'],
-              quality: 0.4,
+              quality: 0.5,
               base64: true
             });
             if (!result.canceled && result.assets && result.assets.length > 0) {
-              const asset = result.assets[0];
-              let mimeType = asset.mimeType || (asset.uri.endsWith('.png') ? 'image/png' : 'image/jpeg');
-              const base64Str = `data:${mimeType};base64,${asset.base64}`;
-              setImageBase64(base64Str);
-              Alert.alert("Success", "Photo captured and attached successfully!");
+              attachImageCritical(result.assets[0], 'camera');
             }
           } catch (e) {
             console.error(e);
@@ -885,20 +953,16 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, isSosLocked, onTrig
           try {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') {
-              Alert.alert("Permission Required", "Gallery permission is required to choose photos.");
+              Alert.alert("Permission Required", "Gallery permission is required.");
               return;
             }
             let result = await ImagePicker.launchImageLibraryAsync({
               mediaTypes: ['images'],
-              quality: 0.4,
+              quality: 0.5,
               base64: true
             });
             if (!result.canceled && result.assets && result.assets.length > 0) {
-              const asset = result.assets[0];
-              let mimeType = asset.mimeType || (asset.uri.endsWith('.png') ? 'image/png' : 'image/jpeg');
-              const base64Str = `data:${mimeType};base64,${asset.base64}`;
-              setImageBase64(base64Str);
-              Alert.alert("Success", "Photo selected and attached successfully!");
+              attachImageCritical(result.assets[0], 'gallery');
             }
           } catch (e) {
             console.error(e);
@@ -911,11 +975,15 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, isSosLocked, onTrig
   };
 
   const showToast = (msg, icon = '⏳', duration = 3000) => {
+    if (!isMounted.current) return;
     setToast({ msg, icon });
     Animated.spring(toastAnim, { toValue: 1, useNativeDriver: true }).start();
     if (duration) {
-      setTimeout(() => {
-        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => setToast(null));
+      toastTimerRef.current = setTimeout(() => {
+        if (!isMounted.current) return;
+        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => {
+          if (isMounted.current) setToast(null);
+        });
       }, duration);
     }
   };
@@ -931,7 +999,7 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, isSosLocked, onTrig
     ]).start();
 
     showToast('Connecting to server...', '⏳', 0);
-    setLoading(true);
+    if (isMounted.current) setLoading(true);
 
     try {
       let location = null;
@@ -940,6 +1008,8 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, isSosLocked, onTrig
       } catch (e) {
         // Handle location error/missing
       }
+
+      if (!isMounted.current) return;
 
       const payload = {
         phone: user.phone,
@@ -958,6 +1028,8 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, isSosLocked, onTrig
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
+      if (!isMounted.current) return;
 
       if (res.ok) {
         showToast('Your info is collected and help is being dispatched.', '✅', 4000);
@@ -980,9 +1052,9 @@ function CriticalSOSScreen({ user, imageEnabled, micEnabled, isSosLocked, onTrig
         }
       }
     } catch (e) {
-      showToast('Network issue. Try again.', '❌');
+      if (isMounted.current) showToast('Network issue. Try again.', '❌');
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 
@@ -1219,6 +1291,7 @@ export default function App() {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('sosUser');
+    await AsyncStorage.removeItem('sosToken');
     setUser(null);
     setScreen('login');
   };
