@@ -1,20 +1,21 @@
 ARDMS SYSTEM BACKUP REPORT - DATE: 2026-05-21
 Device Hostname: , DESKTOP-KBHB0SB
 Device Info: , DESKTOP-KBHB0SB (User: Alienware, OS: Windows_NT x64)
-Generated At: , 22/5/2026, 1:36:26 am
+Generated At: , 22/5/2026, 1:59:25 am
 
 SECTION 1: RESCUE REQUESTS & TASKS
 Request ID,Type,Urgency,Status,Latitude,Longitude,Details/Location,Assigned Responder,Created At,Updated At,Device Node
-1,Evacuation,critical,in_progress,12.97159,77.59456,4 elderly citizens trapped on waterlogged first-floor balcony near Sector A.,Arjun Singh (MEM-01),2026-05-21 13:39:34,2026-05-21 20:06:25,DESKTOP-KBHB0SB
+1,Evacuation,critical,completed,12.97159,77.59456,4 elderly citizens trapped on waterlogged first-floor balcony near Sector A.,Arjun Singh (MEM-01),2026-05-21 13:39:34,2026-05-21 20:08:29,DESKTOP-KBHB0SB
 2,Medical,urgent,completed,12.9723,77.59512,Diabetic resident requires urgent insulin supply delivery and checkup.,Sarah Khan (MEM-02),2026-05-21 13:39:34,2026-05-21 14:09:34,DESKTOP-KBHB0SB
-3,Food Supply,normal,declined,12.97085,77.59388,15 families in community hall requiring raw material rations and drinking water.,Unassigned,2026-05-21 13:39:34,2026-05-21 14:14:38,DESKTOP-KBHB0SB
-4,Rescue,high,active,12.97311,77.59604,Collapsed compound brick wall trapping access road to emergency vehicles.,Vikram Rao (MEM-03),2026-05-21 13:39:34,2026-05-21 14:09:34,DESKTOP-KBHB0SB
+3,Food Supply,normal,completed,12.97085,77.59388,15 families in community hall requiring raw material rations and drinking water.,Unassigned,2026-05-21 13:39:34,2026-05-21 20:08:29,DESKTOP-KBHB0SB
+4,Rescue,high,completed,12.97311,77.59604,Collapsed compound brick wall trapping access road to emergency vehicles.,Vikram Rao (MEM-03),2026-05-21 13:39:34,2026-05-21 20:08:29,DESKTOP-KBHB0SB
 5,medical,critical,completed,12.9943016,80.1957349,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 14:17:51,2026-05-21 16:39:02,DESKTOP-KBHB0SB
 6,pregnancy,critical,completed,12.9943104,80.1957302,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 16:39:13,2026-05-21 16:51:36,DESKTOP-KBHB0SB
 7,pregnancy,critical,completed,12.9944672,80.1956951,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 16:52:07,2026-05-21 18:04:46,DESKTOP-KBHB0SB
 8,medical,critical,completed,12.9943588,80.1939576,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 18:05:34,2026-05-21 18:36:03,DESKTOP-KBHB0SB
 9,pregnancy,critical,completed,12.9945267,80.1956518,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 18:45:10,2026-05-21 19:10:09,DESKTOP-KBHB0SB
-10,medical,critical,pending,12.9943117,80.1956785,Critical Emergency Triggered,Unassigned,2026-05-21 19:47:33,2026-05-21 19:47:33,DESKTOP-KBHB0SB
+10,medical,critical,declined,12.9943117,80.1956785,Critical Emergency Triggered,Unassigned,2026-05-21 19:47:33,2026-05-21 20:28:42,DESKTOP-KBHB0SB
+11,pregnancy,critical,completed,12.9942499,80.1957343,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 20:28:50,2026-05-21 20:29:24,DESKTOP-KBHB0SB
 
 
 SECTION 2: RESCUER COMMAND DISPATCHES
@@ -27,6 +28,7 @@ Command ID,Assigned Group ID,Target Phone,Payload Details,Type,Status,Created At
 6,N/A,919000000001,"{""message"":""PREGNANCY RESCUE at Detected via GPS"",""sector"":""Detected via GPS"",""lat"":12.9944672,""lng"":80.1956951,""urgency"":""critical"",""rescue_req_id"":7,""requester_name"":""Citizen"",""requester_phone"":""918000000001"",""details"":""Critical Emergency Triggered""}",critical,completed,2026-05-21 16:52:17,,DESKTOP-KBHB0SB
 7,N/A,919000000001,"{""message"":""MEDICAL RESCUE at Detected via GPS"",""sector"":""Detected via GPS"",""lat"":12.9943588,""lng"":80.1939576,""urgency"":""critical"",""rescue_req_id"":8,""requester_name"":""Citizen"",""requester_phone"":""918000000001"",""details"":""Critical Emergency Triggered""}",critical,completed,2026-05-21 18:05:42,,DESKTOP-KBHB0SB
 8,N/A,919000000001,"{""message"":""PREGNANCY RESCUE at Detected via GPS"",""sector"":""Detected via GPS"",""lat"":12.9945267,""lng"":80.1956518,""urgency"":""critical"",""rescue_req_id"":9,""requester_name"":""Citizen"",""requester_phone"":""918000000001"",""details"":""Critical Emergency Triggered""}",critical,completed,2026-05-21 18:45:21,,DESKTOP-KBHB0SB
+9,N/A,919000000001,"{""message"":""PREGNANCY RESCUE at Detected via GPS"",""sector"":""Detected via GPS"",""lat"":12.9942499,""lng"":80.1957343,""urgency"":""critical"",""rescue_req_id"":11,""requester_name"":""Citizen"",""requester_phone"":""918000000001"",""details"":""Critical Emergency Triggered""}",critical,completed,2026-05-21 20:28:59,,DESKTOP-KBHB0SB
 
 
 SECTION 3: PUBLIC SOS ALERTS
