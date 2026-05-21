@@ -1,1 +1,2592 @@
-export const htmlString = "<!DOCTYPE html>\n<html lang=\"en\">\n\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\"\n        content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content\">\n    <title>ARDMS-Public Support System</title>\n\n    <!-- Google Fonts -->\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap\"\n        rel=\"stylesheet\">\n\n    <style>\n        :root {\n            /* Professional Citizen-Focused Palette */\n            --primary: #0ea5e9;\n            --primary-dark: #0284c7;\n            --primary-light: #e0f2fe;\n            --secondary: #10b981;\n            --danger: #ef4444;\n            --danger-light: #fee2e2;\n            --warning: #f59e0b;\n            --bg: #f8fafc;\n            --surface: #ffffff;\n            --text-main: #0f172a;\n            --text-muted: #64748b;\n            --border: #e2e8f0;\n            --white: #ffffff;\n            --dark: #1e293b;\n            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);\n            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);\n            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);\n            --radius: 20px;\n        }\n\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n            -webkit-tap-highlight-color: transparent;\n        }\n\n        body,\n        html {\n            height: 100%;\n            height: 100dvh;\n            font-family: 'Outfit', sans-serif;\n            background-color: #cbd5e1;\n            display: flex;\n            justify-content: center;\n            align-items: center;\n        }\n\n        /* Phone Mockup Wrapper */\n        .phone-mockup {\n            width: 400px;\n            max-width: 100%;\n            height: 100%;\n            height: 100dvh;\n            max-height: 850px;\n            background: #1e293b;\n            border-radius: 40px;\n            padding: 12px;\n            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);\n            position: relative;\n            display: flex;\n            flex-direction: column;\n            flex-shrink: 0;\n            transition: height 0.3s ease-out;\n        }\n\n        @media (max-width: 450px) {\n            .phone-mockup {\n                max-width: none;\n                max-height: none;\n                border-radius: 0;\n                padding: 0;\n            }\n        }\n\n        .phone-inner {\n            width: 100%;\n            height: 100%;\n            background: var(--bg);\n            border-radius: 32px;\n            overflow: hidden;\n            display: flex;\n            flex-direction: column;\n            position: relative;\n        }\n\n        @media (max-width: 450px) {\n            .phone-inner {\n                border-radius: 0;\n            }\n        }\n\n        /* Screen Management */\n        .screen {\n            position: relative;\n            flex: 1;\n            width: 100%;\n            display: none;\n            flex-direction: column;\n            background: var(--bg);\n            z-index: 10;\n            animation: fadeIn 0.3s ease-out;\n            overflow-y: auto;\n        }\n\n        .screen.active {\n            display: flex;\n        }\n\n        @keyframes fadeIn {\n            from {\n                opacity: 0;\n                transform: translateY(10px);\n            }\n\n            to {\n                opacity: 1;\n                transform: translateY(0);\n            }\n        }\n\n        /* Login Screen */\n        #screenLogin {\n            justify-content: center;\n            align-items: center;\n            padding: 40px;\n            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);\n        }\n\n        .brand-logo {\n            width: 90px;\n            height: 90px;\n            background: var(--surface);\n            border-radius: 24px;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            margin: 0 auto 24px;\n            box-shadow: var(--shadow-lg);\n            font-size: 44px;\n            border: 2px solid var(--primary-light);\n            animation: bounce 2s infinite ease-in-out;\n        }\n\n        @keyframes bounce {\n\n            0%,\n            100% {\n                transform: translateY(0);\n            }\n\n            50% {\n                transform: translateY(-10px);\n            }\n        }\n\n        .brand-name {\n            font-size: 30px;\n            font-weight: 900;\n            color: var(--text-main);\n            margin-bottom: 8px;\n        }\n\n        .brand-tagline {\n            font-size: 14px;\n            color: var(--primary);\n            font-weight: 700;\n            margin-bottom: 40px;\n            letter-spacing: 1px;\n            text-transform: uppercase;\n            text-align: center;\n        }\n\n        .input-group {\n            width: 100%;\n            margin-bottom: 20px;\n            text-align: left;\n        }\n\n        .input-label {\n            font-size: 13px;\n            font-weight: 800;\n            color: var(--text-muted);\n            margin-bottom: 8px;\n            display: block;\n            text-transform: uppercase;\n        }\n\n        /* Global App Header */\n        .app-header {\n            padding: 18px 20px;\n            background: white;\n            display: none;\n            align-items: center;\n            justify-content: space-between;\n            border-bottom: 1px solid #f1f5f9;\n            z-index: 100;\n        }\n        .app-header-title {\n            font-size: 20px;\n            font-weight: 900;\n            color: var(--dark);\n            letter-spacing: -0.5px;\n        }\n\n        .selection-card {\n            background: white;\n            padding: 18px 15px;\n            border-radius: 24px;\n            text-align: center;\n            cursor: pointer;\n            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n            position: relative;\n            overflow: hidden;\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            gap: 10px;\n        }\n        .selection-card:active {\n            transform: scale(0.96);\n        }\n        .selection-card.selected {\n            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);\n            border-width: 3px !important;\n        }\n        .selection-card .icon-sphere {\n            width: 50px;\n            height: 50px;\n            border-radius: 50%;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            font-size: 24px;\n            box-shadow: inset -3px -3px 10px rgba(0,0,0,0.15), 3px 3px 10px rgba(255,255,255,0.7);\n        }\n        \n        .btn-confirm-proceed {\n            background: #87cefa;\n            color: white;\n            border: none;\n            width: 100%;\n            padding: 16px;\n            border-radius: 16px;\n            font-size: 16px;\n            font-weight: 900;\n            text-transform: uppercase;\n            letter-spacing: 0.5px;\n            box-shadow: 0 4px 10px 0 rgba(135, 206, 250, 0.2);\n            transition: all 0.3s;\n            cursor: pointer;\n        }\n        .btn-confirm-proceed:disabled {\n            background: #e2e8f0;\n            color: #94a3b8;\n            box-shadow: none;\n            cursor: not-allowed;\n        }\n            border-radius: var(--radius);\n            border: 2px solid var(--border);\n            background: var(--surface);\n            font-family: inherit;\n            font-size: 16px;\n            font-weight: 600;\n            color: var(--text-main);\n            transition: all 0.2s;\n            outline: none;\n        }\n\n        .input-field:focus {\n            border-color: var(--primary);\n            box-shadow: 0 0 0 5px var(--primary-light);\n        }\n\n        .login-btn {\n            width: 100%;\n            padding: 20px;\n            border-radius: var(--radius);\n            border: none;\n            background: var(--secondary);\n            color: white;\n            font-size: 17px;\n            font-weight: 900;\n            cursor: pointer;\n            box-shadow: 0 12px 20px -5px rgba(16, 185, 129, 0.4);\n            transition: all 0.2s;\n            margin-top: 10px;\n        }\n\n        .login-btn:active {\n            transform: scale(0.97);\n        }\n\n        /* Dashboard Styles */\n        .header {\n            padding: 8px 20px 4px;\n            background: var(--surface);\n            z-index: 100;\n            text-align: center;\n        }\n\n        .header-top {\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            margin-bottom: 2px;\n        }\n\n        .avatar-box {\n            width: 32px;\n            height: 32px;\n            border-radius: 8px;\n            background: var(--primary-light);\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            font-size: 16px;\n            border: 1px solid var(--primary);\n        }\n\n        .header-title h1 {\n            font-size: 18px;\n            font-weight: 900;\n            color: var(--text-main);\n        }\n\n        .header-title p {\n            font-size: 11px;\n            font-weight: 700;\n            color: var(--text-muted);\n        }\n\n        .sos-container {\n            flex: 1;\n            padding: 20px;\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            justify-content: center;\n            gap: 40px;\n            text-align: center;\n        }\n\n        .sos-btn-outer {\n            width: 220px;\n            height: 220px;\n            border-radius: 50%;\n            background: rgba(244, 63, 94, 0.1);\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            position: relative;\n        }\n\n        .sos-btn-inner {\n            width: 180px;\n            height: 180px;\n            border-radius: 50%;\n            background: var(--danger);\n            border: 8px solid #fecaca;\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            justify-content: center;\n            color: white;\n            cursor: pointer;\n            box-shadow: 0 20px 40px rgba(244, 63, 94, 0.4);\n            transition: all 0.2s;\n            z-index: 2;\n        }\n\n        .sos-btn-inner:active {\n            transform: scale(0.92);\n            box-shadow: 0 10px 20px rgba(244, 63, 94, 0.4);\n        }\n\n        .sos-btn-inner span {\n            font-size: 44px;\n            font-weight: 900;\n            letter-spacing: 2px;\n        }\n\n        .sos-btn-inner p {\n            font-size: 12px;\n            font-weight: 800;\n            opacity: 0.9;\n            margin-top: -5px;\n        }\n\n        .pulse-ring {\n            position: absolute;\n            width: 100%;\n            height: 100%;\n            border-radius: 50%;\n            border: 2px solid var(--danger);\n            animation: pulse 2s infinite;\n            opacity: 0;\n        }\n\n        @keyframes pulse {\n            0% {\n                transform: scale(1);\n                opacity: 0.5;\n            }\n\n            100% {\n                transform: scale(1.5);\n                opacity: 0;\n            }\n        }\n\n        .mode-selector {\n            width: 100%;\n            display: grid;\n            grid-template-columns: repeat(3, 1fr);\n            gap: 12px;\n        }\n\n        .mode-btn {\n            background: var(--surface);\n            border: 2px solid var(--border);\n            border-radius: 20px;\n            padding: 10px 8px;\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            gap: 6px;\n            cursor: pointer;\n            transition: 0.2s;\n        }\n\n        .mode-btn.active,\n        .route-btn.active {\n            border-color: var(--primary);\n            background: var(--primary-light);\n            box-shadow: var(--shadow-sm);\n        }\n\n        .route-btn {\n            background: var(--surface);\n            border: 1.5px solid var(--border);\n            border-radius: 14px;\n            padding: 6px 4px;\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            justify-content: center;\n            gap: 2px;\n            cursor: pointer;\n            transition: all 0.2s;\n            min-width: 75px;\n            flex: 1;\n            max-width: 90px;\n        }\n\n        .route-btn i {\n            font-size: 18px;\n            font-style: normal;\n        }\n\n        .route-btn span {\n            font-size: 9px;\n            font-weight: 800;\n            color: var(--text-main);\n            text-transform: uppercase;\n            letter-spacing: 0.2px;\n        }\n\n        .mode-btn i {\n            font-size: 20px;\n            font-style: normal;\n        }\n\n        .mode-btn span {\n            font-size: 10px;\n            font-weight: 800;\n            color: var(--text-main);\n            text-transform: uppercase;\n        }\n\n        /* Request Form Screen */\n        .form-content {\n            padding: 8px 16px;\n            flex: 1;\n            overflow-y: auto;\n        }\n\n        .section-label {\n            font-size: 9px;\n            font-weight: 900;\n            color: var(--text-muted);\n            text-transform: uppercase;\n            letter-spacing: 0.8px;\n            margin-bottom: 4px;\n            margin-top: 6px;\n            text-align: center;\n            width: 100%;\n        }\n\n        .config-card {\n            background: var(--surface);\n            border-radius: 12px;\n            border: 1px solid var(--border);\n            padding: 6px 10px;\n            margin-bottom: 6px;\n        }\n\n        .hist-item {\n            background: var(--surface);\n            border-radius: 15px;\n            padding: 16px;\n            margin-bottom: 12px;\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            border: 1px solid var(--border);\n            transition: all 0.3s ease;\n        }\n        .hist-item:hover {\n            border-color: var(--primary);\n            transform: scale(1.02);\n        }\n        .hist-details h4 { font-size: 14px; font-weight: 900; color: var(--dark); margin: 0 0 4px 0; }\n        .hist-details p { font-size: 11px; font-weight: 700; color: var(--text-muted); margin: 0; }\n        .status-badge {\n            font-size: 10px;\n            font-weight: 900;\n            padding: 4px 10px;\n            border-radius: 20px;\n            text-transform: uppercase;\n        }\n        .status-completed { background: var(--secondary-light); color: var(--secondary); }\n        .status-active { background: var(--danger-light); color: var(--danger); }\n\n        .config-row {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            padding: 3px 0;\n            border-bottom: 1px solid var(--border);\n        }\n\n        .config-row:last-child {\n            border-bottom: none;\n        }\n\n        .config-row span {\n            font-size: 12px;\n            font-weight: 700;\n            color: var(--text-main);\n        }\n\n        .counter {\n            display: flex;\n            align-items: center;\n            gap: 6px;\n            background: var(--bg);\n            padding: 1px 6px;\n            border-radius: 8px;\n            border: 1px solid var(--border);\n        }\n\n        .counter button {\n            border: none;\n            background: none;\n            font-size: 14px;\n            font-weight: 900;\n            color: var(--primary);\n            cursor: pointer;\n            padding: 0 3px;\n        }\n\n        .counter input {\n            width: 30px;\n            border: none;\n            background: transparent;\n            text-align: center;\n            font-size: 13px;\n            font-weight: 800;\n            font-family: inherit;\n            color: var(--text-main);\n            outline: none;\n        }\n\n        .counter input::-webkit-outer-spin-button,\n        .counter input::-webkit-inner-spin-button {\n            -webkit-appearance: none;\n            margin: 0;\n        }\n\n        .submit-btn {\n            background: var(--primary);\n            color: white;\n            width: 100%;\n            padding: 12px;\n            border-radius: 14px;\n            border: none;\n            font-size: 14px;\n            font-weight: 900;\n            cursor: pointer;\n            box-shadow: 0 6px 12px rgba(14, 165, 233, 0.2);\n            margin-top: 6px;\n        }\n\n        /* Bottom Nav */\n        .bottom-nav {\n            background: var(--surface);\n            border-top: 1px solid var(--border);\n            height: 70px;\n            display: flex;\n            align-items: center;\n            justify-content: space-around;\n            padding: 0 10px;\n            flex-shrink: 0;\n        }\n\n        .nav-link {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            justify-content: center;\n            color: var(--text-muted);\n            text-decoration: none;\n            gap: 4px;\n            flex: 1;\n            cursor: pointer;\n        }\n\n        .nav-link.active {\n            color: var(--primary);\n        }\n\n        .nav-link i {\n            font-size: 20px;\n            font-style: normal;\n        }\n\n        .nav-link span {\n            font-size: 10px;\n            font-weight: 800;\n            text-transform: uppercase;\n        }\n\n        /* Loader */\n        .full-loader {\n            position: absolute;\n            top: 0;\n            left: 0;\n            right: 0;\n            bottom: 0;\n            background: rgba(255, 255, 255, 0.9);\n            display: none;\n            justify-content: center;\n            align-items: center;\n            z-index: 10000;\n        }\n\n        .spinner {\n            width: 48px;\n            height: 48px;\n            border: 5px solid var(--primary-light);\n            border-top-color: var(--primary);\n            border-radius: 50%;\n            animation: spin 1s linear infinite;\n        }\n\n        @keyframes spin {\n            to {\n                transform: rotate(360deg);\n            }\n        }\n\n        /* Toast */\n        .toast {\n            position: absolute;\n            bottom: 100px;\n            left: 50%;\n            transform: translateX(-50%);\n            background: #0f172a;\n            color: white;\n            padding: 14px 24px;\n            border-radius: 30px;\n            font-size: 14px;\n            font-weight: 800;\n            z-index: 10000;\n            display: none;\n            align-items: center;\n            gap: 12px;\n            animation: pop 0.3s ease-out;\n            width: 85%;\n            text-align: center;\n            justify-content: center;\n        }\n\n        @keyframes pop {\n            from {\n                transform: translateX(-50%) translateY(20px);\n                opacity: 0;\n            }\n\n            to {\n                transform: translateX(-50%) translateY(0);\n                opacity: 1;\n            }\n        }\n\n        /* Mission Alerts */\n        .mission-alert-overlay {\n            position: absolute;\n            top: 0;\n            left: 0;\n            right: 0;\n            bottom: 0;\n            background: rgba(15, 23, 42, 0.85);\n            z-index: 20000;\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            padding: 20px;\n            backdrop-filter: blur(4px);\n        }\n\n        .mission-alert-card {\n            background: var(--surface);\n            width: 100%;\n            max-width: 320px;\n            border-radius: 24px;\n            padding: 24px;\n            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);\n            border: 2px solid var(--primary);\n            text-align: center;\n            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);\n        }\n\n        @keyframes bounceIn {\n            from { opacity: 0; transform: scale(0.8); }\n            to { opacity: 1; transform: scale(1); }\n        }\n\n        .alert-header {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            gap: 12px;\n            margin-bottom: 16px;\n        }\n\n        .alert-icon {\n            font-size: 40px;\n        }\n\n        .alert-header h3 {\n            font-size: 20px;\n            font-weight: 900;\n            color: var(--text-main);\n            margin: 0;\n        }\n\n        .mission-alert-card p {\n            font-size: 14px;\n            color: var(--text-muted);\n            line-height: 1.6;\n            font-weight: 600;\n            margin-bottom: 24px;\n        }\n\n        .mission-alert-card button {\n            background: var(--primary);\n            color: white;\n            border: none;\n            padding: 14px 30px;\n            border-radius: 12px;\n            font-weight: 900;\n            cursor: pointer;\n            width: 100%;\n            transition: all 0.2s;\n        }\n        .mission-alert-card button:active {\n            transform: scale(0.95);\n        }\n\n        /* Location Status Bar */\n        .loc-status-bar {\n            position: absolute;\n            bottom: 20px;\n            left: 20px;\n            right: 20px;\n            padding: 12px 16px;\n            border-radius: 18px;\n            display: flex;\n            align-items: center;\n            justify-content: space-between;\n            font-size: 12px;\n            font-weight: 800;\n            z-index: 100;\n            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);\n            backdrop-filter: blur(8px);\n            -webkit-backdrop-filter: blur(8px);\n        }\n\n        .loc-status-on {\n            background: rgba(255, 255, 255, 0.9);\n            border: 1px solid rgba(255, 255, 255, 0.5);\n            color: var(--text-main);\n        }\n\n        .loc-status-off {\n            background: rgba(254, 242, 242, 0.9);\n            border: 1px solid rgba(254, 202, 202, 0.5);\n            color: var(--danger);\n        }\n\n        .loc-dot {\n            width: 8px;\n            height: 8px;\n            border-radius: 50%;\n            margin-right: 10px;\n            box-shadow: 0 0 10px currentColor;\n        }\n\n        .loc-btn-fix {\n            background: var(--text-main);\n            color: white;\n            border: none;\n            padding: 6px 12px;\n            border-radius: 8px;\n            font-size: 10px;\n            font-weight: 900;\n            cursor: pointer;\n            letter-spacing: 0.5px;\n        }\n        /* Notification Panel */\n        .notification-panel {\n            width: 100%;\n            height: 10%;\n            background: var(--surface);\n            border-bottom: 1px solid var(--border);\n            display: none;\n            flex-direction: column;\n            padding: 10px 20px;\n            overflow: hidden;\n            z-index: 1000;\n            position: relative;\n        }\n\n        .notification-panel.active {\n            display: flex;\n            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);\n        }\n\n        @keyframes slideDown {\n            from { transform: translateY(-100%); opacity: 0; }\n            to { transform: translateY(0); opacity: 1; }\n        }\n\n        .notif-item {\n            display: flex;\n            align-items: center;\n            gap: 12px;\n            height: 100%;\n        }\n\n        .notif-icon {\n            width: 36px;\n            height: 36px;\n            background: var(--primary-light);\n            border-radius: 10px;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            font-size: 18px;\n            flex-shrink: 0;\n            border: 1px solid var(--primary);\n        }\n\n        .notif-content {\n            flex: 1;\n            overflow: hidden;\n        }\n\n        .notif-title {\n            font-size: 13px;\n            font-weight: 800;\n            color: var(--text-main);\n            margin-bottom: 2px;\n            white-space: nowrap;\n            overflow: hidden;\n            text-overflow: ellipsis;\n        }\n\n        .notif-body {\n            font-size: 11px;\n            font-weight: 600;\n            color: var(--text-muted);\n            white-space: nowrap;\n            overflow: hidden;\n            text-overflow: ellipsis;\n        }\n\n        .notif-badge {\n            font-size: 9px;\n            font-weight: 900;\n            padding: 2px 8px;\n            border-radius: 10px;\n            text-transform: uppercase;\n            background: var(--primary);\n            color: white;\n        }\n    </style>\n</head>\n\n<body>\n\n    <div class=\"phone-mockup\">\n        <div class=\"phone-inner\">\n            <div id=\"appHeader\" class=\"app-header\">\n                <div style=\"font-size: 19px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px;\">Citizen SOS</div>\n                <div style=\"display: flex; align-items: center; gap: 12px; text-align: right;\">\n                    <div style=\"display: flex; flex-direction: column;\">\n                        <div id=\"headerUserName\" style=\"font-size: 13px; font-weight: 900; color: #1e293b; line-height: 1.1;\">...</div>\n                        <div id=\"headerUserDetails\" style=\"font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: 2px;\">...</div>\n                    </div>\n                    <div onclick=\"core.nav('Settings')\" style=\"width:38px; height:38px; background:#f8fafc; border-radius:12px; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; cursor:pointer; transition: 0.2s;\" onmousedown=\"this.style.transform='scale(0.9)'\" onmouseup=\"this.style.transform='scale(1)'\">\n                        <span style=\"font-size:18px;\">\ud83d\udc64</span>\n                    </div>\n                </div>\n            </div>\n\n            <!-- Global Notification Panel (Top 10%) -->\n            <div id=\"globalNotificationPanel\" class=\"notification-panel\">\n                <div class=\"notif-item\">\n                    <div class=\"notif-icon\" id=\"globalNotifIcon\">\ud83d\udce1</div>\n                    <div class=\"notif-content\">\n                        <div class=\"notif-title\" id=\"globalNotifTitle\">System Ready</div>\n                        <div class=\"notif-body\" id=\"globalNotifBody\">Connected to ARDMS Network</div>\n                    </div>\n                    <div class=\"notif-badge\" id=\"globalNotifStatus\">Live</div>\n                </div>\n            </div>\n\n            <!-- SCREEN 1: LOGIN -->\n            <div class=\"screen active\" id=\"screenLogin\">\n                <div class=\"brand-logo\" style=\"background:none; box-shadow:none; border:none;\">\n                    <img src=\"citizen_sos_logo_1778175366035.png\"\n                        style=\"width:100%; height:100%; border-radius:24px; object-fit:cover;\">\n                </div>\n                <h1 class=\"brand-name\">ARDMS-Public Support System</h1>\n                <p class=\"brand-tagline\">Emergency Assistance Hub</p>\n\n                <div class=\"input-group\">\n                    <label class=\"input-label\">Citizen Login ID</label>\n                    <input type=\"text\" id=\"inpId\" class=\"input-field\" placeholder=\"Enter Phone or ID\"\n                        value=\"918000000099\">\n                </div>\n                <div class=\"input-group\">\n                    <label class=\"input-label\">Security PIN</label>\n                    <input type=\"password\" id=\"inpPin\" class=\"input-field\" placeholder=\"Enter PIN\" value=\"123456\">\n                </div>\n\n                <button class=\"login-btn\" onclick=\"core.login()\">LOGIN</button>\n                <p id=\"loginError\"\n                    style=\"color:var(--danger); font-size:12px; font-weight:800; margin-top:20px; display:none; text-align:center;\">\n                    ACCESS DENIED - CHECK ID & PIN</p>\n                <p\n                    style=\"color:var(--text-muted); font-size:11px; margin-top:30px; text-align:center; font-weight:700;\">\n                    Credentials are managed by local administration.</p>\n\n                <!-- Location Notification Bar -->\n                <div id=\"locStatusBar\" class=\"loc-status-bar loc-status-on\" style=\"display: none;\">\n                    <div style=\"display:flex; align-items:center;\">\n                        <div class=\"loc-dot\" style=\"background:var(--secondary)\"></div>\n                        <span>Location Auto detect ON</span>\n                    </div>\n                </div>\n            </div>\n\n            <!-- SCREEN 2: EMERGENCY TYPE SELECTION (COMPACT) -->\n            <div class=\"screen\" id=\"screenEmergencyType\">\n                <div class=\"header\" style=\"text-align:center; padding: 25px 20px 10px 20px;\">\n                    <h1 style=\"font-size:24px; font-weight:900; color:#1e293b; margin:0;\">Select Emergency Type</h1>\n                    <p style=\"font-size:12px; font-weight:600; color:#64748b; margin:5px 0 0 0;\">Choose the severity of your situation</p>\n                </div>\n\n                <div class=\"form-content\" style=\"padding: 10px 20px; display: flex; flex-direction: column; gap: 15px; justify-content: center;\">\n                    <div class=\"selection-card\" id=\"btnSelectCritical\" onclick=\"core.setEmergencyCategory('critical')\" \n                        style=\"background: #fff1f2; border: 1.5px solid #fecdd3;\">\n                        <div class=\"icon-sphere\" style=\"background: linear-gradient(145deg, #fb7185, #e11d48);\">\ud83d\udd34</div>\n                        <div>\n                            <h2 style=\"color: #e11d48; font-size: 18px; font-weight: 900; margin: 0; text-transform: uppercase;\">Critical SOS</h2>\n                            <p style=\"color: #9f1239; font-size: 11px; font-weight: 700; margin-top: 4px;\">Immediate Response</p>\n                        </div>\n                    </div>\n\n                    <div class=\"selection-card\" id=\"btnSelectNormal\" onclick=\"core.setEmergencyCategory('normal')\" \n                        style=\"background: #fffbeb; border: 1.5px solid #fef3c7;\">\n                        <div class=\"icon-sphere\" style=\"background: linear-gradient(145deg, #fbbf24, #d97706);\">\ud83d\udfe1</div>\n                        <div>\n                            <h2 style=\"color: #d97706; font-size: 18px; font-weight: 900; margin: 0; text-transform: uppercase;\">Normal SOS</h2>\n                            <p style=\"color: #92400e; font-size: 11px; font-weight: 700; margin-top: 4px;\">Detailed Request</p>\n                        </div>\n                    </div>\n                </div>\n\n                <div style=\"padding: 15px 20px; background: white;\">\n                    <button id=\"btnConfirmProceed\" class=\"btn-confirm-proceed\" disabled\n                        onclick=\"core.proceedFromSelection()\">Confirm & Proceed</button>\n                </div>\n\n                <div class=\"bottom-nav\">\n                    <div class=\"nav-link active\" onclick=\"core.nav('Home')\"><i>\ud83c\udfe0</i><span>HOME</span></div>\n                    <div class=\"nav-link\" onclick=\"core.nav('Status')\"><i>\ud83d\udccb</i><span>HISTORY</span></div>\n                    <div class=\"nav-link\" onclick=\"core.nav('Settings')\"><i>\u2699\ufe0f</i><span>SETTINGS</span></div>\n                </div>\n            </div>\n\n            <!-- SCREEN 2B: CRITICAL SOS QUICK ACTIONS (RESTRUCTURED) -->\n            <div class=\"screen\" id=\"screenCriticalSOS\">\n                <input type=\"file\" id=\"critFileInput\" accept=\"image/*\" capture=\"camera\" style=\"display:none\" onchange=\"core.handleSOSImage(this)\">\n                \n                <div class=\"header\" style=\"text-align:center; padding: 20px 20px;\">\n                    <div style=\"display:flex; align-items:center; gap:10px; justify-content:center;\">\n                        <div style=\"width:12px; height:12px; background:#e11d48; border-radius:50%; animation: pulse 1s infinite;\"></div>\n                        <h1 style=\"font-size:22px; font-weight:900; color:#e11d48; margin:0;\">Critical Emergency</h1>\n                    </div>\n                </div>\n\n                <div class=\"form-content\" style=\"padding: 10px 20px; flex: 1; display: flex; flex-direction: column; gap: 15px;\">\n                    <!-- TOP: Emergency Buttons -->\n                    <div style=\"display:flex; gap:12px;\">\n                        <div class=\"critical-action-btn\" onclick=\"core.triggerQuickSOS('pregnancy')\" \n                            style=\"flex:1; background:white; border:2px solid #fb7185; padding:15px; border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);\">\n                            <div style=\"font-size:32px;\">\ud83e\udd30</div>\n                            <h3 style=\"margin:0; font-size:14px; font-weight:900; color:#e11d48; text-align:center;\">Pregnancy</h3>\n                        </div>\n\n                        <div class=\"critical-action-btn\" onclick=\"core.triggerQuickSOS('medical')\" \n                            style=\"flex:1; background:white; border:2px solid #38bdf8; padding:15px; border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);\">\n                            <div style=\"font-size:32px;\">\ud83c\udfe5</div>\n                            <h3 style=\"margin:0; font-size:14px; font-weight:900; color:#0369a1; text-align:center;\">Medical</h3>\n                        </div>\n                    </div>\n\n                    <!-- MID: Location & Media Details Bar -->\n                    <div style=\"margin-top:5px;\">\n                        <div style=\"font-size:11px; font-weight:800; color:#64748b; text-align:left; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; padding-left:5px;\">Location & Media Details</div>\n                        <div style=\"background:white; border-radius:16px; padding:12px; border:1px solid #e2e8f0; display:flex; gap:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05);\">\n                            <textarea id=\"crit_address\" placeholder=\"Enter full address, landmarks...\" style=\"flex:1; border:none; background:transparent; font-size:14px; color:#1e293b; resize:none; height:70px; outline:none; font-family:inherit; padding:5px;\"></textarea>\n                            <div style=\"display:flex; flex-direction:column; gap:8px;\">\n                                 <!-- Photo Button -->\n                                 <div id=\"critPhotoBtn\" onclick=\"core.captureNeed('photo')\" style=\"width:55px; height:45px; border-radius:10px; border:1px solid #3b82f6; background:#eff6ff; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition: all 0.3s;\">\n                                     <span style=\"font-size:18px;\">\ud83d\udcf7</span>\n                                     <span id=\"critPhotoLabel\" style=\"font-size:7px; font-weight:900; color:#2563eb; margin-top:1px;\">PHOTO</span>\n                                 </div>\n                                 <!-- Audio Button -->\n                                 <div style=\"width:55px; height:45px; border-radius:10px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;\">\n                                     <span style=\"font-size:18px;\">\ud83c\udf99\ufe0f</span>\n                                 </div>\n                            </div>\n                        </div>\n                    </div>\n\n                    <!-- BOTTOM: Main SOS Triggering -->\n                    <div style=\"flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;\">\n                        <div class=\"sos-btn-outer\" style=\"width:180px; height:180px; margin: 0 auto;\">\n                            <div class=\"pulse-ring\" style=\"border-color:#e11d48;\"></div>\n                            <div class=\"sos-btn-inner\" style=\"background:linear-gradient(135deg, #fb7185, #e11d48); width:140px; height:140px;\"\n                                onmousedown=\"core.startSOS('critical')\" onmouseup=\"core.cancelSOS()\"\n                                ontouchstart=\"core.startSOS('critical')\" ontouchend=\"core.cancelSOS()\">\n                                <span style=\"font-size:32px;\">\ud83d\udea8</span>\n                                <p style=\"font-size:12px; margin-top:5px; font-weight:800;\">MAIN TRIGGER</p>\n                            </div>\n                        </div>\n                        <p style=\"font-size:11px; color:#ef4444; font-weight:700; margin-top:15px; letter-spacing:1px; animation: blink 1.5s infinite;\">HOLD TO DISPATCH HQ</p>\n                    </div>\n                </div>\n\n                <div class=\"bottom-nav\">\n                    <div class=\"nav-link\" onclick=\"core.nav('Home')\"><i>\ud83c\udfe0</i><span>HOME</span></div>\n                    <div class=\"nav-link\" onclick=\"core.nav('Status')\"><i>\ud83d\udccb</i><span>HISTORY</span></div>\n                    <div class=\"nav-link\" onclick=\"core.nav('Settings')\"><i>\u2699\ufe0f</i><span>SETTINGS</span></div>\n                </div>\n            </div>\n\n            <!-- SCREEN 3: NORMAL SOS FORM (DETAILS) -->\n            <div class=\"screen\" id=\"screenForm\">\n                <div class=\"header\" style=\"padding: 16px 20px; border-bottom: 1px solid var(--border);\">\n                    <h1 style=\"font-size:24px; font-weight:900; margin:0;\">Normal SOS Form</h1>\n                    <p style=\"font-size:13px; font-weight:700; color:var(--text-muted); margin:4px 0 0 0;\">Capture Incident Intel</p>\n                </div>\n\n                <div class=\"form-content\"\n                    style=\"padding: 20px 20px 0 20px; display: flex; flex-direction: column;\">\n                    <div style=\"flex: 1; overflow-y: auto; padding-bottom: 10px; -webkit-overflow-scrolling: touch;\">\n                        <div class=\"config-card\"\n                            style=\"display: flex; gap: 12px; padding: 0; background: transparent; border: none; box-shadow: none; justify-content: center; margin-bottom: 20px;\">\n                            <div class=\"route-btn\" style=\"padding: 15px 25px;\" onclick=\"core.setRoute('air', this)\">\n                                <i>\ud83d\ude81</i><span>Air</span></div>\n                            <div class=\"route-btn\" style=\"padding: 15px 25px;\" onclick=\"core.setRoute('boat', this)\">\n                                <i>\ud83d\udea4</i><span>Boat</span></div>\n                            <div class=\"route-btn\" style=\"padding: 15px 25px;\" onclick=\"core.setRoute('road', this)\">\n                                <i>\ud83d\ude91</i><span>Road</span></div>\n                        </div>\n\n                        <div class=\"section-label\" style=\"font-size: 11px; margin-bottom: 8px;\">Affected People</div>\n                        <div class=\"config-card\" style=\"margin-bottom: 15px; padding: 12px 16px;\">\n                            <div class=\"config-row\" style=\"padding: 5px 0;\">\n                                <span style=\"font-size: 14px;\">Total Count</span>\n                                <div class=\"counter\" style=\"padding: 4px 12px;\">\n                                    <button style=\"font-size: 18px;\" onclick=\"core.updateNeeds('people', -1)\">-</button>\n                                    <input type=\"number\" id=\"n_people\" value=\"1\"\n                                        oninput=\"core.manualNeeds('people', this.value)\"\n                                        style=\"width: 40px; font-size: 16px;\">\n                                    <button style=\"font-size: 18px;\" onclick=\"core.updateNeeds('people', 1)\">+</button>\n                                </div>\n                            </div>\n                        </div>\n\n                        <div class=\"section-label\" style=\"font-size: 11px; margin-bottom: 8px;\">Supplies Needed</div>\n                        <div class=\"config-card\" style=\"margin-bottom: 15px; padding: 12px 16px;\">\n                            <div class=\"config-row\" style=\"padding: 5px 0;\">\n                                <span style=\"font-size: 14px;\">Food Rations</span>\n                                <div class=\"counter\" style=\"padding: 4px 12px;\">\n                                    <button style=\"font-size: 18px;\" onclick=\"core.updateNeeds('food', -1)\">-</button>\n                                    <input type=\"number\" id=\"n_food\" value=\"0\" style=\"width: 40px; font-size: 16px;\">\n                                    <button style=\"font-size: 18px;\" onclick=\"core.updateNeeds('food', 1)\">+</button>\n                                </div>\n                            </div>\n                            <div class=\"config-row\" style=\"padding: 5px 0;\">\n                                <span style=\"font-size: 14px;\">Medical Kits</span>\n                                <div class=\"counter\" style=\"padding: 4px 12px;\">\n                                    <button style=\"font-size: 18px;\" onclick=\"core.updateNeeds('med', -1)\">-</button>\n                                    <input type=\"number\" id=\"n_med\" value=\"0\" style=\"width: 40px; font-size: 16px;\">\n                                    <button style=\"font-size: 18px;\" onclick=\"core.updateNeeds('med', 1)\">+</button>\n                                </div>\n                            </div>\n                            <div class=\"config-row\" style=\"padding: 5px 0;\">\n                                <span style=\"font-size: 14px;\">Sanitary Supplies</span>\n                                <div class=\"counter\" style=\"padding: 4px 12px;\">\n                                    <button style=\"font-size: 18px;\"\n                                        onclick=\"core.updateNeeds('sanitary', -1)\">-</button>\n                                    <input type=\"number\" id=\"n_sanitary\" value=\"0\"\n                                        style=\"width: 40px; font-size: 16px;\">\n                                    <button style=\"font-size: 18px;\"\n                                        onclick=\"core.updateNeeds('sanitary', 1)\">+</button>\n                                </div>\n                            </div>\n                        </div>\n\n                        <div class=\"section-label\" style=\"margin-top: 10px; font-size: 11px; margin-bottom: 8px;\">\n                            Location & Media Details</div>\n                        <div style=\"display: flex; gap: 10px; align-items: stretch; margin-bottom: 15px; height: 80px;\">\n                            <div class=\"config-card\" style=\"flex: 8; margin-bottom: 0; padding: 0; display: flex;\">\n                                <textarea id=\"inpLoc\" class=\"input-field\" placeholder=\"Enter full address, landmarks...\"\n                                    style=\"flex: 1; font-size:14px; padding:12px; resize: none; border-radius: 12px; border: none; outline: none;\"></textarea>\n                            </div>\n                            <div style=\"flex: 2.5; display: flex; flex-direction: column; gap: 6px;\">\n                                <input type=\"file\" id=\"camInput\" accept=\"image/*\" capture=\"camera\" style=\"display:none\"\n                                    onchange=\"core.handlePhoto(this)\">\n                                <div onclick=\"core.openCamera()\" class=\"config-card\"\n                                    style=\"margin: 0; padding: 8px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: var(--primary-light); border-color: var(--primary);\">\n                                    <span style=\"font-size: 20px;\">\ud83d\udcf7</span>\n                                    <span\n                                        style=\"font-size: 8px; font-weight: 900; color: var(--primary-dark)\">ACTIVE</span>\n                                </div>\n                                <div onclick=\"core.toast('Voice input currently disabled', '\ud83c\udf99\ufe0f')\" class=\"config-card\"\n                                    style=\"margin: 0; padding: 8px; flex: 1; display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0.5;\">\n                                    <span style=\"font-size: 20px;\">\ud83c\udf99\ufe0f</span>\n                                </div>\n                            </div>\n                        </div>\n\n                        <div id=\"photoPreview\" style=\"display:none; margin-bottom: 15px; position: relative;\">\n                            <img id=\"capturedImg\" src=\"\"\n                                style=\"width:100%; border-radius: 16px; border: 2px solid var(--primary);\">\n                            <div onclick=\"core.removePhoto()\"\n                                style=\"position: absolute; top: 10px; right: 10px; background: var(--danger); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; cursor: pointer;\">\n                                \u2715</div>\n                        </div>\n                    </div>\n                    \n                    <div style=\"flex-shrink: 0; padding: 15px 0; background: var(--bg);\">\n                        <button class=\"submit-btn\" style=\"padding: 18px; font-size: 16px;\"\n                            onclick=\"core.nav('SOS')\">CONFIRM & PROCEED</button>\n                    </div>\n                </div>\n\n                <div class=\"bottom-nav\">\n                    <div class=\"nav-link\" onclick=\"core.nav('Home')\"><i>\ud83c\udfe0</i><span>HOME</span></div>\n                    <div class=\"nav-link\" onclick=\"core.nav('Status')\"><i>\ud83d\udccb</i><span>HISTORY</span></div>\n                    <div class=\"nav-link\" onclick=\"core.nav('Settings')\"><i>\u2699\ufe0f</i><span>SETTINGS</span></div>\n                </div>\n            </div>\n\n            <!-- SCREEN 4: MISSION HISTORY -->\n            <div class=\"screen\" id=\"screenStatus\">\n                <div class=\"header\" style=\"display:flex; justify-content:space-between; align-items:center; padding: 20px 24px;\">\n                    <h1 style=\"font-size:24px; font-weight:900; margin:0;\">Mission History</h1>\n                    <div style=\"width:44px; height:44px; border-radius:15px; background:white; border:1px solid #eee; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--shadow-sm);\" onclick=\"core.nav('Home')\">\n                        <span style=\"font-size:20px; color:#64748b;\">\u2715</span>\n                    </div>\n                </div>\n                \n                <div class=\"form-content\" style=\"padding: 0 24px; flex: 1; overflow-y: auto; padding-bottom: 20px; -webkit-overflow-scrolling: touch;\">\n                    <!-- Buffer Cooldown Status Banner -->\n                    <div id=\"bufferCooldownBanner\" style=\"display:none; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1.5px solid #fca5a5; border-radius: 16px; padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm);\">\n                        <div style=\"display: flex; gap: 12px; align-items: flex-start;\">\n                            <span style=\"font-size: 24px;\">\u23f3</span>\n                            <div style=\"flex: 1;\">\n                                <h4 style=\"margin: 0 0 4px 0; font-size: 14px; font-weight: 800; color: #991b1b;\">SOS Dispatch Buffer Lockout</h4>\n                                <p style=\"margin: 0 0 8px 0; font-size: 11px; font-weight: 600; color: #b91c1c; line-height: 1.4;\">To prevent accidental triggers or server overload, a cooling buffer is active. You cannot dispatch another emergency at this time.</p>\n                                <div style=\"display: flex; align-items: center; gap: 6px;\">\n                                    <span style=\"font-size: 10px; font-weight: 800; color: #ef4444; background: white; padding: 4px 8px; border-radius: 8px; border: 1px solid #fee2e2;\">\n                                        LOCKOUT ENDS IN: <span id=\"bufferCooldownTimer\">00:00</span>\n                                    </span>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n\n                    <!-- Tactical Search Bar -->\n                    <div style=\"background:var(--white); border:2px solid #eef2f6; border-radius:20px; padding:12px 18px; display:flex; align-items:center; gap:12px; margin-bottom:15px;\">\n                        <i style=\"color:#6366f1; font-style:normal; font-size:18px;\">\ud83d\udd0d</i>\n                        <input type=\"text\" id=\"statusSearch\" placeholder=\"Search mission ID, type, sector...\" \n                            style=\"border:none; outline:none; flex:1; font-size:13px; font-weight:700; color:var(--dark);\"\n                            oninput=\"core.renderStatusUI()\">\n                    </div>\n\n                    <!-- Filter & PDF Row -->\n                    <div style=\"display:flex; align-items:center; gap:8px; margin-bottom:15px;\">\n                        <button class=\"filter-btn active\" style=\"background:#0ea5e9; color:white; border:none; padding:8px 16px; border-radius:12px; font-weight:900; font-size:11px;\" onclick=\"core.setHistoryFilter('all', this)\">Full</button>\n                        <button class=\"filter-btn\" style=\"background:#f1f5f9; color:#64748b; border:none; padding:8px 16px; border-radius:12px; font-weight:900; font-size:11px;\" onclick=\"core.setHistoryFilter('today', this)\">Day</button>\n                        <button class=\"filter-btn\" style=\"background:#f1f5f9; color:#64748b; border:none; padding:8px 16px; border-radius:12px; font-weight:900; font-size:11px;\" onclick=\"core.setHistoryFilter('weekly', this)\">Week</button>\n                        <button class=\"filter-btn\" style=\"background:#f1f5f9; color:#64748b; border:none; padding:8px 16px; border-radius:12px; font-weight:900; font-size:11px;\" onclick=\"core.setHistoryFilter('yearly', this)\">Year</button>\n                        <button onclick=\"core.downloadPDF()\" style=\"margin-left:auto; background:#f43f5e; color:white; border:none; padding:8px 16px; border-radius:12px; font-weight:900; display:flex; align-items:center; gap:6px; font-size:11px;\">\n                            <i>\ud83d\udcc4</i> PDF\n                        </button>\n                    </div>\n\n                    <div style=\"font-size:12px; font-weight:900; color:#ef4444; margin-bottom:12px; letter-spacing:0.5px; border-left:3px solid #ef4444; padding-left:8px;\">MISSIONS ONGOING</div>\n                    <div id=\"ongoingList\"></div>\n\n                    <div style=\"margin-top:20px; font-size:12px; font-weight:900; color:#0ea5e9; margin-bottom:12px; letter-spacing:0.5px; border-left:3px solid #0ea5e9; padding-left:8px;\">COMPLETED MISSIONS</div>\n                    <div id=\"completedList\"></div>\n                </div>\n\n                <div class=\"bottom-nav\">\n                    <div class=\"nav-link\" onclick=\"core.nav('Home')\"><i>\ud83c\udfe0</i><span>HOME</span></div>\n                    <div class=\"nav-link active\" onclick=\"core.nav('Status')\"><i>\ud83d\udccb</i><span>HISTORY</span></div>\n                    <div class=\"nav-link\" onclick=\"core.nav('Settings')\"><i>\u2699\ufe0f</i><span>SETTINGS</span></div>\n                </div>\n            </div>\n\n            <!-- SCREEN 5: SETTINGS -->\n            <div class=\"screen\" id=\"screenSettings\">\n                <div class=\"header\">\n                    <h1 style=\"font-size:24px; font-weight:900;\">Account Profile</h1>\n                </div>\n                <div class=\"form-content\">\n                    <div style=\"text-align:center; margin-bottom:30px;\">\n                        <div class=\"avatar-box\"\n                            style=\"width:100px; height:100px; margin:0 auto 20px; font-size:44px; border-radius:30px;\">\n                            \ud83d\udc64</div>\n                        <h2 id=\"profName\" style=\"font-size:22px; font-weight:900;\">User Name</h2>\n                        <p id=\"profId\" style=\"font-size:14px; color:var(--text-muted); font-weight:700;\">ID: PUB-01</p>\n                    </div>\n\n                    <div class=\"section-label\" style=\"text-align:left; margin-top:5px; margin-bottom:10px; color:var(--primary);\">Developer Tools (Testing)</div>\n                    <div class=\"config-card\" style=\"margin-bottom:20px; border: 2px solid var(--primary-light);\">\n                        <div class=\"config-row\" style=\"padding:15px 20px;\">\n                            <div style=\"display:flex; flex-direction:column;\">\n                                <span style=\"font-size:14px; font-weight:800;\">Location Override</span>\n                                <span style=\"font-size:10px; color:var(--text-muted);\">Use manual coords for SOS</span>\n                            </div>\n                            <div style=\"display:flex; gap:5px;\">\n                                <input type=\"number\" id=\"overLat\" value=\"13.085\" step=\"0.001\" style=\"width:75px; font-size:12px; padding:6px; border-radius:6px; border:1px solid var(--primary); background:white; color:var(--dark);\">\n                                <input type=\"number\" id=\"overLng\" value=\"80.272\" step=\"0.001\" style=\"width:75px; font-size:12px; padding:6px; border-radius:6px; border:1px solid var(--primary); background:white; color:var(--dark);\">\n                            </div>\n                        </div>\n                        <div class=\"config-row\" style=\"padding:15px 20px; border:none;\">\n                            <div style=\"display:flex; flex-direction:column;\">\n                                <span style=\"font-size:14px; font-weight:800;\">Simulation Mode</span>\n                                <span style=\"font-size:10px; color:var(--text-muted);\">Simulate movement for testing</span>\n                            </div>\n                            <button onclick=\"core.toggleSimulation()\" id=\"btnSim\" style=\"background:#cbd5e1; border:none; width:44px; height:24px; border-radius:20px; position:relative; cursor:pointer; transition:0.3s;\">\n                                <div style=\"width:18px; height:18px; background:white; border-radius:50%; position:absolute; top:3px; left:3px; transition:0.3s;\"></div>\n                            </button>\n                        </div>\n                    </div>\n\n                    <div class=\"config-card\" style=\"padding:0;\">\n                        <div class=\"config-row\" style=\"padding:18px 20px;\">\n                            <span>Notifications</span>\n                            <span style=\"color:var(--secondary); font-weight:900;\">ENABLED</span>\n                        </div>\n                        <div class=\"config-row\" style=\"padding:18px 20px;\">\n                            <span>Language</span>\n                            <span style=\"color:var(--text-muted); font-weight:700;\">English</span>\n                        </div>\n                        <div class=\"config-row\" style=\"padding:18px 20px; border-bottom:none; background: var(--primary-light);\">\n                            <div style=\"display:flex; align-items:center; gap:10px;\">\n                                <div id=\"syncStatusDot\" style=\"width:10px; height:10px; border-radius:50%; background:var(--secondary); box-shadow:0 0 10px var(--secondary);\"></div>\n                                <span style=\"font-size:14px; font-weight:800;\">Network Sync</span>\n                            </div>\n                            <span id=\"dispSyncInterval\" style=\"color:var(--primary); font-weight:900; font-size:12px;\">FETCHING...</span>\n                        </div>\n                    </div>\n\n                    <button class=\"submit-btn\" style=\"background:#fee2e2; color:var(--danger); box-shadow:none;\"\n                        onclick=\"core.logout()\">SECURE LOGOUT</button>\n\n                    <p\n                        style=\"text-align:center; margin-top:30px; font-size:11px; font-weight:700; color:var(--text-muted);\">\n                        ARDMS-Public Support System v3.1.0<br>CITIZEN SUPPORT OPERATIONS\n                    </p>\n                </div>\n                <div class=\"bottom-nav\">\n                    <div class=\"nav-link\" onclick=\"core.nav('Home')\"><i>\ud83c\udfe0</i><span>HOME</span></div>\n                    <div class=\"nav-link\" onclick=\"core.nav('Status')\"><i>\ud83d\udccb</i><span>HISTORY</span></div>\n                    <div class=\"nav-link active\" onclick=\"core.nav('Settings')\"><i>\u2699\ufe0f</i><span>SETTINGS</span></div>\n                </div>\n            </div>\n\n            <!-- LOCATION POPUP -->\n            <div id=\"locationPopup\"\n                style=\"display:none; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.98); z-index:9999; justify-content:center; align-items:center; flex-direction:column; padding:30px; text-align:center;\">\n                <div style=\"font-size:60px; margin-bottom:20px; animation: pulse 2s infinite;\">\ud83d\udccd</div>\n                <h2 style=\"color:white; font-size:24px; font-weight:900; margin-bottom:10px;\">Location Access Required</h2>\n                <p style=\"color:var(--text-muted); font-size:14px; font-weight:600; margin-bottom:30px;\">To ensure accurate rescue response, we need your real-time coordinates. Browser permissions may be required.</p>\n                \n                <button class=\"submit-btn\" style=\"width:100%; box-shadow:none; margin-bottom:12px;\"\n                    onclick=\"core.startLocationTracking()\">GRANT AUTO ACCESS</button>\n                \n                <div style=\"width:100%; margin: 15px 0; display: flex; align-items: center; gap: 10px;\">\n                    <hr style=\"flex:1; border:0; border-top:1px solid #334155;\">\n                    <span style=\"color:#64748b; font-size:12px; font-weight:800;\">OR MANUALLY SET</span>\n                    <hr style=\"flex:1; border:0; border-top:1px solid #334155;\">\n                </div>\n\n                <button class=\"submit-btn\" style=\"width:100%; background:#475569; color:white; box-shadow:none; margin-bottom:12px;\"\n                    onclick=\"document.getElementById('locationPopup').style.display='none'; core.toast('Test Mode Enabled', '\ud83e\uddea');\">SIMULATE (TEST MODE)</button>\n\n                <div style=\"display:flex; gap:10px; width:100%; margin-bottom:10px;\">\n                    <input type=\"number\" id=\"manualLat\" placeholder=\"Latitude\" step=\"0.00001\" style=\"flex:1; background:#1e293b; border:1px solid #334155; color:white; padding:12px; border-radius:10px; font-size:13px;\">\n                    <input type=\"number\" id=\"manualLng\" placeholder=\"Longitude\" step=\"0.00001\" style=\"flex:1; background:#1e293b; border:1px solid #334155; color:white; padding:12px; border-radius:10px; font-size:13px;\">\n                </div>\n                <button class=\"submit-btn\" style=\"width:100%; background:var(--secondary); color:white; box-shadow:none;\"\n                    onclick=\"core.setManualLocation()\">USE MANUAL COORDINATES</button>\n                \n                <p style=\"margin-top:20px; color:#64748b; font-size:11px;\">Current: <span id=\"curCoordDisplay\">13.085, 80.272</span> (Chennai Default)</p>\n            </div>\n\n            <!-- LOADER -->\n            <div class=\"full-loader\" id=\"loader\">\n                <div class=\"spinner\"></div>\n            </div>\n\n            <!-- TOAST -->\n            <div id=\"toast\" class=\"toast\">\n                <span id=\"toastIcon\">\u26a0\ufe0f</span>\n                <span id=\"toastMsg\">Notification Message</span>\n            </div>\n\n        </div>\n    </div>\n\n    <script>\n\n        // --- OFFLINE SYNC MANAGER ---\n        const originalFetch = window.fetch;\n        window.offlineQueue = JSON.parse(localStorage.getItem('offline_queue') || '[]');\n        window.fetch = async function(url, options) {\n            const isMutation = options && ['POST', 'PUT', 'DELETE'].includes(options.method);\n            if (!navigator.onLine && isMutation) {\n                console.log('[OFFLINE] Queuing request', url);\n                window.offlineQueue.push({ url, options });\n                localStorage.setItem('offline_queue', JSON.stringify(window.offlineQueue));\n                return new Response(JSON.stringify({ success: true, offline: true, id: Date.now() }), { status: 200, headers: { 'Content-Type': 'application/json' } });\n            }\n            \n            try {\n                const res = await originalFetch(url, options);\n                if (options === undefined || options.method === 'GET' || !options.method) {\n                    if (url.includes('/history') || url.includes('/rescue-requests') || url.includes('/dashboard-stats') || url.includes('/zones') || url.includes('/users')) {\n                        const clone = res.clone();\n                        clone.text().then(data => {\n                            localStorage.setItem('cache_' + url, data);\n                        }).catch(() => {});\n                    }\n                }\n                return res;\n            } catch (e) {\n                if (!navigator.onLine) {\n                    if (isMutation) {\n                        window.offlineQueue.push({ url, options });\n                        localStorage.setItem('offline_queue', JSON.stringify(window.offlineQueue));\n                        return new Response(JSON.stringify({ success: true, offline: true, id: Date.now() }), { status: 200, headers: { 'Content-Type': 'application/json' } });\n                    } else {\n                        const cached = localStorage.getItem('cache_' + url);\n                        if (cached) {\n                            return new Response(cached, { status: 200, headers: { 'Content-Type': 'application/json' } });\n                        }\n                    }\n                }\n                throw e;\n            }\n        };\n\n        window.addEventListener('online', async () => {\n            console.log('[ONLINE] Syncing offline queue...');\n            const queue = JSON.parse(localStorage.getItem('offline_queue') || '[]');\n            window.offlineQueue = [];\n            localStorage.setItem('offline_queue', '[]');\n            for (const req of queue) {\n                try {\n                    await originalFetch(req.url, req.options);\n                } catch (e) {\n                    console.error('Failed to sync', req, e);\n                }\n            }\n            if (window.core && window.core.refresh) window.core.refresh();\n            if (window.core && window.core.updateNetUI) window.core.updateNetUI(true);\n        });\n        // -----------------------------\n\n\n        // Timezone conversion helpers\n        function formatLocalTime(dbTimeStr) {\n            if (!dbTimeStr) return '--:--';\n            let t = dbTimeStr.trim();\n            if (!t.includes('T')) t = t.replace(' ', 'T');\n            if (!t.endsWith('Z') && !t.includes('+')) t += 'Z';\n            try {\n                const d = new Date(t);\n                if (isNaN(d)) return dbTimeStr;\n                return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });\n            } catch(e) { return dbTimeStr; }\n        }\n\n        function formatLocalDate(dbTimeStr) {\n            if (!dbTimeStr) return '--/--/----';\n            let t = dbTimeStr.trim();\n            if (!t.includes('T')) t = t.replace(' ', 'T');\n            if (!t.endsWith('Z') && !t.includes('+')) t += 'Z';\n            try {\n                const d = new Date(t);\n                if (isNaN(d)) return dbTimeStr;\n                return d.toLocaleString();\n            } catch(e) { return dbTimeStr; }\n        }\n\n        const core = {\n            API: `http://${window.location.hostname || 'localhost'}:3001/api`,\n            WS_URL: `ws://${window.location.hostname || 'localhost'}:3001`,\n            user: {\n                name: \"Arjun Singh\",\n                serial_number: \"PUB-1024\",\n                phone: \"918000000099\"\n            },\n            sosTimer: null,\n            socket: null,\n            mode: 'medical',\n            needs: { people: 1, food: 0, med: 0, sanitary: 0, photo: null, route: null },\n            retryQueue: [],\n            backoff: [3000, 7000, 12000],\n            currentLocation: { lat: 13.085, lng: 80.272 },\n            isSimulating: false,\n            mediaCapabilities: {\n                image: true,\n                mic: true\n            },\n            sosBufferMinutes: 15,\n\n            updateBufferCooldown() {\n                const banner = document.getElementById('bufferCooldownBanner');\n                const timerSpan = document.getElementById('bufferCooldownTimer');\n                if (!banner || !timerSpan) return;\n\n                const lockedUntil = parseInt(localStorage.getItem('sosLockedUntil') || '0');\n                const remaining = Math.max(0, Math.floor((lockedUntil - Date.now()) / 1000));\n\n                if (remaining > 0) {\n                    banner.style.display = 'block';\n                    const mins = Math.floor(remaining / 60);\n                    const secs = remaining % 60;\n                    timerSpan.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;\n                } else {\n                    banner.style.display = 'none';\n                }\n            },\n\n            setManualLocation() {\n                const lat = parseFloat(document.getElementById('manualLat').value);\n                const lng = parseFloat(document.getElementById('manualLng').value);\n                if (isNaN(lat) || isNaN(lng)) {\n                    this.toast('PLEASE ENTER VALID COORDINATES', '\u26a0\ufe0f');\n                    return;\n                }\n                this.currentLocation.lat = lat;\n                this.currentLocation.lng = lng;\n                \n                // Also update the Settings fields if they exist\n                const overLat = document.getElementById('overLat');\n                const overLng = document.getElementById('overLng');\n                if (overLat) overLat.value = lat;\n                if (overLng) overLng.value = lng;\n\n                document.getElementById('locationPopup').style.display = 'none';\n                this.renderLocationBar('on');\n                this.toast('LOCATION SET MANUALLY', '\ud83d\udccd');\n            },\n\n            toggleSimulation() {\n                this.isSimulating = !this.isSimulating;\n                this.toast(`SIMULATION ${this.isSimulating ? 'ENABLED' : 'DISABLED'}`, '\ud83e\uddea');\n                if (this.isSimulating) {\n                    this.startLocationSimulation();\n                } else {\n                    if (this.simTimer) clearInterval(this.simTimer);\n                    this.startLocationTracking();\n                }\n            },\n\n            startLocationSimulation() {\n                if (this.simTimer) clearInterval(this.simTimer);\n                if (this.locationWatcher) navigator.geolocation.clearWatch(this.locationWatcher);\n                // Simulation mode simply locks the current coordinates without drifting\n                console.log('[SIM] Locked Lat:', this.currentLocation.lat, 'Lng:', this.currentLocation.lng);\n            },\n            locationWatcher: null,\n\n            startLocationTracking() {\n                if (!navigator.geolocation) {\n                    this.toast(\"Geolocation not supported\", \"\ud83d\udeab\");\n                    return;\n                }\n\n                document.getElementById('locationPopup').style.display = 'none';\n\n                this.locationWatcher = navigator.geolocation.watchPosition(\n                    (position) => {\n                        this.currentLocation.lat = position.coords.latitude;\n                        this.currentLocation.lng = position.coords.longitude;\n                        document.getElementById('locationPopup').style.display = 'none';\n                    },\n                    (error) => {\n                        console.error(\"Location error:\", error);\n                        document.getElementById('locationPopup').style.display = 'flex';\n                    },\n                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }\n                );\n                this.updateLocationStatus();\n            },\n\n            updateLocationStatus() {\n                const bar = document.getElementById('locStatusBar');\n                if (!bar) return;\n                bar.style.display = 'flex';\n\n                if (!navigator.geolocation) {\n                    this.renderLocationBar('unsupported');\n                    return;\n                }\n\n                if (window.location.protocol === 'file:') {\n                    // file:// protocol often blocks geolocation\n                    navigator.geolocation.getCurrentPosition(\n                        () => this.renderLocationBar('on'),\n                        (err) => {\n                            if (err.code === 1) this.renderLocationBar('denied');\n                            else this.renderLocationBar('file_off');\n                        },\n                        { timeout: 3000 }\n                    );\n                    return;\n                }\n\n                navigator.geolocation.getCurrentPosition(\n                    () => this.renderLocationBar('on'),\n                    (err) => {\n                        if (err.code === 1) this.renderLocationBar('denied');\n                        else this.renderLocationBar('off');\n                    },\n                    { timeout: 5000, enableHighAccuracy: true }\n                );\n            },\n\n            renderLocationBar(status) {\n                const bar = document.getElementById('locStatusBar');\n                if (!bar) return;\n\n                let message = \"Location Auto detect ON\";\n                let btn = \"\";\n                let type = \"on\";\n                let dotColor = \"var(--secondary)\";\n\n                switch (status) {\n                    case 'on':\n                        type = \"on\";\n                        break;\n                    case 'denied':\n                        message = \"Location Access Denied - check browser settings\";\n                        btn = '<button class=\"loc-btn-fix\" onclick=\"core.startLocationTracking()\">ALLOW</button>';\n                        type = \"off\";\n                        dotColor = \"var(--danger)\";\n                        break;\n                    case 'file_off':\n                        message = \"Browser blocks location on local files (file://)\";\n                        btn = '<button class=\"loc-btn-fix\" onclick=\"window.alert(\\'To fix this, please run the app through a local server or use the mobile APK.\\')\">HELP</button>';\n                        type = \"off\";\n                        dotColor = \"var(--warning)\";\n                        break;\n                    case 'unsupported':\n                        message = \"Geolocation not supported in this browser\";\n                        type = \"off\";\n                        dotColor = \"var(--danger)\";\n                        break;\n                    default:\n                        message = \"Location setting OFF - need to turn on\";\n                        btn = '<button class=\"loc-btn-fix\" onclick=\"core.startLocationTracking()\">ENABLE</button>';\n                        type = \"off\";\n                        dotColor = \"var(--danger)\";\n                }\n\n                bar.className = `loc-status-bar loc-status-${type === 'on' ? 'on' : 'off'}`;\n                bar.innerHTML = `\n                    <div style=\"display:flex; align-items:center;\">\n                        <div class=\"loc-dot\" style=\"background:${dotColor}\"></div>\n                        <span style=\"margin-right:8px;\">${message}</span>\n                    </div>\n                    <div style=\"display:flex; gap:5px;\">\n                        ${btn}\n                        <button class=\"loc-btn-fix\" style=\"background:var(--primary); color:white; border:none;\" onclick=\"core.showScreen('screenSettings')\">MANUAL</button>\n                    </div>\n                `;\n            },\n\n            async init() {\n                this.setupKeyboardHandling();\n                this.bootstrap(); // Initialize header with dummy data or state\n                const savedToken = localStorage.getItem('citizen_token');\n                const savedUser = localStorage.getItem('citizen_user');\n                if (savedToken && savedUser) {\n                    this.showLoader(true);\n                    try {\n                        const res = await fetch(`${this.API}/auth/verify`, {\n                            headers: { 'Authorization': `Bearer ${savedToken}` }\n                        });\n                        if (res.ok) {\n                            const data = await res.json();\n                            this.user = data.user;\n                            localStorage.setItem('citizen_user', JSON.stringify(this.user));\n                            this.showScreen('screenEmergencyType');\n                            this.bootstrap();\n                            this.connectGateway();\n                            this.startLocationTracking();\n                            document.getElementById('globalNotificationPanel').classList.add('active');\n                            this.updateGlobalNotification('System Ready', 'Connected to Rescue Network', '\ud83d\udce1', 'Live');\n                        } else {\n                            this.logout();\n                        }\n                    } catch (e) {\n                        // Offline mode: proceed with local data if network fails\n                        console.log(\"Offline mode, relying on local session\");\n                        this.user = JSON.parse(savedUser);\n                        this.showScreen('screenEmergencyType');\n                        this.bootstrap();\n                        this.connectGateway();\n                        this.startLocationTracking();\n                    } finally {\n                        this.showLoader(false);\n                    }\n                }\n                this.updateLocationStatus();\n                setInterval(() => this.updateLocationStatus(), 10000);\n                await this.fetchSettings();\n                this.updateBufferCooldown();\n                setInterval(() => this.updateBufferCooldown(), 1000);\n                this.processRetryQueue();\n            },\n\n            async fetchSettings() {\n                try {\n                    const res = await fetch(`${this.API}/settings`);\n                    const settings = await res.json();\n                    if (settings.retry_intervals) {\n                        const intervals = settings.retry_intervals.split(',').map(s => parseInt(s.trim()) * 1000);\n                        if (intervals.length > 0 && !intervals.some(isNaN)) {\n                            this.backoff = intervals;\n                            console.log('[SYNC] Retry intervals updated:', this.backoff);\n                        }\n                    }\n\n                    if (settings.refresh_interval) {\n                        const newInterval = parseInt(settings.refresh_interval);\n                        if (newInterval > 0 && newInterval !== this.refreshInterval) {\n                            console.log(`[SYNC] Refresh interval updated to ${newInterval}s`);\n                            this.refreshInterval = newInterval;\n                            const el = document.getElementById('dispSyncInterval');\n                            if (el) el.innerText = this.refreshInterval + 's (Admin Set)';\n                        }\n                    }\n\n                    if (settings.public_image_enabled !== undefined) {\n                        this.mediaCapabilities.image = settings.public_image_enabled === 'true';\n                    }\n                    if (settings.public_mic_enabled !== undefined) {\n                        this.mediaCapabilities.mic = settings.public_mic_enabled === 'true';\n                    }\n                    if (settings.sos_buffer_minutes !== undefined) {\n                        this.sosBufferMinutes = parseInt(settings.sos_buffer_minutes) || 15;\n                    }\n                    this.applyMediaSettings();\n\n                } catch (e) { console.error('[SYNC] Failed to fetch settings', e); }\n            },\n\n            applyMediaSettings() {\n                // Apply Image/Camera restrictions\n                const critPhotoBtn = document.getElementById('critPhotoBtn');\n                if (critPhotoBtn) {\n                    critPhotoBtn.style.opacity = this.mediaCapabilities.image ? '1' : '0.5';\n                    critPhotoBtn.style.pointerEvents = this.mediaCapabilities.image ? 'auto' : 'none';\n                }\n                const photoCard = document.querySelector('div[onclick=\"core.openCamera()\"]');\n                if (photoCard) {\n                    photoCard.style.opacity = this.mediaCapabilities.image ? '1' : '0.5';\n                    photoCard.style.pointerEvents = this.mediaCapabilities.image ? 'auto' : 'none';\n                }\n\n                // Apply Mic restrictions\n                const micCard = document.querySelector('div[onclick*=\"Voice input currently disabled\"]');\n                if (micCard) {\n                    micCard.style.opacity = this.mediaCapabilities.mic ? '1' : '0.5';\n                    micCard.style.pointerEvents = this.mediaCapabilities.mic ? 'auto' : 'none';\n                }\n            },\n\n            async login() {\n                const phone = document.getElementById('inpId').value;\n                const pin = document.getElementById('inpPin').value;\n                const err = document.getElementById('loginError');\n\n                let localDeviceId = localStorage.getItem('citizen_device_id');\n                if (!localDeviceId) {\n                    localDeviceId = 'PUBDEV-' + Math.random().toString(36).substr(2, 9).toUpperCase();\n                    localStorage.setItem('citizen_device_id', localDeviceId);\n                }\n\n                console.log('[LOGIN] Attempting login...', { idOrPhone: phone, pin, deviceId: localDeviceId });\n                this.showLoader(true);\n                try {\n                    const res = await fetch(`${this.API}/auth/login`, {\n                        method: 'POST',\n                        headers: { 'Content-Type': 'application/json' },\n                        body: JSON.stringify({ idOrPhone: phone, pin, deviceId: localDeviceId })\n                    });\n                    console.log('[LOGIN] Response status:', res.status);\n\n                    if (res.ok) {\n                        const data = await res.json();\n                        this.user = data.user;\n                        localStorage.setItem('citizen_token', data.token);\n                        localStorage.setItem('citizen_user', JSON.stringify(this.user));\n                        this.showScreen('screenEmergencyType');\n                        this.bootstrap();\n                        this.connectGateway();\n                        this.startLocationTracking();\n                        document.getElementById('globalNotificationPanel').classList.add('active');\n                        this.updateGlobalNotification('Welcome', `Logged in as ${this.user.name}`, '\ud83d\udc64', 'Live');\n                    } else {\n                        const errData = await res.json();\n                        err.innerText = errData.error || \"INVALID CREDENTIALS\";\n                        err.style.display = 'block';\n                    }\n                } catch (e) {\n                    console.error(\"Login failed\", e);\n                    err.innerText = \"NETWORK ERROR OR SERVER DOWN\";\n                    err.style.display = 'block';\n                } finally {\n                    this.showLoader(false);\n                }\n            },\n\n            logout() {\n                localStorage.removeItem('citizen_token');\n                localStorage.removeItem('citizen_user');\n                location.reload();\n            },\n\n            refreshInterval: 15,\n            syncTimer: null,\n\n            bootstrap() {\n                document.getElementById('dispName').innerText = this.user.name;\n                document.getElementById('profName').innerText = this.user.name;\n                document.getElementById('profId').innerText = `ID: ${this.user.serial_number || 'PUB-01'}`;\n                \n                // Update Header\n                const headerName = document.getElementById('headerUserName');\n                const headerDetails = document.getElementById('headerUserDetails');\n                if (headerName) headerName.innerText = this.user.name;\n                if (headerDetails) {\n                    headerDetails.innerText = `ID: ${this.user.serial_number || 'PUB-01'} | MOB: ${this.user.phone || 'N/A'}`;\n                }\n\n                const runSync = async () => {\n                    await this.fetchSettings();\n                    await this.fetchMyHistory();\n                    this.syncTimer = setTimeout(runSync, this.refreshInterval * 1000);\n                };\n                runSync();\n            },\n\n            updateGlobalNotification(title, body, icon, status) {\n                const panel = document.getElementById('globalNotificationPanel');\n                if (!panel) return;\n                \n                const titleEl = document.getElementById('globalNotifTitle');\n                const bodyEl = document.getElementById('globalNotifBody');\n                const iconEl = document.getElementById('globalNotifIcon');\n                const statusEl = document.getElementById('globalNotifStatus');\n\n                if (titleEl) titleEl.innerText = title;\n                if (bodyEl) bodyEl.innerText = body;\n                if (iconEl) iconEl.innerText = icon || '\ud83d\udce1';\n                if (statusEl) {\n                    statusEl.innerText = status || 'Live';\n                    statusEl.style.background = status === 'Critical' ? 'var(--danger)' : 'var(--primary)';\n                }\n\n                panel.classList.add('active');\n            },\n\n            connectGateway() {\n                console.log('[GATEWAY] Connecting...');\n                this.socket = new WebSocket(this.WS_URL);\n\n                this.socket.onopen = async () => {\n                    console.log('[GATEWAY] Connected');\n                    this.socket.send(JSON.stringify({\n                        type: 'REGISTER',\n                        deviceId: this.user.serial_number || this.user.phone,\n                        room: 'public_broadcast'\n                    }));\n                    await this.fetchSettings(); // Refresh settings on reconnect\n                };\n\n                this.socket.onmessage = (msg) => {\n                    const { type, data } = JSON.parse(msg.data);\n                    this.handleGatewayMessage(type, data);\n                };\n\n                this.socket.onclose = () => {\n                    console.log('[GATEWAY] Offline, reconnecting in 5s...');\n                    setTimeout(() => this.connectGateway(), 5000);\n                };\n            },\n\n            getDistance(lat1, lon1, lat2, lon2) {\n                const R = 6371;\n                const dLat = (lat2 - lat1) * Math.PI / 180;\n                const dLon = (lon2 - lon1) * Math.PI / 180;\n                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +\n                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *\n                    Math.sin(dLon / 2) * Math.sin(dLon / 2);\n                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n            },\n\n            handleGatewayMessage(type, data) {\n                if (type === 'USER_DISABLED') {\n                    this.toast('ACCOUNT DISABLED BY ADMIN', '\ud83d\udeab');\n                    setTimeout(() => this.logout(), 2000);\n                }\n                if (type === 'RESCUE_REQUEST_COMPLETED') {\n                    // Check if it's our request (the system sync might be more robust, but this provides instant feedback)\n                    this.updateStatusUI('COMPLETED', 'Mission accomplished by Citizen ARDMS Team', '\u2705');\n                    this.toast('Citizen ARDMS operation marked as completed!', '\u2705');\n                    if (this.rescuerMarker) {\n                        this.map.removeLayer(this.rescuerMarker);\n                        this.rescuerMarker = null;\n                    }\n                }\n                if (type === 'RESCUER_UPDATE' || type === 'LIVE_LOCATION_UPDATE') {\n                    // Check if this update comes from the assigned rescuer team\n                    // For now, if there is an active mission, we show any incoming rescuer location as the incoming team\n                    // In a production system, we'd check if the data.deviceId belongs to the assigned group\n                    \n                    const dist = this.getDistance(this.currentLocation.lat, this.currentLocation.lng, data.lat, data.lng);\n                    \n                    if (dist < 1) {\n                        this.updateStatusUI('NEARBY', `Rescuer ${data.name || 'Team'} is arriving (${dist.toFixed(1)}km)`, '\ud83c\udfe2');\n                        this.updateGlobalNotification('Rescuer Nearby', `${data.name || 'Team'} is arriving now!`, '\ud83c\udfe2', 'Near');\n                    } else if (dist < 5) {\n                        this.updateStatusUI('APPROACHING', `Rescuer ${data.name || 'Team'} in transit (${dist.toFixed(1)}km)`, '\ud83d\ude81');\n                        this.updateGlobalNotification('Rescuer En Route', `${data.name || 'Team'} is ${dist.toFixed(1)}km away`, '\ud83d\ude81', 'Moving');\n                    } else {\n                        this.updateStatusUI('DISPATCHED', `Team assigned: ${data.name || 'Team'} (${dist.toFixed(1)}km)`, '\ud83d\udea8');\n                        this.updateGlobalNotification('Team Dispatched', `${data.name || 'Team'} assigned to your SOS`, '\ud83d\udea8', 'Assigned');\n                    }\n\n                    // Plot the live rescuer location on the map\n                    if (!this.rescuerMarker) {\n                        const rIcon = L.divIcon({ \n                            className: 'rescuer-marker', \n                            html: `<div style=\"background:url('official_rescuer_icon.png'); background-size:cover; width:48px; height:48px; border-radius:50%; border:3px solid white; box-shadow:0 0 20px rgba(220, 38, 38, 0.6);\"></div>`, \n                            iconSize: [48, 48] \n                        });\n                        this.rescuerMarker = L.marker([data.lat, data.lng], { icon: rIcon }).addTo(this.map);\n                    } else {\n                        this.rescuerMarker.setLatLng([data.lat, data.lng]);\n                    }\n                    \n                    // Keep both markers in view\n                    const bounds = L.latLngBounds([[this.currentLocation.lat, this.currentLocation.lng], [data.lat, data.lng]]);\n                    this.map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });\n                }\n                if (type === 'RESCUE_REQUEST_ACCEPTED') {\n                    if (data.phone === this.user.phone || data.device_id === this.user.serial_number) {\n                        this.updateStatusUI('TEAM_ASSIGNED', 'Rescue team has been dispatched!', '\ud83d\udea8');\n                        this.updateGlobalNotification('Mission Accepted', `Team \"${data.assignedName}\" is en route`, '\ud83d\udea8', 'Active');\n                        this.toast('MISSION ACCEPTED: TEAM EN ROUTE', '\u2705');\n                        this.showMissionAlert(`TEAM DISPATCHED`, `The rescue team \"${data.assignedName}\" is now moving to your location. Stay calm and follow instructions.`);\n                        this.fetchMyHistory();\n                    }\n                }\n                if (type === 'RESCUE_REQUEST_COMPLETED') {\n                    if (data.phone === this.user.phone || data.device_id === this.user.serial_number) {\n                        this.updateStatusUI('COMPLETED', 'Rescue mission successful!', '\u2705');\n                        this.toast('MISSION COMPLETE', '\ud83c\udfc5');\n                        this.showMissionAlert(`MISSION COMPLETED`, `You are safe! The rescue operation has been marked as successful. Reach out if you need more help.`);\n                        this.fetchMyHistory();\n                    }\n                }\n                if (type === 'ADMIN_MESSAGE') {\n                    this.showMissionAlert('MESSAGE FROM ADMIN', data.message);\n                    this.toast('NEW MESSAGE RECEIVED', '\ud83d\udcac');\n                }\n                if (type === 'NEW_COMMAND') {\n                    this.showMissionAlert('NEW MISSION ASSIGNED', `A new mission \"${data.desc || 'Rescue Task'}\" has been assigned to you/your group.`);\n                    this.toast('MISSION ASSIGNED', '\ud83d\udea8');\n                    this.fetchMyHistory();\n                }\n                if (type === 'SETTINGS_UPDATED' && data.key === 'retry_intervals') {\n                    const intervals = data.value.split(',').map(s => parseInt(s.trim()) * 1000);\n                    if (intervals.length > 0 && !intervals.some(isNaN)) {\n                        this.backoff = intervals;\n                        console.log('[SYNC] Live retry intervals update:', this.backoff);\n                        this.toast('Sync Config Updated', '\u2699\ufe0f');\n                    }\n                }\n            },\n\n            showMissionAlert(title, msg) {\n                const overlay = document.createElement('div');\n                overlay.className = 'mission-alert-overlay';\n                overlay.innerHTML = `\n                    <div class=\"mission-alert-card\">\n                        <div class=\"alert-header\">\n                            <div class=\"alert-icon\">\ud83d\udd14</div>\n                            <h3>${title}</h3>\n                        </div>\n                        <p>${msg}</p>\n                        <button onclick=\"this.parentElement.parentElement.remove()\">ACKNOWLEDGE</button>\n                    </div>\n                `;\n                document.body.appendChild(overlay);\n            },\n\n            async fetchMyHistory() {\n                try {\n                    const res = await fetch(`${this.API}/rescue-requests?phone=${this.user.phone}`);\n                    if (res.ok) {\n                        const data = await res.json();\n                        data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));\n                        this.rawData.myHistory = data.filter(r => r.phone === this.user.phone || r.device_id === this.user.serial_number);\n                        this.renderStatusUI();\n                        \n                        // Update ticker based on active request\n                        const activeReq = this.rawData.myHistory.find(r => r.status !== 'completed' && r.status !== 'declined');\n                        if (activeReq) {\n                            if (activeReq.status === 'accepted') this.updateStatusUI('TEAM_ASSIGNED', 'Rescue team has been dispatched!', '\ud83d\udea8');\n                            else if (activeReq.status === 'assigned') this.updateStatusUI('DISPATCHED', 'Team assigned, pending acceptance.', '\ud83d\udea8');\n                            else if (activeReq.status === 'ongoing') this.updateStatusUI('APPROACHING', 'Rescue team is on the way!', '\ud83d\ude81');\n                            else this.updateStatusUI('PENDING', 'Waiting for available team...', '\u23f3');\n                        } else {\n                            const ticker = document.getElementById('sosStatusTicker');\n                            if (ticker) ticker.style.display = 'none';\n                        }\n                    }\n                } catch (e) { console.error(\"History fetch failed\", e); }\n            },\n\n            emergencyCategory: null,\n\n            setEmergencyCategory(cat) {\n                this.emergencyCategory = cat;\n                document.getElementById('btnSelectCritical').style.borderColor = cat === 'critical' ? '#e11d48' : '#fecdd3';\n                document.getElementById('btnSelectCritical').style.background = cat === 'critical' ? '#fff1f2' : '#ffffff';\n                \n                document.getElementById('btnSelectNormal').style.borderColor = cat === 'normal' ? '#d97706' : '#fef3c7';\n                document.getElementById('btnSelectNormal').style.background = cat === 'normal' ? '#fffbeb' : '#ffffff';\n\n                const proceedBtn = document.getElementById('btnConfirmProceed');\n                proceedBtn.disabled = false;\n                proceedBtn.style.opacity = '1';\n                this.toast(`${cat.toUpperCase()} CATEGORY SELECTED`, '\u2705');\n            },\n\n            proceedFromSelection() {\n                if (this.emergencyCategory === 'critical') {\n                    this.mode = 'sos';\n                    // Reset styling of critical action buttons\n                    document.querySelectorAll('.critical-action-btn').forEach(btn => {\n                        btn.style.background = 'white';\n                        if (btn.querySelector('h3').innerText.toLowerCase() === 'pregnancy') {\n                            btn.style.borderColor = '#fb7185';\n                        } else {\n                            btn.style.borderColor = '#38bdf8';\n                        }\n                    });\n                    this.showScreen('screenCriticalSOS');\n                } else {\n                    this.showScreen('screenForm');\n                }\n            },\n\n            triggerQuickSOS(type) {\n                if (this.mode === type) {\n                    this.mode = 'sos';\n                    document.querySelectorAll('.critical-action-btn').forEach(btn => {\n                        btn.style.background = 'white';\n                        if (btn.querySelector('h3').innerText.toLowerCase() === 'pregnancy') {\n                            btn.style.borderColor = '#fb7185';\n                        } else {\n                            btn.style.borderColor = '#38bdf8';\n                        }\n                    });\n                } else {\n                    this.mode = type;\n                    document.querySelectorAll('.critical-action-btn').forEach(btn => {\n                        const isPreg = btn.querySelector('h3').innerText.toLowerCase() === 'pregnancy';\n                        if ((type === 'pregnancy' && isPreg) || (type === 'medical' && !isPreg)) {\n                            btn.style.background = type === 'pregnancy' ? '#fff1f2' : '#f0f9ff';\n                            btn.style.borderColor = type === 'pregnancy' ? '#e11d48' : '#0369a1';\n                        } else {\n                            btn.style.background = 'white';\n                            btn.style.borderColor = isPreg ? '#fb7185' : '#38bdf8';\n                        }\n                    });\n                    this.toast(`${type.toUpperCase()} SELECTED`, '\u2705');\n                }\n            },\n\n            updateStatusUI(stage, message, icon) {\n                const ticker = document.getElementById('sosStatusTicker');\n                if (ticker) ticker.style.display = 'block';\n                const label = document.getElementById('tickerLabel');\n                if (label) label.innerText = stage;\n                const sub = document.getElementById('tickerSub');\n                if (sub) sub.innerText = message;\n                const iconEl = document.getElementById('tickerIcon');\n                if (iconEl) iconEl.innerText = icon || '\ud83d\udce1';\n            },\n\n            showScreen(id) {\n                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));\n                document.getElementById(id).classList.add('active');\n                \n                // Show/Hide Header\n                const header = document.getElementById('appHeader');\n                if (id === 'screenLogin') {\n                    header.style.display = 'none';\n                } else {\n                    header.style.display = 'flex';\n                }\n            },\n\n            nav(tab) {\n                const lockedUntil = parseInt(localStorage.getItem('sosLockedUntil') || '0');\n                const isLocked = lockedUntil > Date.now();\n\n                if (isLocked && (tab === 'Home' || tab === 'SOS' || tab === 'Form')) {\n                    this.toast('SOS LOCKED: Cooldown active.', '\u23f3');\n                    tab = 'Status';\n                }\n\n                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));\n                if (tab === 'Home') this.showScreen('screenEmergencyType');\n                else if (tab === 'SOS') this.showScreen('screenEmergencyType'); // Redirect SOS to selection\n                else if (tab === 'Form') this.showScreen('screenForm');\n                else if (tab === 'Status') {\n                    this.showScreen('screenStatus');\n                    this.fetchStatus();\n                }\n                else if (tab === 'Settings') this.showScreen('screenSettings');\n\n                const highlightText = tab === 'Status' ? 'HISTORY' : tab;\n                const activeLink = Array.from(document.querySelectorAll('.nav-link')).find(l => l.innerText.includes(highlightText));\n                if (activeLink) activeLink.classList.add('active');\n            },\n\n            historyFilter: 'all',\n            rawData: { myHistory: [] },\n\n            async fetchStatus() {\n                try {\n                    const res = await fetch(`${this.API}/public/status/${this.user.phone}`);\n                    const data = await res.json();\n                    this.rawData = data; \n                    this.renderStatusUI();\n                } catch (e) { console.error(e); }\n            },\n\n            renderStatusUI() {\n                const search = document.getElementById('statusSearch').value.toLowerCase();\n                const listOngoing = document.getElementById('ongoingList');\n                const listDone = document.getElementById('completedList');\n                \n                listOngoing.innerHTML = '';\n                listDone.innerHTML = '';\n\n                // Render Ongoing (Live)\n                const activeItems = this.rawData.myActive.filter(i => \n                    i.type.toLowerCase().includes(search) || i.sector.toLowerCase().includes(search)\n                );\n                \n                if (!activeItems.length) {\n                    listOngoing.innerHTML = '<div style=\"text-align:center; padding:15px; color:#cbd5e1; font-size:11px; border:1px dashed #e2e8f0; border-radius:12px;\">No active missions currently</div>';\n                }\n\n                activeItems.forEach(item => {\n                    listOngoing.innerHTML += `\n                        <div class=\"hist-item\" style=\"border-left: 4px solid var(--danger); padding:12px;\">\n                            <div class=\"hist-details\">\n                                <h4 style=\"font-size:13px;\">${item.type.toUpperCase()} RESCUE</h4>\n                                <p style=\"font-size:10px;\">\ud83d\udccd ${item.sector}</p>\n                            </div>\n                            <div class=\"status-badge status-active\" style=\"padding:2px 8px; font-size:9px;\">LIVE</div>\n                        </div>\n                    `;\n                });\n\n                // Filter & Render Completed\n                let historyItems = this.rawData.myHistory.filter(i => \n                    i.type.toLowerCase().includes(search) || i.sector.toLowerCase().includes(search) || String(i.id).includes(search)\n                );\n\n                const now = new Date();\n                if (this.historyFilter === 'today') {\n                    historyItems = historyItems.filter(i => new Date(i.updated_at).toDateString() === now.toDateString());\n                } else if (this.historyFilter === 'weekly') {\n                    historyItems = historyItems.filter(i => new Date(i.updated_at) >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));\n                } else if (this.historyFilter === 'yearly') {\n                    historyItems = historyItems.filter(i => new Date(i.updated_at) >= new Date(now.getFullYear(), 0, 1));\n                }\n\n                if (!historyItems.length) {\n                    listDone.innerHTML = '<div style=\"text-align:center; padding:15px; color:#cbd5e1; font-size:11px;\">No completed records found</div>';\n                }\n\n                historyItems.forEach(item => {\n                    listDone.innerHTML += `\n                        <div class=\"hist-item\" style=\"padding:12px;\">\n                            <div class=\"hist-details\">\n                                <h4 style=\"font-size:13px;\">${item.type.toUpperCase()} \u2022 TID #${item.id}</h4>\n                                <p style=\"font-size:10px;\">\ud83d\udccd ${item.sector}</p>\n                                <p style=\"margin-top:2px; font-size:9px; color:#94a3b8;\">${formatLocalDate(item.updated_at)}</p>\n                            </div>\n                            <div class=\"status-badge status-completed\" style=\"padding:2px 8px; font-size:9px;\">${item.status}</div>\n                        </div>\n                    `;\n                });\n            },\n\n            setHistoryFilter(filter, btn) {\n                this.historyFilter = filter;\n                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));\n                btn.classList.add('active');\n                this.renderStatusUI();\n                this.toast(`ARCHIVE FILTER: ${filter.toUpperCase()}`, '\ud83d\udd0d');\n            },\n\n            downloadPDF() {\n                this.toast('GENERATING MISSION REPORT...', '\ud83d\udcc4');\n                setTimeout(() => {\n                    const printWindow = window.open('', '_blank');\n                    let historyHtml = '';\n                    this.rawData.myHistory.forEach(h => {\n                        historyHtml += `\n                            <div style=\"padding:15px; border-bottom:1px solid #eee;\">\n                                <div style=\"font-weight:900;\">${h.type.toUpperCase()} RESCUE - TID #${h.id}</div>\n                                <div style=\"font-size:12px; color:#666;\">Date: ${formatLocalDate(h.updated_at)} | Status: ${h.status.toUpperCase()}</div>\n                                <div style=\"font-size:12px; color:#666;\">Location: ${h.sector}</div>\n                            </div>\n                        `;\n                    });\n\n                    printWindow.document.write(`\n                        <html>\n                        <head><title>SOS Mission Report - ${this.user.name}</title></head>\n                        <body style=\"font-family:sans-serif; padding:40px;\">\n                            <h1 style=\"color:#0ea5e9;\">SOS MISSION REPORT</h1>\n                            <hr/>\n                            <p><strong>Citizen:</strong> ${this.user.name}</p>\n                            <p><strong>Serial:</strong> ${this.user.serial_number || 'PUB-01'}</p>\n                            <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>\n                            <h2 style=\"margin-top:40px; border-bottom:2px solid #000;\">COMPLETED MISSIONS</h2>\n                            ${historyHtml || '<p>No mission history found.</p>'}\n                            <div style=\"margin-top:60px; font-size:10px; text-align:center; color:#999;\">\n                                This is an automated system report. Verified by SOS Emergency Network.\n                            </div>\n                        </body>\n                        </html>\n                    `);\n                    printWindow.document.close();\n                    printWindow.print();\n                }, 1000);\n            },\n\n            setMode(mode, btn) {\n                this.mode = mode;\n                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));\n                btn.classList.add('active');\n            },\n\n            updateNeeds(key, val) {\n                this.needs[key] = Math.max(0, this.needs[key] + val);\n                document.getElementById('n_' + key).value = this.needs[key];\n            },\n\n            manualNeeds(key, val) {\n                this.needs[key] = Math.max(0, parseInt(val) || 0);\n                document.getElementById('n_' + key).value = this.needs[key];\n            },\n\n            startSOS(priority = 'normal') {\n                document.querySelector('.pulse-ring').style.opacity = '1';\n                this.sosTimer = setTimeout(() => {\n                    this.triggerSOS(priority);\n                }, 2000);\n            },\n\n            cancelSOS() {\n                document.querySelector('.pulse-ring').style.opacity = '0';\n                clearTimeout(this.sosTimer);\n            },\n\n            captureNeed(type) {\n                if (type === 'photo') {\n                    const input = document.getElementById('critFileInput') || document.getElementById('camInput');\n                    if (input) input.click();\n                }\n            },\n\n            sosImageData: null,\n            handleSOSImage(input) {\n                if (input.files && input.files[0]) {\n                    const reader = new FileReader();\n                    reader.onload = (e) => {\n                        this.sosImageData = e.target.result;\n                        this.needs.photo = e.target.result; // Sync for both flows\n                        \n                        const preview = document.getElementById('sosImagePreview');\n                        if (preview) {\n                            preview.style.backgroundImage = `url(${e.target.result})`;\n                            preview.style.display = 'block';\n                        }\n                        \n                        // Update Critical SOS UI\n                        const btn = document.getElementById('critPhotoBtn');\n                        const label = document.getElementById('critPhotoLabel');\n                        if (btn) {\n                            btn.style.boxShadow = '0 0 15px rgba(59,130,246,0.4)';\n                            btn.style.borderColor = '#2563eb';\n                        }\n                        if (label) {\n                            label.innerText = 'ACTIVE';\n                            label.style.color = '#1d4ed8';\n                        }\n                        \n                        this.toast('PHOTO CAPTURED', '\ud83d\udcf8');\n                    };\n                    reader.readAsDataURL(input.files[0]);\n                }\n            },\n            clearSOSImage() {\n                this.sosImageData = null;\n                const preview = document.getElementById('sosImagePreview');\n                if (preview) preview.style.display = 'none';\n                const input = document.getElementById('sosFileInput');\n                if (input) input.value = '';\n            },\n\n            async triggerSOS(priorityOverride) {\n                const priority = priorityOverride || (this.emergencyCategory === 'critical' ? 'critical' : 'normal');\n                this.updateStatusUI('TRIGGERED', `${priority.toUpperCase()} SOS initiated`, '\ud83d\udea8');\n\n                // Check for manual overrides from Settings\n                const overLat = parseFloat(document.getElementById('overLat')?.value);\n                const overLng = parseFloat(document.getElementById('overLng')?.value);\n                let finalLat = this.currentLocation.lat;\n                let finalLng = this.currentLocation.lng;\n\n                if (!isNaN(overLat) && !isNaN(overLng) && (overLat !== 13.085 || overLng !== 80.272)) {\n                    finalLat = overLat;\n                    finalLng = overLng;\n                    console.log(\"[SOS] Using Manual Coordinate Override:\", finalLat, finalLng);\n                }\n\n                const customDetails = document.getElementById('inpLoc')?.value.trim() || document.getElementById('crit_address')?.value.trim() || '';\n\n                const payload = {\n                    phone: this.user ? this.user.phone : 'Unknown',\n                    device_id: this.user ? this.user.serial_number : 'Unknown',\n                    type: this.mode,\n                    lat: finalLat, \n                    lng: finalLng,\n                    details: JSON.stringify({\n                        needs: this.needs,\n                        route: this.needs.route || 'Not Defined',\n                        sector: customDetails,\n                        comments: customDetails\n                    }),\n                    image_data: this.sosImageData || this.needs.photo,\n                    urgency: priority === 'critical' ? 'critical' : 'high',\n                    sector: customDetails || 'Detected Location',\n                    priority: priority\n                };\n\n                if (navigator.onLine) {\n                    this.updateStatusUI('CONNECTING', 'Syncing with server...', '\ud83d\udce1');\n                    try {\n                        const res = await fetch(`${this.API}/rescue-requests`, {\n                            method: 'POST',\n                            headers: { 'Content-Type': 'application/json' },\n                            body: JSON.stringify(payload)\n                        });\n                        if (res.ok) {\n                            const result = await res.json();\n                            this.updateStatusUI('DELIVERED', `SOS #${result.id || ''} Delivered Successfully`, '\u2705');\n                            this.updateGlobalNotification('SOS Received', 'Your SOS request received by Server', '\ud83d\udce1', 'Received');\n                            this.toast('SOS DELIVERED', '\u2705');\n                            \n                            const minutes = this.sosBufferMinutes || 15;\n                            localStorage.setItem('sosLockedUntil', (Date.now() + minutes * 60 * 1000).toString());\n                            this.updateBufferCooldown();\n\n                            this.nav('Status');\n                        } else if (res.status === 429) {\n                            const errData = await res.json();\n                            this.updateStatusUI('BLOCKED', errData.error || 'SOS blocked by buffer time limit.', '\u23f3');\n                            this.toast(errData.error || 'You cannot submit an SOS at this time due to buffer restrictions.', '\u23f3', 2000);\n                            \n                            localStorage.setItem('sosLockedUntil', (Date.now() + 5 * 60 * 1000).toString());\n                            this.updateBufferCooldown();\n\n                            this.nav('Status');\n                            return;\n                        } else throw new Error('Server reject');\n                    } catch (e) {\n                        console.error(\"[SOS] Submit Error:\", e);\n                        this.queueForRetry(payload);\n                    }\n                } else {\n                    this.queueForRetry(payload);\n                }\n            },\n\n            queueForRetry(payload) {\n                this.updateStatusUI('OFFLINE', 'Waiting for network...', '\u23f3');\n                const queue = JSON.parse(localStorage.getItem('sos_retry_queue') || '[]');\n                queue.push({ payload, retries: 0, timestamp: Date.now() });\n                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));\n                this.toast('OFFLINE: SOS queued for retry', '\u23f3');\n            },\n\n            async processRetryQueue() {\n                const queue = JSON.parse(localStorage.getItem('sos_retry_queue') || '[]');\n                if (queue.length === 0) {\n                    setTimeout(() => this.processRetryQueue(), 5000);\n                    return;\n                }\n\n                if (navigator.onLine) {\n                    const item = queue[0];\n                    const waitTime = this.backoff[Math.min(item.retries, this.backoff.length - 1)];\n\n                    setTimeout(async () => {\n                        try {\n                            const res = await fetch(`${this.API}/rescue-requests`, {\n                                method: 'POST',\n                                headers: { 'Content-Type': 'application/json' },\n                                body: JSON.stringify(item.payload)\n                            });\n                            if (res.ok) {\n                                queue.shift();\n                                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));\n                                this.updateStatusUI('DELIVERED', 'Sync Complete: SOS Delivered', '\u2705');\n                                this.toast('SYNCED: SOS DELIVERED', '\u2705');\n                            } else if (res.status === 429) {\n                                queue.shift();\n                                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));\n                                const errData = await res.json();\n                                this.updateStatusUI('BLOCKED', 'Queued SOS dropped: Buffer active.', '\u23f3');\n                                this.toast('A queued SOS was dropped: ' + (errData.error || 'Buffer limit reached.'), '\u23f3', 2000);\n                            } else {\n                                item.retries++;\n                                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));\n                            }\n                        } catch (e) {\n                            item.retries++;\n                            localStorage.setItem('sos_retry_queue', JSON.stringify(queue));\n                        }\n                        this.processRetryQueue();\n                    }, waitTime);\n                } else {\n                    setTimeout(() => this.processRetryQueue(), 5000);\n                }\n            },\n\n            async submitRequest() {\n                await this.triggerSOS();\n            },\n\n            async refreshStatus() {\n                try {\n                    const res = await fetch(`${this.API}/rescue-requests/by-phone/${this.user.phone || this.user.serial_number}`);\n                    let data = await res.json();\n                    data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));\n                    this.renderStatus(data);\n                } catch (e) { }\n            },\n\n            renderStatus(items) {\n                const list = document.getElementById('statusList');\n                if (items.length === 0) return;\n\n                list.innerHTML = '';\n                items.forEach(it => {\n                    const card = document.createElement('div');\n                    card.className = 'config-card';\n                    card.style.marginBottom = '16px';\n                    const colors = { pending: 'var(--warning)', accepted: 'var(--primary)', completed: 'var(--secondary)' };\n                    let commentHtml = '';\n                    if (it.details) {\n                        try {\n                            const d = typeof it.details === 'string' ? JSON.parse(it.details) : it.details;\n                            if (d.comments) {\n                                commentHtml = `<p style=\"font-size:11px; color:var(--text-main); font-style:italic; margin-top:6px; border-left: 2px solid var(--primary); padding-left: 6px;\">\"${d.comments}\"</p>`;\n                            }\n                        } catch(e) {\n                            if (it.details.length > 0) commentHtml = `<p style=\"font-size:11px; color:var(--text-main); font-style:italic; margin-top:6px; border-left: 2px solid var(--primary); padding-left: 6px;\">\"${it.details}\"</p>`;\n                        }\n                    }\n                    \n                    let evidenceHtml = '';\n                    if (it.image_url) {\n                        evidenceHtml = `<div style=\"margin-top:8px; width:100%; height:100px; border-radius:8px; overflow:hidden; border:1px solid var(--border);\">\n                            <img src=\"http://${window.location.hostname}:3001${it.image_url}\" style=\"width:100%; height:100%; object-fit:cover;\">\n                        </div>`;\n                    }\n\n                    card.innerHTML = `\n                        <div style=\"display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;\">\n                            <span style=\"font-weight:900; font-size:16px;\">${it.type.toUpperCase()} RESCUE</span>\n                            <span style=\"font-size:11px; font-weight:900; background:${colors[it.status] || '#ccc'}; color:white; padding:4px 10px; border-radius:8px; text-transform:uppercase;\">${it.status}</span>\n                        </div>\n                        <p style=\"font-size:13px; color:var(--text-muted); font-weight:600;\">Sector: ${it.sector || 'Coordinate'}</p>\n                        <p style=\"font-size:11px; color:var(--text-muted); margin-top:4px;\">Request ID: #REQ-${it.id} \u2022 ${formatLocalTime(it.created_at)}</p>\n                        ${commentHtml}\n                        ${evidenceHtml}\n                    `;\n                    list.appendChild(card);\n                });\n            },\n\n            toast(msg, icon = '\u26a0\ufe0f', duration = 3500) {\n                const t = document.getElementById('toast');\n                document.getElementById('toastMsg').innerText = msg;\n                document.getElementById('toastIcon').innerText = icon;\n                t.style.display = 'flex';\n                setTimeout(() => t.style.display = 'none', duration);\n            },\n\n            showLoader(val) { document.getElementById('loader').style.display = val ? 'flex' : 'none'; },\n\n            setupKeyboardHandling() {\n                // Scroll active elements into view on focus\n                window.addEventListener('focusin', (e) => {\n                    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {\n                        setTimeout(() => {\n                            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });\n                        }, 300);\n                    }\n                });\n\n                // Adjust mockup height for Visual Viewport (handles mobile keyboard overlap)\n                if (window.visualViewport) {\n                    window.visualViewport.addEventListener('resize', () => {\n                        const mockup = document.querySelector('.phone-mockup');\n                        if (window.innerWidth <= 450) {\n                            mockup.style.height = `${window.visualViewport.height}px`;\n                        } else {\n                            mockup.style.height = '100dvh';\n                        }\n                    });\n                }\n            },\n\n            openCamera() {\n                document.getElementById('camInput').click();\n            },\n\n            handlePhoto(input) {\n                if (input.files && input.files[0]) {\n                    const reader = new FileReader();\n                    reader.onload = (e) => {\n                        this.needs.photo = e.target.result;\n                        document.getElementById('capturedImg').src = e.target.result;\n                        document.getElementById('photoPreview').style.display = 'block';\n                        this.toast('PHOTO ATTACHED', '\ud83d\udcf8');\n                    };\n                    reader.readAsDataURL(input.files[0]);\n                }\n            },\n\n            removePhoto() {\n                this.needs.photo = null;\n                document.getElementById('camInput').value = '';\n                document.getElementById('photoPreview').style.display = 'none';\n                this.toast('PHOTO REMOVED', '\ud83d\uddd1\ufe0f');\n            },\n\n            setRoute(route, btn) {\n                if (this.needs.route === route) {\n                    this.needs.route = null;\n                    btn.classList.remove('active');\n                    this.toast('ROUTE DESELECTED', '\ud83d\udccd');\n                } else {\n                    this.needs.route = route;\n                    document.querySelectorAll('.route-btn').forEach(b => b.classList.remove('active'));\n                    btn.classList.add('active');\n                    this.toast(`PREFERRING ${route.toUpperCase()}`, '\ud83d\ude80');\n                }\n            },\n\n            bootstrap() {\n                document.getElementById('dispName').innerText = this.user.name;\n                document.getElementById('profName').innerText = this.user.name;\n                document.getElementById('profId').innerText = `ID: ${this.user.serial_number || 'PUB-01'}`;\n                \n                window.addEventListener('online', () => this.updateNetUI(true));\n                window.addEventListener('offline', () => this.updateNetUI(false));\n                this.updateNetUI(navigator.onLine);\n            },\n\n            updateNetUI(online) {\n                const dot = document.getElementById('syncStatusDot');\n                const label = document.getElementById('dispSyncInterval');\n                if (dot) {\n                    dot.style.background = online ? 'var(--secondary)' : 'var(--danger)';\n                    dot.style.boxShadow = online ? '0 0 10px var(--secondary)' : '0 0 10px var(--danger)';\n                }\n                if (!online && label) {\n                    label.innerText = `RECONNECTING: ${this.refreshInterval}s`;\n                    label.style.color = 'var(--danger)';\n                } else if (label) {\n                    label.innerText = `${this.refreshInterval}s (Admin Set)`;\n                    label.style.color = 'var(--primary)';\n                }\n            }\n        };\n\n        window.core = core;\n        window.onload = () => core.init();\n    </script>\n</body>\n\n</html>";
+export const htmlString = `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+    <title>ARDMS-Public Support System</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            /* Professional Citizen-Focused Palette */
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --primary-light: #e0f2fe;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --white: #ffffff;
+            --dark: #1e293b;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body,
+        html {
+            height: 100%;
+            height: 100dvh;
+            font-family: 'Outfit', sans-serif;
+            background-color: #cbd5e1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Phone Mockup Wrapper */
+        .phone-mockup {
+            width: 400px;
+            max-width: 100%;
+            height: 100%;
+            height: 100dvh;
+            max-height: 850px;
+            background: #1e293b;
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: height 0.3s ease-out;
+        }
+
+        @media (max-width: 450px) {
+            .phone-mockup {
+                max-width: none;
+                max-height: none;
+                border-radius: 0;
+                padding: 0;
+            }
+        }
+
+        .phone-inner {
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            border-radius: 32px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        @media (max-width: 450px) {
+            .phone-inner {
+                border-radius: 0;
+            }
+        }
+
+        /* Screen Management */
+        .screen {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            background: var(--bg);
+            z-index: 10;
+            animation: fadeIn 0.3s ease-out;
+            overflow-y: auto;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Login Screen */
+        #screenLogin {
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        }
+
+        .brand-logo {
+            width: 90px;
+            height: 90px;
+            background: var(--surface);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: var(--shadow-lg);
+            font-size: 44px;
+            border: 2px solid var(--primary-light);
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .brand-name {
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .brand-tagline {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .input-group {
+            width: 100%;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-label {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+        }
+
+        /* Global App Header */
+        .app-header {
+            padding: 18px 20px;
+            background: white;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #f1f5f9;
+            z-index: 100;
+        }
+        .app-header-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--dark);
+            letter-spacing: -0.5px;
+        }
+
+        .selection-card {
+            background: white;
+            padding: 18px 15px;
+            border-radius: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .selection-card:active {
+            transform: scale(0.96);
+        }
+        .selection-card.selected {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            border-width: 3px !important;
+        }
+        .selection-card .icon-sphere {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: inset -3px -3px 10px rgba(0,0,0,0.15), 3px 3px 10px rgba(255,255,255,0.7);
+        }
+        
+        .btn-confirm-proceed {
+            background: #87cefa;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px 0 rgba(135, 206, 250, 0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .btn-confirm-proceed:disabled {
+            background: #e2e8f0;
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            background: var(--surface);
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 5px var(--primary-light);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 20px;
+            border-radius: var(--radius);
+            border: none;
+            background: var(--secondary);
+            color: white;
+            font-size: 17px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 12px 20px -5px rgba(16, 185, 129, 0.4);
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .login-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Dashboard Styles */
+        .header {
+            padding: 8px 20px 4px;
+            background: var(--surface);
+            z-index: 100;
+            text-align: center;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        .avatar-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            border: 1px solid var(--primary);
+        }
+
+        .header-title h1 {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--text-main);
+        }
+
+        .header-title p {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .sos-container {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            text-align: center;
+        }
+
+        .sos-btn-outer {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: rgba(244, 63, 94, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .sos-btn-inner {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: var(--danger);
+            border: 8px solid #fecaca;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 20px 40px rgba(244, 63, 94, 0.4);
+            transition: all 0.2s;
+            z-index: 2;
+        }
+
+        .sos-btn-inner:active {
+            transform: scale(0.92);
+            box-shadow: 0 10px 20px rgba(244, 63, 94, 0.4);
+        }
+
+        .sos-btn-inner span {
+            font-size: 44px;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .sos-btn-inner p {
+            font-size: 12px;
+            font-weight: 800;
+            opacity: 0.9;
+            margin-top: -5px;
+        }
+
+        .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--danger);
+            animation: pulse 2s infinite;
+            opacity: 0;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .mode-selector {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .mode-btn {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 10px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .mode-btn.active,
+        .route-btn.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .route-btn {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 6px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 75px;
+            flex: 1;
+            max-width: 90px;
+        }
+
+        .route-btn i {
+            font-size: 18px;
+            font-style: normal;
+        }
+
+        .route-btn span {
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+
+        .mode-btn i {
+            font-size: 20px;
+            font-style: normal;
+        }
+
+        .mode-btn span {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--text-main);
+            text-transform: uppercase;
+        }
+
+        /* Request Form Screen */
+        .form-content {
+            padding: 8px 16px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .section-label {
+            font-size: 9px;
+            font-weight: 900;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 4px;
+            margin-top: 6px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .config-card {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            margin-bottom: 6px;
+        }
+
+        .hist-item {
+            background: var(--surface);
+            border-radius: 15px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        .hist-item:hover {
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+        .hist-details h4 { font-size: 14px; font-weight: 900; color: var(--dark); margin: 0 0 4px 0; }
+        .hist-details p { font-size: 11px; font-weight: 700; color: var(--text-muted); margin: 0; }
+        .status-badge {
+            font-size: 10px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+        .status-completed { background: var(--secondary-light); color: var(--secondary); }
+        .status-active { background: var(--danger-light); color: var(--danger); }
+
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .config-row:last-child {
+            border-bottom: none;
+        }
+
+        .config-row span {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .counter {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg);
+            padding: 1px 6px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .counter button {
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--primary);
+            cursor: pointer;
+            padding: 0 3px;
+        }
+
+        .counter input {
+            width: 30px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 800;
+            font-family: inherit;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .counter input::-webkit-outer-spin-button,
+        .counter input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            padding: 12px;
+            border-radius: 14px;
+            border: none;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(14, 165, 233, 0.2);
+            margin-top: 6px;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            text-decoration: none;
+            gap: 4px;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link i {
+            font-size: 20px;
+            font-style: normal;
+        }
+
+        .nav-link span {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        /* Loader */
+        .full-loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 5px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Toast */
+        .toast {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 800;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            animation: pop 0.3s ease-out;
+            width: 85%;
+            text-align: center;
+            justify-content: center;
+        }
+
+        @keyframes pop {
+            from {
+                transform: translateX(-50%) translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mission Alerts */
+        .mission-alert-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            z-index: 20000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .mission-alert-card {
+            background: var(--surface);
+            width: 100%;
+            max-width: 320px;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--primary);
+            text-align: center;
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes bounceIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .alert-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .alert-icon {
+            font-size: 40px;
+        }
+
+        .alert-header h3 {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .mission-alert-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .mission-alert-card button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .mission-alert-card button:active {
+            transform: scale(0.95);
+        }
+
+        /* Location Status Bar */
+        .loc-status-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 800;
+            z-index: 100;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .loc-status-on {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: var(--text-main);
+        }
+
+        .loc-status-off {
+            background: rgba(254, 242, 242, 0.9);
+            border: 1px solid rgba(254, 202, 202, 0.5);
+            color: var(--danger);
+        }
+
+        .loc-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .loc-btn-fix {
+            background: var(--text-main);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 900;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+        /* Notification Panel */
+        .notification-panel {
+            width: 100%;
+            height: 10%;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: none;
+            flex-direction: column;
+            padding: 10px 20px;
+            overflow: hidden;
+            z-index: 1000;
+            position: relative;
+        }
+
+        .notification-panel.active {
+            display: flex;
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .notif-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            height: 100%;
+        }
+
+        .notif-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            border: 1px solid var(--primary);
+        }
+
+        .notif-content {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .notif-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notif-body {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notif-badge {
+            font-size: 9px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            background: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="phone-mockup">
+        <div class="phone-inner">
+            <div id="appHeader" class="app-header">
+                <div style="font-size: 19px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px;">Citizen SOS</div>
+                <div style="display: flex; align-items: center; gap: 12px; text-align: right;">
+                    <div style="display: flex; flex-direction: column;">
+                        <div id="headerUserName" style="font-size: 13px; font-weight: 900; color: #1e293b; line-height: 1.1;">...</div>
+                        <div id="headerUserDetails" style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: 2px;">...</div>
+                    </div>
+                    <div onclick="core.nav('Settings')" style="width:38px; height:38px; background:#f8fafc; border-radius:12px; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; cursor:pointer; transition: 0.2s;" onmousedown="this.style.transform='scale(0.9)'" onmouseup="this.style.transform='scale(1)'">
+                        <span style="font-size:18px;">👤</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Notification Panel (Top 10%) -->
+            <div id="globalNotificationPanel" class="notification-panel">
+                <div class="notif-item">
+                    <div class="notif-icon" id="globalNotifIcon">📡</div>
+                    <div class="notif-content">
+                        <div class="notif-title" id="globalNotifTitle">System Ready</div>
+                        <div class="notif-body" id="globalNotifBody">Connected to ARDMS Network</div>
+                    </div>
+                    <div class="notif-badge" id="globalNotifStatus">Live</div>
+                </div>
+            </div>
+
+            <!-- SCREEN 1: LOGIN -->
+            <div class="screen active" id="screenLogin">
+                <div class="brand-logo" style="background:none; box-shadow:none; border:none;">
+                    <img src="citizen_sos_logo_1778175366035.png"
+                        style="width:100%; height:100%; border-radius:24px; object-fit:cover;">
+                </div>
+                <h1 class="brand-name">ARDMS-Public Support System</h1>
+                <p class="brand-tagline">Emergency Assistance Hub</p>
+
+                <div class="input-group">
+                    <label class="input-label">Citizen Login ID</label>
+                    <input type="text" id="inpId" class="input-field" placeholder="Enter Phone or ID"
+                        value="918000000099">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Security PIN</label>
+                    <input type="password" id="inpPin" class="input-field" placeholder="Enter PIN" value="123456">
+                </div>
+
+                <button class="login-btn" onclick="core.login()">LOGIN</button>
+                <p id="loginError"
+                    style="color:var(--danger); font-size:12px; font-weight:800; margin-top:20px; display:none; text-align:center;">
+                    ACCESS DENIED - CHECK ID & PIN</p>
+                <p
+                    style="color:var(--text-muted); font-size:11px; margin-top:30px; text-align:center; font-weight:700;">
+                    Credentials are managed by local administration.</p>
+
+                <!-- Location Notification Bar -->
+                <div id="locStatusBar" class="loc-status-bar loc-status-on" style="display: none;">
+                    <div style="display:flex; align-items:center;">
+                        <div class="loc-dot" style="background:var(--secondary)"></div>
+                        <span>Location Auto detect ON</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCREEN 2: EMERGENCY TYPE SELECTION (COMPACT) -->
+            <div class="screen" id="screenEmergencyType">
+                <div class="header" style="text-align:center; padding: 25px 20px 10px 20px;">
+                    <h1 style="font-size:24px; font-weight:900; color:#1e293b; margin:0;">Select Emergency Type</h1>
+                    <p style="font-size:12px; font-weight:600; color:#64748b; margin:5px 0 0 0;">Choose the severity of your situation</p>
+                </div>
+
+                <div class="form-content" style="padding: 10px 20px; display: flex; flex-direction: column; gap: 15px; justify-content: center;">
+                    <div class="selection-card" id="btnSelectCritical" onclick="core.setEmergencyCategory('critical')" 
+                        style="background: #fff1f2; border: 1.5px solid #fecdd3;">
+                        <div class="icon-sphere" style="background: linear-gradient(145deg, #fb7185, #e11d48);">🔴</div>
+                        <div>
+                            <h2 style="color: #e11d48; font-size: 18px; font-weight: 900; margin: 0; text-transform: uppercase;">Critical SOS</h2>
+                            <p style="color: #9f1239; font-size: 11px; font-weight: 700; margin-top: 4px;">Immediate Response</p>
+                        </div>
+                    </div>
+
+                    <div class="selection-card" id="btnSelectNormal" onclick="core.setEmergencyCategory('normal')" 
+                        style="background: #fffbeb; border: 1.5px solid #fef3c7;">
+                        <div class="icon-sphere" style="background: linear-gradient(145deg, #fbbf24, #d97706);">🟡</div>
+                        <div>
+                            <h2 style="color: #d97706; font-size: 18px; font-weight: 900; margin: 0; text-transform: uppercase;">Normal SOS</h2>
+                            <p style="color: #92400e; font-size: 11px; font-weight: 700; margin-top: 4px;">Detailed Request</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="padding: 15px 20px; background: white;">
+                    <button id="btnConfirmProceed" class="btn-confirm-proceed" disabled
+                        onclick="core.proceedFromSelection()">Confirm & Proceed</button>
+                </div>
+
+                <div class="bottom-nav">
+                    <div class="nav-link active" onclick="core.nav('Home')"><i>🏠</i><span>HOME</span></div>
+                    <div class="nav-link" onclick="core.nav('Status')"><i>📋</i><span>HISTORY</span></div>
+                    <div class="nav-link" onclick="core.nav('Settings')"><i>⚙️</i><span>SETTINGS</span></div>
+                </div>
+            </div>
+
+            <!-- SCREEN 2B: CRITICAL SOS QUICK ACTIONS (RESTRUCTURED) -->
+            <div class="screen" id="screenCriticalSOS">
+                <input type="file" id="critFileInput" accept="image/*" capture="camera" style="display:none" onchange="core.handleSOSImage(this)">
+                
+                <div class="header" style="text-align:center; padding: 20px 20px;">
+                    <div style="display:flex; align-items:center; gap:10px; justify-content:center;">
+                        <div style="width:12px; height:12px; background:#e11d48; border-radius:50%; animation: pulse 1s infinite;"></div>
+                        <h1 style="font-size:22px; font-weight:900; color:#e11d48; margin:0;">Critical Emergency</h1>
+                    </div>
+                </div>
+
+                <div class="form-content" style="padding: 10px 20px; flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                    <!-- TOP: Emergency Buttons -->
+                    <div style="display:flex; gap:12px;">
+                        <div class="critical-action-btn" onclick="core.triggerQuickSOS('pregnancy')" 
+                            style="flex:1; background:white; border:2px solid #fb7185; padding:15px; border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+                            <div style="font-size:32px;">🤰</div>
+                            <h3 style="margin:0; font-size:14px; font-weight:900; color:#e11d48; text-align:center;">Pregnancy</h3>
+                        </div>
+
+                        <div class="critical-action-btn" onclick="core.triggerQuickSOS('medical')" 
+                            style="flex:1; background:white; border:2px solid #38bdf8; padding:15px; border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+                            <div style="font-size:32px;">🏥</div>
+                            <h3 style="margin:0; font-size:14px; font-weight:900; color:#0369a1; text-align:center;">Medical</h3>
+                        </div>
+                    </div>
+
+                    <!-- MID: Location & Media Details Bar -->
+                    <div style="margin-top:5px;">
+                        <div style="font-size:11px; font-weight:800; color:#64748b; text-align:left; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; padding-left:5px;">Location & Media Details</div>
+                        <div style="background:white; border-radius:16px; padding:12px; border:1px solid #e2e8f0; display:flex; gap:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+                            <textarea id="crit_address" placeholder="Enter full address, landmarks..." style="flex:1; border:none; background:transparent; font-size:14px; color:#1e293b; resize:none; height:70px; outline:none; font-family:inherit; padding:5px;"></textarea>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                 <!-- Photo Button -->
+                                 <div id="critPhotoBtn" onclick="core.captureNeed('photo')" style="width:55px; height:45px; border-radius:10px; border:1px solid #3b82f6; background:#eff6ff; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition: all 0.3s;">
+                                     <span style="font-size:18px;">📷</span>
+                                     <span id="critPhotoLabel" style="font-size:7px; font-weight:900; color:#2563eb; margin-top:1px;">PHOTO</span>
+                                 </div>
+                                 <!-- Audio Button -->
+                                 <div style="width:55px; height:45px; border-radius:10px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+                                     <span style="font-size:18px;">🎙️</span>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM: Main SOS Triggering -->
+                    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                        <div class="sos-btn-outer" style="width:180px; height:180px; margin: 0 auto;">
+                            <div class="pulse-ring" style="border-color:#e11d48;"></div>
+                            <div class="sos-btn-inner" style="background:linear-gradient(135deg, #fb7185, #e11d48); width:140px; height:140px;"
+                                onmousedown="core.startSOS('critical')" onmouseup="core.cancelSOS()"
+                                ontouchstart="core.startSOS('critical')" ontouchend="core.cancelSOS()">
+                                <span style="font-size:32px;">🚨</span>
+                                <p style="font-size:12px; margin-top:5px; font-weight:800;">MAIN TRIGGER</p>
+                            </div>
+                        </div>
+                        <p style="font-size:11px; color:#ef4444; font-weight:700; margin-top:15px; letter-spacing:1px; animation: blink 1.5s infinite;">HOLD TO DISPATCH HQ</p>
+                    </div>
+                </div>
+
+                <div class="bottom-nav">
+                    <div class="nav-link" onclick="core.nav('Home')"><i>🏠</i><span>HOME</span></div>
+                    <div class="nav-link" onclick="core.nav('Status')"><i>📋</i><span>HISTORY</span></div>
+                    <div class="nav-link" onclick="core.nav('Settings')"><i>⚙️</i><span>SETTINGS</span></div>
+                </div>
+            </div>
+
+            <!-- SCREEN 3: NORMAL SOS FORM (DETAILS) -->
+            <div class="screen" id="screenForm">
+                <div class="header" style="padding: 16px 20px; border-bottom: 1px solid var(--border);">
+                    <h1 style="font-size:24px; font-weight:900; margin:0;">Normal SOS Form</h1>
+                    <p style="font-size:13px; font-weight:700; color:var(--text-muted); margin:4px 0 0 0;">Capture Incident Intel</p>
+                </div>
+
+                <div class="form-content"
+                    style="padding: 20px 20px 0 20px; display: flex; flex-direction: column;">
+                    <div style="flex: 1; overflow-y: auto; padding-bottom: 10px; -webkit-overflow-scrolling: touch;">
+                        <div class="config-card"
+                            style="display: flex; gap: 12px; padding: 0; background: transparent; border: none; box-shadow: none; justify-content: center; margin-bottom: 20px;">
+                            <div class="route-btn" style="padding: 15px 25px;" onclick="core.setRoute('air', this)">
+                                <i>🚁</i><span>Air</span></div>
+                            <div class="route-btn" style="padding: 15px 25px;" onclick="core.setRoute('boat', this)">
+                                <i>🚤</i><span>Boat</span></div>
+                            <div class="route-btn" style="padding: 15px 25px;" onclick="core.setRoute('road', this)">
+                                <i>🚑</i><span>Road</span></div>
+                        </div>
+
+                        <div class="section-label" style="font-size: 11px; margin-bottom: 8px;">Affected People</div>
+                        <div class="config-card" style="margin-bottom: 15px; padding: 12px 16px;">
+                            <div class="config-row" style="padding: 5px 0;">
+                                <span style="font-size: 14px;">Total Count</span>
+                                <div class="counter" style="padding: 4px 12px;">
+                                    <button style="font-size: 18px;" onclick="core.updateNeeds('people', -1)">-</button>
+                                    <input type="number" id="n_people" value="1"
+                                        oninput="core.manualNeeds('people', this.value)"
+                                        style="width: 40px; font-size: 16px;">
+                                    <button style="font-size: 18px;" onclick="core.updateNeeds('people', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-label" style="font-size: 11px; margin-bottom: 8px;">Supplies Needed</div>
+                        <div class="config-card" style="margin-bottom: 15px; padding: 12px 16px;">
+                            <div class="config-row" style="padding: 5px 0;">
+                                <span style="font-size: 14px;">Food Rations</span>
+                                <div class="counter" style="padding: 4px 12px;">
+                                    <button style="font-size: 18px;" onclick="core.updateNeeds('food', -1)">-</button>
+                                    <input type="number" id="n_food" value="0" style="width: 40px; font-size: 16px;">
+                                    <button style="font-size: 18px;" onclick="core.updateNeeds('food', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="config-row" style="padding: 5px 0;">
+                                <span style="font-size: 14px;">Medical Kits</span>
+                                <div class="counter" style="padding: 4px 12px;">
+                                    <button style="font-size: 18px;" onclick="core.updateNeeds('med', -1)">-</button>
+                                    <input type="number" id="n_med" value="0" style="width: 40px; font-size: 16px;">
+                                    <button style="font-size: 18px;" onclick="core.updateNeeds('med', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="config-row" style="padding: 5px 0;">
+                                <span style="font-size: 14px;">Sanitary Supplies</span>
+                                <div class="counter" style="padding: 4px 12px;">
+                                    <button style="font-size: 18px;"
+                                        onclick="core.updateNeeds('sanitary', -1)">-</button>
+                                    <input type="number" id="n_sanitary" value="0"
+                                        style="width: 40px; font-size: 16px;">
+                                    <button style="font-size: 18px;"
+                                        onclick="core.updateNeeds('sanitary', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-label" style="margin-top: 10px; font-size: 11px; margin-bottom: 8px;">
+                            Location & Media Details</div>
+                        <div style="display: flex; gap: 10px; align-items: stretch; margin-bottom: 15px; height: 80px;">
+                            <div class="config-card" style="flex: 8; margin-bottom: 0; padding: 0; display: flex;">
+                                <textarea id="inpLoc" class="input-field" placeholder="Enter full address, landmarks..."
+                                    style="flex: 1; font-size:14px; padding:12px; resize: none; border-radius: 12px; border: none; outline: none;"></textarea>
+                            </div>
+                            <div style="flex: 2.5; display: flex; flex-direction: column; gap: 6px;">
+                                <input type="file" id="camInput" accept="image/*" capture="camera" style="display:none"
+                                    onchange="core.handlePhoto(this)">
+                                <div onclick="core.openCamera()" class="config-card"
+                                    style="margin: 0; padding: 8px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: var(--primary-light); border-color: var(--primary);">
+                                    <span style="font-size: 20px;">📷</span>
+                                    <span
+                                        style="font-size: 8px; font-weight: 900; color: var(--primary-dark)">ACTIVE</span>
+                                </div>
+                                <div onclick="core.toast('Voice input currently disabled', '🎙️')" class="config-card"
+                                    style="margin: 0; padding: 8px; flex: 1; display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0.5;">
+                                    <span style="font-size: 20px;">🎙️</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="photoPreview" style="display:none; margin-bottom: 15px; position: relative;">
+                            <img id="capturedImg" src=""
+                                style="width:100%; border-radius: 16px; border: 2px solid var(--primary);">
+                            <div onclick="core.removePhoto()"
+                                style="position: absolute; top: 10px; right: 10px; background: var(--danger); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; cursor: pointer;">
+                                ✕</div>
+                        </div>
+                    </div>
+                    
+                    <div style="flex-shrink: 0; padding: 15px 0; background: var(--bg);">
+                        <button class="submit-btn" style="padding: 18px; font-size: 16px;"
+                            onclick="core.nav('SOS')">CONFIRM & PROCEED</button>
+                    </div>
+                </div>
+
+                <div class="bottom-nav">
+                    <div class="nav-link" onclick="core.nav('Home')"><i>🏠</i><span>HOME</span></div>
+                    <div class="nav-link" onclick="core.nav('Status')"><i>📋</i><span>HISTORY</span></div>
+                    <div class="nav-link" onclick="core.nav('Settings')"><i>⚙️</i><span>SETTINGS</span></div>
+                </div>
+            </div>
+
+            <!-- SCREEN 4: MISSION HISTORY -->
+            <div class="screen" id="screenStatus">
+                <div class="header" style="display:flex; justify-content:space-between; align-items:center; padding: 20px 24px;">
+                    <h1 style="font-size:24px; font-weight:900; margin:0;">Mission History</h1>
+                    <div style="width:44px; height:44px; border-radius:15px; background:white; border:1px solid #eee; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--shadow-sm);" onclick="core.nav('Home')">
+                        <span style="font-size:20px; color:#64748b;">✕</span>
+                    </div>
+                </div>
+                
+                <div class="form-content" style="padding: 0 24px; flex: 1; overflow-y: auto; padding-bottom: 20px; -webkit-overflow-scrolling: touch;">
+                    <!-- Buffer Cooldown Status Banner -->
+                    <div id="bufferCooldownBanner" style="display:none; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1.5px solid #fca5a5; border-radius: 16px; padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm);">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <span style="font-size: 24px;">⏳</span>
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 800; color: #991b1b;">SOS Dispatch Buffer Lockout</h4>
+                                <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: 600; color: #b91c1c; line-height: 1.4;">To prevent accidental triggers or server overload, a cooling buffer is active. You cannot dispatch another emergency at this time.</p>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 10px; font-weight: 800; color: #ef4444; background: white; padding: 4px 8px; border-radius: 8px; border: 1px solid #fee2e2;">
+                                        LOCKOUT ENDS IN: <span id="bufferCooldownTimer">00:00</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tactical Search Bar -->
+                    <div style="background:var(--white); border:2px solid #eef2f6; border-radius:20px; padding:12px 18px; display:flex; align-items:center; gap:12px; margin-bottom:15px;">
+                        <i style="color:#6366f1; font-style:normal; font-size:18px;">🔍</i>
+                        <input type="text" id="statusSearch" placeholder="Search mission ID, type, sector..." 
+                            style="border:none; outline:none; flex:1; font-size:13px; font-weight:700; color:var(--dark);"
+                            oninput="core.renderStatusUI()">
+                    </div>
+
+                    <!-- Filter & PDF Row -->
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:15px;">
+                        <button class="filter-btn active" style="background:#0ea5e9; color:white; border:none; padding:8px 16px; border-radius:12px; font-weight:900; font-size:11px;" onclick="core.setHistoryFilter('all', this)">Full</button>
+                        <button class="filter-btn" style="background:#f1f5f9; color:#64748b; border:none; padding:8px 16px; border-radius:12px; font-weight:900; font-size:11px;" onclick="core.setHistoryFilter('today', this)">Day</button>
+                        <button class="filter-btn" style="background:#f1f5f9; color:#64748b; border:none; padding:8px 16px; border-radius:12px; font-weight:900; font-size:11px;" onclick="core.setHistoryFilter('weekly', this)">Week</button>
+                        <button class="filter-btn" style="background:#f1f5f9; color:#64748b; border:none; padding:8px 16px; border-radius:12px; font-weight:900; font-size:11px;" onclick="core.setHistoryFilter('yearly', this)">Year</button>
+                        <button onclick="core.downloadPDF()" style="margin-left:auto; background:#f43f5e; color:white; border:none; padding:8px 16px; border-radius:12px; font-weight:900; display:flex; align-items:center; gap:6px; font-size:11px;">
+                            <i>📄</i> PDF
+                        </button>
+                    </div>
+
+                    <div style="font-size:12px; font-weight:900; color:#ef4444; margin-bottom:12px; letter-spacing:0.5px; border-left:3px solid #ef4444; padding-left:8px;">MISSIONS ONGOING</div>
+                    <div id="ongoingList"></div>
+
+                    <div style="margin-top:20px; font-size:12px; font-weight:900; color:#0ea5e9; margin-bottom:12px; letter-spacing:0.5px; border-left:3px solid #0ea5e9; padding-left:8px;">COMPLETED MISSIONS</div>
+                    <div id="completedList"></div>
+                </div>
+
+                <div class="bottom-nav">
+                    <div class="nav-link" onclick="core.nav('Home')"><i>🏠</i><span>HOME</span></div>
+                    <div class="nav-link active" onclick="core.nav('Status')"><i>📋</i><span>HISTORY</span></div>
+                    <div class="nav-link" onclick="core.nav('Settings')"><i>⚙️</i><span>SETTINGS</span></div>
+                </div>
+            </div>
+
+            <!-- SCREEN 5: SETTINGS -->
+            <div class="screen" id="screenSettings">
+                <div class="header">
+                    <h1 style="font-size:24px; font-weight:900;">Account Profile</h1>
+                </div>
+                <div class="form-content">
+                    <div style="text-align:center; margin-bottom:30px;">
+                        <div class="avatar-box"
+                            style="width:100px; height:100px; margin:0 auto 20px; font-size:44px; border-radius:30px;">
+                            👤</div>
+                        <h2 id="profName" style="font-size:22px; font-weight:900;">User Name</h2>
+                        <p id="profId" style="font-size:14px; color:var(--text-muted); font-weight:700;">ID: PUB-01</p>
+                    </div>
+
+                    <div class="section-label" style="text-align:left; margin-top:5px; margin-bottom:10px; color:var(--primary);">Developer Tools (Testing)</div>
+                    <div class="config-card" style="margin-bottom:20px; border: 2px solid var(--primary-light);">
+                        <div class="config-row" style="padding:15px 20px;">
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="font-size:14px; font-weight:800;">Location Override</span>
+                                <span style="font-size:10px; color:var(--text-muted);">Use manual coords for SOS</span>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" id="overLat" value="13.085" step="0.001" style="width:75px; font-size:12px; padding:6px; border-radius:6px; border:1px solid var(--primary); background:white; color:var(--dark);">
+                                <input type="number" id="overLng" value="80.272" step="0.001" style="width:75px; font-size:12px; padding:6px; border-radius:6px; border:1px solid var(--primary); background:white; color:var(--dark);">
+                            </div>
+                        </div>
+                        <div class="config-row" style="padding:15px 20px; border:none;">
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="font-size:14px; font-weight:800;">Simulation Mode</span>
+                                <span style="font-size:10px; color:var(--text-muted);">Simulate movement for testing</span>
+                            </div>
+                            <button onclick="core.toggleSimulation()" id="btnSim" style="background:#cbd5e1; border:none; width:44px; height:24px; border-radius:20px; position:relative; cursor:pointer; transition:0.3s;">
+                                <div style="width:18px; height:18px; background:white; border-radius:50%; position:absolute; top:3px; left:3px; transition:0.3s;"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="config-card" style="padding:0;">
+                        <div class="config-row" style="padding:18px 20px;">
+                            <span>Notifications</span>
+                            <span style="color:var(--secondary); font-weight:900;">ENABLED</span>
+                        </div>
+                        <div class="config-row" style="padding:18px 20px;">
+                            <span>Language</span>
+                            <span style="color:var(--text-muted); font-weight:700;">English</span>
+                        </div>
+                        <div class="config-row" style="padding:18px 20px; border-bottom:none; background: var(--primary-light);">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div id="syncStatusDot" style="width:10px; height:10px; border-radius:50%; background:var(--secondary); box-shadow:0 0 10px var(--secondary);"></div>
+                                <span style="font-size:14px; font-weight:800;">Network Sync</span>
+                            </div>
+                            <span id="dispSyncInterval" style="color:var(--primary); font-weight:900; font-size:12px;">FETCHING...</span>
+                        </div>
+                    </div>
+
+                    <button class="submit-btn" style="background:#fee2e2; color:var(--danger); box-shadow:none;"
+                        onclick="core.logout()">SECURE LOGOUT</button>
+
+                    <p
+                        style="text-align:center; margin-top:30px; font-size:11px; font-weight:700; color:var(--text-muted);">
+                        ARDMS-Public Support System v3.1.0<br>CITIZEN SUPPORT OPERATIONS
+                    </p>
+                </div>
+                <div class="bottom-nav">
+                    <div class="nav-link" onclick="core.nav('Home')"><i>🏠</i><span>HOME</span></div>
+                    <div class="nav-link" onclick="core.nav('Status')"><i>📋</i><span>HISTORY</span></div>
+                    <div class="nav-link active" onclick="core.nav('Settings')"><i>⚙️</i><span>SETTINGS</span></div>
+                </div>
+            </div>
+
+            <!-- LOCATION POPUP -->
+            <div id="locationPopup"
+                style="display:none; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.98); z-index:9999; justify-content:center; align-items:center; flex-direction:column; padding:30px; text-align:center;">
+                <div style="font-size:60px; margin-bottom:20px; animation: pulse 2s infinite;">📍</div>
+                <h2 style="color:white; font-size:24px; font-weight:900; margin-bottom:10px;">Location Access Required</h2>
+                <p style="color:var(--text-muted); font-size:14px; font-weight:600; margin-bottom:30px;">To ensure accurate rescue response, we need your real-time coordinates. Browser permissions may be required.</p>
+                
+                <button class="submit-btn" style="width:100%; box-shadow:none; margin-bottom:12px;"
+                    onclick="core.startLocationTracking()">GRANT AUTO ACCESS</button>
+                
+                <div style="width:100%; margin: 15px 0; display: flex; align-items: center; gap: 10px;">
+                    <hr style="flex:1; border:0; border-top:1px solid #334155;">
+                    <span style="color:#64748b; font-size:12px; font-weight:800;">OR MANUALLY SET</span>
+                    <hr style="flex:1; border:0; border-top:1px solid #334155;">
+                </div>
+
+                <button class="submit-btn" style="width:100%; background:#475569; color:white; box-shadow:none; margin-bottom:12px;"
+                    onclick="document.getElementById('locationPopup').style.display='none'; core.toast('Test Mode Enabled', '🧪');">SIMULATE (TEST MODE)</button>
+
+                <div style="display:flex; gap:10px; width:100%; margin-bottom:10px;">
+                    <input type="number" id="manualLat" placeholder="Latitude" step="0.00001" style="flex:1; background:#1e293b; border:1px solid #334155; color:white; padding:12px; border-radius:10px; font-size:13px;">
+                    <input type="number" id="manualLng" placeholder="Longitude" step="0.00001" style="flex:1; background:#1e293b; border:1px solid #334155; color:white; padding:12px; border-radius:10px; font-size:13px;">
+                </div>
+                <button class="submit-btn" style="width:100%; background:var(--secondary); color:white; box-shadow:none;"
+                    onclick="core.setManualLocation()">USE MANUAL COORDINATES</button>
+                
+                <p style="margin-top:20px; color:#64748b; font-size:11px;">Current: <span id="curCoordDisplay">13.085, 80.272</span> (Chennai Default)</p>
+            </div>
+
+            <!-- LOADER -->
+            <div class="full-loader" id="loader">
+                <div class="spinner"></div>
+            </div>
+
+            <!-- TOAST -->
+            <div id="toast" class="toast">
+                <span id="toastIcon">⚠️</span>
+                <span id="toastMsg">Notification Message</span>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+
+        // --- OFFLINE SYNC MANAGER ---
+        const originalFetch = window.fetch;
+        window.offlineQueue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
+        window.fetch = async function(url, options) {
+            const isMutation = options && ['POST', 'PUT', 'DELETE'].includes(options.method);
+            if (!navigator.onLine && isMutation) {
+                console.log('[OFFLINE] Queuing request', url);
+                window.offlineQueue.push({ url, options });
+                localStorage.setItem('offline_queue', JSON.stringify(window.offlineQueue));
+                return new Response(JSON.stringify({ success: true, offline: true, id: Date.now() }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+            }
+            
+            try {
+                const res = await originalFetch(url, options);
+                if (options === undefined || options.method === 'GET' || !options.method) {
+                    if (url.includes('/history') || url.includes('/rescue-requests') || url.includes('/dashboard-stats') || url.includes('/zones') || url.includes('/users')) {
+                        const clone = res.clone();
+                        clone.text().then(data => {
+                            localStorage.setItem('cache_' + url, data);
+                        }).catch(() => {});
+                    }
+                }
+                return res;
+            } catch (e) {
+                if (!navigator.onLine) {
+                    if (isMutation) {
+                        window.offlineQueue.push({ url, options });
+                        localStorage.setItem('offline_queue', JSON.stringify(window.offlineQueue));
+                        return new Response(JSON.stringify({ success: true, offline: true, id: Date.now() }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+                    } else {
+                        const cached = localStorage.getItem('cache_' + url);
+                        if (cached) {
+                            return new Response(cached, { status: 200, headers: { 'Content-Type': 'application/json' } });
+                        }
+                    }
+                }
+                throw e;
+            }
+        };
+
+        window.addEventListener('online', async () => {
+            console.log('[ONLINE] Syncing offline queue...');
+            const queue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
+            window.offlineQueue = [];
+            localStorage.setItem('offline_queue', '[]');
+            for (const req of queue) {
+                try {
+                    await originalFetch(req.url, req.options);
+                } catch (e) {
+                    console.error('Failed to sync', req, e);
+                }
+            }
+            if (window.core && window.core.refresh) window.core.refresh();
+            if (window.core && window.core.updateNetUI) window.core.updateNetUI(true);
+        });
+        // -----------------------------
+
+
+        // Timezone conversion helpers
+        function formatLocalTime(dbTimeStr) {
+            if (!dbTimeStr) return '--:--';
+            let t = dbTimeStr.trim();
+            if (!t.includes('T')) t = t.replace(' ', 'T');
+            if (!t.endsWith('Z') && !t.includes('+')) t += 'Z';
+            try {
+                const d = new Date(t);
+                if (isNaN(d)) return dbTimeStr;
+                return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } catch(e) { return dbTimeStr; }
+        }
+
+        function formatLocalDate(dbTimeStr) {
+            if (!dbTimeStr) return '--/--/----';
+            let t = dbTimeStr.trim();
+            if (!t.includes('T')) t = t.replace(' ', 'T');
+            if (!t.endsWith('Z') && !t.includes('+')) t += 'Z';
+            try {
+                const d = new Date(t);
+                if (isNaN(d)) return dbTimeStr;
+                return d.toLocaleString();
+            } catch(e) { return dbTimeStr; }
+        }
+
+        const core = {
+            API: \`http://\${window.location.hostname || 'localhost'}:3001/api\`,
+            WS_URL: \`ws://\${window.location.hostname || 'localhost'}:3001\`,
+            user: {
+                name: "Arjun Singh",
+                serial_number: "PUB-1024",
+                phone: "918000000099"
+            },
+            sosTimer: null,
+            socket: null,
+            mode: 'medical',
+            needs: { people: 1, food: 0, med: 0, sanitary: 0, photo: null, route: null },
+            retryQueue: [],
+            backoff: [3000, 7000, 12000],
+            currentLocation: { lat: 13.085, lng: 80.272 },
+            isSimulating: false,
+            mediaCapabilities: {
+                image: true,
+                mic: true
+            },
+            sosBufferMinutes: 15,
+
+            updateBufferCooldown() {
+                const banner = document.getElementById('bufferCooldownBanner');
+                const timerSpan = document.getElementById('bufferCooldownTimer');
+                if (!banner || !timerSpan) return;
+
+                const lockedUntil = parseInt(localStorage.getItem('sosLockedUntil') || '0');
+                const remaining = Math.max(0, Math.floor((lockedUntil - Date.now()) / 1000));
+
+                if (remaining > 0) {
+                    banner.style.display = 'block';
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    timerSpan.innerText = \`\${mins.toString().padStart(2, '0')}:\${secs.toString().padStart(2, '0')}\`;
+                } else {
+                    banner.style.display = 'none';
+                }
+            },
+
+            setManualLocation() {
+                const lat = parseFloat(document.getElementById('manualLat').value);
+                const lng = parseFloat(document.getElementById('manualLng').value);
+                if (isNaN(lat) || isNaN(lng)) {
+                    this.toast('PLEASE ENTER VALID COORDINATES', '⚠️');
+                    return;
+                }
+                this.currentLocation.lat = lat;
+                this.currentLocation.lng = lng;
+                
+                // Also update the Settings fields if they exist
+                const overLat = document.getElementById('overLat');
+                const overLng = document.getElementById('overLng');
+                if (overLat) overLat.value = lat;
+                if (overLng) overLng.value = lng;
+
+                document.getElementById('locationPopup').style.display = 'none';
+                this.renderLocationBar('on');
+                this.toast('LOCATION SET MANUALLY', '📍');
+            },
+
+            toggleSimulation() {
+                this.isSimulating = !this.isSimulating;
+                this.toast(\`SIMULATION \${this.isSimulating ? 'ENABLED' : 'DISABLED'}\`, '🧪');
+                if (this.isSimulating) {
+                    this.startLocationSimulation();
+                } else {
+                    if (this.simTimer) clearInterval(this.simTimer);
+                    this.startLocationTracking();
+                }
+            },
+
+            startLocationSimulation() {
+                if (this.simTimer) clearInterval(this.simTimer);
+                if (this.locationWatcher) navigator.geolocation.clearWatch(this.locationWatcher);
+                // Simulation mode simply locks the current coordinates without drifting
+                console.log('[SIM] Locked Lat:', this.currentLocation.lat, 'Lng:', this.currentLocation.lng);
+            },
+            locationWatcher: null,
+
+            startLocationTracking() {
+                if (!navigator.geolocation) {
+                    this.toast("Geolocation not supported", "🚫");
+                    return;
+                }
+
+                document.getElementById('locationPopup').style.display = 'none';
+
+                this.locationWatcher = navigator.geolocation.watchPosition(
+                    (position) => {
+                        this.currentLocation.lat = position.coords.latitude;
+                        this.currentLocation.lng = position.coords.longitude;
+                        document.getElementById('locationPopup').style.display = 'none';
+                    },
+                    (error) => {
+                        console.error("Location error:", error);
+                        document.getElementById('locationPopup').style.display = 'flex';
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+                this.updateLocationStatus();
+            },
+
+            updateLocationStatus() {
+                const bar = document.getElementById('locStatusBar');
+                if (!bar) return;
+                bar.style.display = 'flex';
+
+                if (!navigator.geolocation) {
+                    this.renderLocationBar('unsupported');
+                    return;
+                }
+
+                if (window.location.protocol === 'file:') {
+                    // file:// protocol often blocks geolocation
+                    navigator.geolocation.getCurrentPosition(
+                        () => this.renderLocationBar('on'),
+                        (err) => {
+                            if (err.code === 1) this.renderLocationBar('denied');
+                            else this.renderLocationBar('file_off');
+                        },
+                        { timeout: 3000 }
+                    );
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    () => this.renderLocationBar('on'),
+                    (err) => {
+                        if (err.code === 1) this.renderLocationBar('denied');
+                        else this.renderLocationBar('off');
+                    },
+                    { timeout: 5000, enableHighAccuracy: true }
+                );
+            },
+
+            renderLocationBar(status) {
+                const bar = document.getElementById('locStatusBar');
+                if (!bar) return;
+
+                let message = "Location Auto detect ON";
+                let btn = "";
+                let type = "on";
+                let dotColor = "var(--secondary)";
+
+                switch (status) {
+                    case 'on':
+                        type = "on";
+                        break;
+                    case 'denied':
+                        message = "Location Access Denied - check browser settings";
+                        btn = '<button class="loc-btn-fix" onclick="core.startLocationTracking()">ALLOW</button>';
+                        type = "off";
+                        dotColor = "var(--danger)";
+                        break;
+                    case 'file_off':
+                        message = "Browser blocks location on local files (file://)";
+                        btn = '<button class="loc-btn-fix" onclick="window.alert(\'To fix this, please run the app through a local server or use the mobile APK.\')">HELP</button>';
+                        type = "off";
+                        dotColor = "var(--warning)";
+                        break;
+                    case 'unsupported':
+                        message = "Geolocation not supported in this browser";
+                        type = "off";
+                        dotColor = "var(--danger)";
+                        break;
+                    default:
+                        message = "Location setting OFF - need to turn on";
+                        btn = '<button class="loc-btn-fix" onclick="core.startLocationTracking()">ENABLE</button>';
+                        type = "off";
+                        dotColor = "var(--danger)";
+                }
+
+                bar.className = \`loc-status-bar loc-status-\${type === 'on' ? 'on' : 'off'}\`;
+                bar.innerHTML = \`
+                    <div style="display:flex; align-items:center;">
+                        <div class="loc-dot" style="background:\${dotColor}"></div>
+                        <span style="margin-right:8px;">\${message}</span>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        \${btn}
+                        <button class="loc-btn-fix" style="background:var(--primary); color:white; border:none;" onclick="core.showScreen('screenSettings')">MANUAL</button>
+                    </div>
+                \`;
+            },
+
+            async init() {
+                this.setupKeyboardHandling();
+                this.bootstrap(); // Initialize header with dummy data or state
+                const savedToken = localStorage.getItem('citizen_token');
+                const savedUser = localStorage.getItem('citizen_user');
+                if (savedToken && savedUser) {
+                    this.showLoader(true);
+                    try {
+                        const res = await fetch(\`\${this.API}/auth/verify\`, {
+                            headers: { 'Authorization': \`Bearer \${savedToken}\` }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.user = data.user;
+                            localStorage.setItem('citizen_user', JSON.stringify(this.user));
+                            this.showScreen('screenEmergencyType');
+                            this.bootstrap();
+                            this.connectGateway();
+                            this.startLocationTracking();
+                            document.getElementById('globalNotificationPanel').classList.add('active');
+                            this.updateGlobalNotification('System Ready', 'Connected to Rescue Network', '📡', 'Live');
+                        } else {
+                            this.logout();
+                        }
+                    } catch (e) {
+                        // Offline mode: proceed with local data if network fails
+                        console.log("Offline mode, relying on local session");
+                        this.user = JSON.parse(savedUser);
+                        this.showScreen('screenEmergencyType');
+                        this.bootstrap();
+                        this.connectGateway();
+                        this.startLocationTracking();
+                    } finally {
+                        this.showLoader(false);
+                    }
+                }
+                this.updateLocationStatus();
+                setInterval(() => this.updateLocationStatus(), 10000);
+                await this.fetchSettings();
+                this.updateBufferCooldown();
+                setInterval(() => this.updateBufferCooldown(), 1000);
+                this.processRetryQueue();
+            },
+
+            async fetchSettings() {
+                try {
+                    const res = await fetch(\`\${this.API}/settings\`);
+                    const settings = await res.json();
+                    if (settings.system_name) {
+                        const brandEls = document.querySelectorAll('.brand-name');
+                        brandEls.forEach(el => el.innerText = settings.system_name);
+                    }
+                    if (settings.retry_intervals) {
+                        const intervals = settings.retry_intervals.split(',').map(s => parseInt(s.trim()) * 1000);
+                        if (intervals.length > 0 && !intervals.some(isNaN)) {
+                            this.backoff = intervals;
+                            console.log('[SYNC] Retry intervals updated:', this.backoff);
+                        }
+                    }
+
+                    if (settings.refresh_interval) {
+                        const newInterval = parseInt(settings.refresh_interval);
+                        if (newInterval > 0 && newInterval !== this.refreshInterval) {
+                            console.log(\`[SYNC] Refresh interval updated to \${newInterval}s\`);
+                            this.refreshInterval = newInterval;
+                            const el = document.getElementById('dispSyncInterval');
+                            if (el) el.innerText = this.refreshInterval + 's (Admin Set)';
+                        }
+                    }
+
+                    if (settings.public_image_enabled !== undefined) {
+                        this.mediaCapabilities.image = settings.public_image_enabled === 'true';
+                    }
+                    if (settings.public_mic_enabled !== undefined) {
+                        this.mediaCapabilities.mic = settings.public_mic_enabled === 'true';
+                    }
+                    if (settings.sos_buffer_minutes !== undefined) {
+                        this.sosBufferMinutes = parseInt(settings.sos_buffer_minutes) || 15;
+                    }
+                    this.applyMediaSettings();
+
+                } catch (e) { console.error('[SYNC] Failed to fetch settings', e); }
+            },
+
+            applyMediaSettings() {
+                // Apply Image/Camera restrictions
+                const critPhotoBtn = document.getElementById('critPhotoBtn');
+                if (critPhotoBtn) {
+                    critPhotoBtn.style.opacity = this.mediaCapabilities.image ? '1' : '0.5';
+                    critPhotoBtn.style.pointerEvents = this.mediaCapabilities.image ? 'auto' : 'none';
+                }
+                const photoCard = document.querySelector('div[onclick="core.openCamera()"]');
+                if (photoCard) {
+                    photoCard.style.opacity = this.mediaCapabilities.image ? '1' : '0.5';
+                    photoCard.style.pointerEvents = this.mediaCapabilities.image ? 'auto' : 'none';
+                }
+
+                // Apply Mic restrictions
+                const micCard = document.querySelector('div[onclick*="Voice input currently disabled"]');
+                if (micCard) {
+                    micCard.style.opacity = this.mediaCapabilities.mic ? '1' : '0.5';
+                    micCard.style.pointerEvents = this.mediaCapabilities.mic ? 'auto' : 'none';
+                }
+            },
+
+            async login() {
+                const phone = document.getElementById('inpId').value;
+                const pin = document.getElementById('inpPin').value;
+                const err = document.getElementById('loginError');
+
+                let localDeviceId = localStorage.getItem('citizen_device_id');
+                if (!localDeviceId) {
+                    localDeviceId = 'PUBDEV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                    localStorage.setItem('citizen_device_id', localDeviceId);
+                }
+
+                console.log('[LOGIN] Attempting login...', { idOrPhone: phone, pin, deviceId: localDeviceId });
+                this.showLoader(true);
+                try {
+                    const res = await fetch(\`\${this.API}/auth/login\`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idOrPhone: phone, pin, deviceId: localDeviceId })
+                    });
+                    console.log('[LOGIN] Response status:', res.status);
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.user = data.user;
+                        localStorage.setItem('citizen_token', data.token);
+                        localStorage.setItem('citizen_user', JSON.stringify(this.user));
+                        this.showScreen('screenEmergencyType');
+                        this.bootstrap();
+                        this.connectGateway();
+                        this.startLocationTracking();
+                        document.getElementById('globalNotificationPanel').classList.add('active');
+                        this.updateGlobalNotification('Welcome', \`Logged in as \${this.user.name}\`, '👤', 'Live');
+                    } else {
+                        const errData = await res.json();
+                        err.innerText = errData.error || "INVALID CREDENTIALS";
+                        err.style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error("Login failed", e);
+                    err.innerText = "NETWORK ERROR OR SERVER DOWN";
+                    err.style.display = 'block';
+                } finally {
+                    this.showLoader(false);
+                }
+            },
+
+            logout() {
+                localStorage.removeItem('citizen_token');
+                localStorage.removeItem('citizen_user');
+                location.reload();
+            },
+
+            refreshInterval: 15,
+            syncTimer: null,
+
+            bootstrap() {
+                document.getElementById('dispName').innerText = this.user.name;
+                document.getElementById('profName').innerText = this.user.name;
+                document.getElementById('profId').innerText = \`ID: \${this.user.serial_number || 'PUB-01'}\`;
+                
+                // Update Header
+                const headerName = document.getElementById('headerUserName');
+                const headerDetails = document.getElementById('headerUserDetails');
+                if (headerName) headerName.innerText = this.user.name;
+                if (headerDetails) {
+                    headerDetails.innerText = \`ID: \${this.user.serial_number || 'PUB-01'} | MOB: \${this.user.phone || 'N/A'}\`;
+                }
+
+                const runSync = async () => {
+                    await this.fetchSettings();
+                    await this.fetchMyHistory();
+                    this.syncTimer = setTimeout(runSync, this.refreshInterval * 1000);
+                };
+                runSync();
+            },
+
+            updateGlobalNotification(title, body, icon, status) {
+                const panel = document.getElementById('globalNotificationPanel');
+                if (!panel) return;
+                
+                const titleEl = document.getElementById('globalNotifTitle');
+                const bodyEl = document.getElementById('globalNotifBody');
+                const iconEl = document.getElementById('globalNotifIcon');
+                const statusEl = document.getElementById('globalNotifStatus');
+
+                if (titleEl) titleEl.innerText = title;
+                if (bodyEl) bodyEl.innerText = body;
+                if (iconEl) iconEl.innerText = icon || '📡';
+                if (statusEl) {
+                    statusEl.innerText = status || 'Live';
+                    statusEl.style.background = status === 'Critical' ? 'var(--danger)' : 'var(--primary)';
+                }
+
+                panel.classList.add('active');
+            },
+
+            connectGateway() {
+                console.log('[GATEWAY] Connecting...');
+                this.socket = new WebSocket(this.WS_URL);
+
+                this.socket.onopen = async () => {
+                    console.log('[GATEWAY] Connected');
+                    this.socket.send(JSON.stringify({
+                        type: 'REGISTER',
+                        deviceId: this.user.serial_number || this.user.phone,
+                        room: 'public_broadcast'
+                    }));
+                    await this.fetchSettings(); // Refresh settings on reconnect
+                };
+
+                this.socket.onmessage = (msg) => {
+                    const { type, data } = JSON.parse(msg.data);
+                    this.handleGatewayMessage(type, data);
+                };
+
+                this.socket.onclose = () => {
+                    console.log('[GATEWAY] Offline, reconnecting in 5s...');
+                    setTimeout(() => this.connectGateway(), 5000);
+                };
+            },
+
+            getDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371;
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            },
+
+            handleGatewayMessage(type, data) {
+                if (type === 'USER_DISABLED') {
+                    this.toast('ACCOUNT DISABLED BY ADMIN', '🚫');
+                    setTimeout(() => this.logout(), 2000);
+                }
+                if (type === 'RESCUE_REQUEST_COMPLETED') {
+                    // Check if it's our request (the system sync might be more robust, but this provides instant feedback)
+                    this.updateStatusUI('COMPLETED', 'Mission accomplished by Citizen ARDMS Team', '✅');
+                    this.toast('Citizen ARDMS operation marked as completed!', '✅');
+                    if (this.rescuerMarker) {
+                        this.map.removeLayer(this.rescuerMarker);
+                        this.rescuerMarker = null;
+                    }
+                }
+                if (type === 'RESCUER_UPDATE' || type === 'LIVE_LOCATION_UPDATE') {
+                    // Check if this update comes from the assigned rescuer team
+                    // For now, if there is an active mission, we show any incoming rescuer location as the incoming team
+                    // In a production system, we'd check if the data.deviceId belongs to the assigned group
+                    
+                    const dist = this.getDistance(this.currentLocation.lat, this.currentLocation.lng, data.lat, data.lng);
+                    
+                    if (dist < 1) {
+                        this.updateStatusUI('NEARBY', \`Rescuer \${data.name || 'Team'} is arriving (\${dist.toFixed(1)}km)\`, '🏢');
+                        this.updateGlobalNotification('Rescuer Nearby', \`\${data.name || 'Team'} is arriving now!\`, '🏢', 'Near');
+                    } else if (dist < 5) {
+                        this.updateStatusUI('APPROACHING', \`Rescuer \${data.name || 'Team'} in transit (\${dist.toFixed(1)}km)\`, '🚁');
+                        this.updateGlobalNotification('Rescuer En Route', \`\${data.name || 'Team'} is \${dist.toFixed(1)}km away\`, '🚁', 'Moving');
+                    } else {
+                        this.updateStatusUI('DISPATCHED', \`Team assigned: \${data.name || 'Team'} (\${dist.toFixed(1)}km)\`, '🚨');
+                        this.updateGlobalNotification('Team Dispatched', \`\${data.name || 'Team'} assigned to your SOS\`, '🚨', 'Assigned');
+                    }
+
+                    // Plot the live rescuer location on the map
+                    if (!this.rescuerMarker) {
+                        const rIcon = L.divIcon({ 
+                            className: 'rescuer-marker', 
+                            html: \`<div style="background:url('official_rescuer_icon.png'); background-size:cover; width:48px; height:48px; border-radius:50%; border:3px solid white; box-shadow:0 0 20px rgba(220, 38, 38, 0.6);"></div>\`, 
+                            iconSize: [48, 48] 
+                        });
+                        this.rescuerMarker = L.marker([data.lat, data.lng], { icon: rIcon }).addTo(this.map);
+                    } else {
+                        this.rescuerMarker.setLatLng([data.lat, data.lng]);
+                    }
+                    
+                    // Keep both markers in view
+                    const bounds = L.latLngBounds([[this.currentLocation.lat, this.currentLocation.lng], [data.lat, data.lng]]);
+                    this.map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+                }
+                if (type === 'RESCUE_REQUEST_ACCEPTED') {
+                    if (data.phone === this.user.phone || data.device_id === this.user.serial_number) {
+                        this.updateStatusUI('TEAM_ASSIGNED', 'Rescue team has been dispatched!', '🚨');
+                        this.updateGlobalNotification('Mission Accepted', \`Team "\${data.assignedName}" is en route\`, '🚨', 'Active');
+                        this.toast('MISSION ACCEPTED: TEAM EN ROUTE', '✅');
+                        this.showMissionAlert(\`TEAM DISPATCHED\`, \`The rescue team "\${data.assignedName}" is now moving to your location. Stay calm and follow instructions.\`);
+                        this.fetchMyHistory();
+                    }
+                }
+                if (type === 'RESCUE_REQUEST_COMPLETED') {
+                    if (data.phone === this.user.phone || data.device_id === this.user.serial_number) {
+                        this.updateStatusUI('COMPLETED', 'Rescue mission successful!', '✅');
+                        this.toast('MISSION COMPLETE', '🏅');
+                        this.showMissionAlert(\`MISSION COMPLETED\`, \`You are safe! The rescue operation has been marked as successful. Reach out if you need more help.\`);
+                        this.fetchMyHistory();
+                    }
+                }
+                if (type === 'ADMIN_MESSAGE') {
+                    this.showMissionAlert('MESSAGE FROM ADMIN', data.message);
+                    this.toast('NEW MESSAGE RECEIVED', '💬');
+                }
+                if (type === 'NEW_COMMAND') {
+                    this.showMissionAlert('NEW MISSION ASSIGNED', \`A new mission "\${data.desc || 'Rescue Task'}" has been assigned to you/your group.\`);
+                    this.toast('MISSION ASSIGNED', '🚨');
+                    this.fetchMyHistory();
+                }
+                if (type === 'SETTINGS_UPDATED' && data.key === 'retry_intervals') {
+                    const intervals = data.value.split(',').map(s => parseInt(s.trim()) * 1000);
+                    if (intervals.length > 0 && !intervals.some(isNaN)) {
+                        this.backoff = intervals;
+                        console.log('[SYNC] Live retry intervals update:', this.backoff);
+                        this.toast('Sync Config Updated', '⚙️');
+                    }
+                }
+            },
+
+            showMissionAlert(title, msg) {
+                const overlay = document.createElement('div');
+                overlay.className = 'mission-alert-overlay';
+                overlay.innerHTML = \`
+                    <div class="mission-alert-card">
+                        <div class="alert-header">
+                            <div class="alert-icon">🔔</div>
+                            <h3>\${title}</h3>
+                        </div>
+                        <p>\${msg}</p>
+                        <button onclick="this.parentElement.parentElement.remove()">ACKNOWLEDGE</button>
+                    </div>
+                \`;
+                document.body.appendChild(overlay);
+            },
+
+            async fetchMyHistory() {
+                try {
+                    const res = await fetch(\`\${this.API}/rescue-requests?phone=\${this.user.phone}\`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                        this.rawData.myHistory = data.filter(r => r.phone === this.user.phone || r.device_id === this.user.serial_number);
+                        this.renderStatusUI();
+                        
+                        // Update ticker based on active request
+                        const activeReq = this.rawData.myHistory.find(r => r.status !== 'completed' && r.status !== 'declined');
+                        if (activeReq) {
+                            if (activeReq.status === 'accepted') this.updateStatusUI('TEAM_ASSIGNED', 'Rescue team has been dispatched!', '🚨');
+                            else if (activeReq.status === 'assigned') this.updateStatusUI('DISPATCHED', 'Team assigned, pending acceptance.', '🚨');
+                            else if (activeReq.status === 'ongoing') this.updateStatusUI('APPROACHING', 'Rescue team is on the way!', '🚁');
+                            else this.updateStatusUI('PENDING', 'Waiting for available team...', '⏳');
+                        } else {
+                            const ticker = document.getElementById('sosStatusTicker');
+                            if (ticker) ticker.style.display = 'none';
+                        }
+                    }
+                } catch (e) { console.error("History fetch failed", e); }
+            },
+
+            emergencyCategory: null,
+
+            setEmergencyCategory(cat) {
+                this.emergencyCategory = cat;
+                document.getElementById('btnSelectCritical').style.borderColor = cat === 'critical' ? '#e11d48' : '#fecdd3';
+                document.getElementById('btnSelectCritical').style.background = cat === 'critical' ? '#fff1f2' : '#ffffff';
+                
+                document.getElementById('btnSelectNormal').style.borderColor = cat === 'normal' ? '#d97706' : '#fef3c7';
+                document.getElementById('btnSelectNormal').style.background = cat === 'normal' ? '#fffbeb' : '#ffffff';
+
+                const proceedBtn = document.getElementById('btnConfirmProceed');
+                proceedBtn.disabled = false;
+                proceedBtn.style.opacity = '1';
+                this.toast(\`\${cat.toUpperCase()} CATEGORY SELECTED\`, '✅');
+            },
+
+            proceedFromSelection() {
+                if (this.emergencyCategory === 'critical') {
+                    this.mode = 'sos';
+                    // Reset styling of critical action buttons
+                    document.querySelectorAll('.critical-action-btn').forEach(btn => {
+                        btn.style.background = 'white';
+                        if (btn.querySelector('h3').innerText.toLowerCase() === 'pregnancy') {
+                            btn.style.borderColor = '#fb7185';
+                        } else {
+                            btn.style.borderColor = '#38bdf8';
+                        }
+                    });
+                    this.showScreen('screenCriticalSOS');
+                } else {
+                    this.showScreen('screenForm');
+                }
+            },
+
+            triggerQuickSOS(type) {
+                if (this.mode === type) {
+                    this.mode = 'sos';
+                    document.querySelectorAll('.critical-action-btn').forEach(btn => {
+                        btn.style.background = 'white';
+                        if (btn.querySelector('h3').innerText.toLowerCase() === 'pregnancy') {
+                            btn.style.borderColor = '#fb7185';
+                        } else {
+                            btn.style.borderColor = '#38bdf8';
+                        }
+                    });
+                } else {
+                    this.mode = type;
+                    document.querySelectorAll('.critical-action-btn').forEach(btn => {
+                        const isPreg = btn.querySelector('h3').innerText.toLowerCase() === 'pregnancy';
+                        if ((type === 'pregnancy' && isPreg) || (type === 'medical' && !isPreg)) {
+                            btn.style.background = type === 'pregnancy' ? '#fff1f2' : '#f0f9ff';
+                            btn.style.borderColor = type === 'pregnancy' ? '#e11d48' : '#0369a1';
+                        } else {
+                            btn.style.background = 'white';
+                            btn.style.borderColor = isPreg ? '#fb7185' : '#38bdf8';
+                        }
+                    });
+                    this.toast(\`\${type.toUpperCase()} SELECTED\`, '✅');
+                }
+            },
+
+            updateStatusUI(stage, message, icon) {
+                const ticker = document.getElementById('sosStatusTicker');
+                if (ticker) ticker.style.display = 'block';
+                const label = document.getElementById('tickerLabel');
+                if (label) label.innerText = stage;
+                const sub = document.getElementById('tickerSub');
+                if (sub) sub.innerText = message;
+                const iconEl = document.getElementById('tickerIcon');
+                if (iconEl) iconEl.innerText = icon || '📡';
+            },
+
+            showScreen(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+                
+                // Show/Hide Header
+                const header = document.getElementById('appHeader');
+                if (id === 'screenLogin') {
+                    header.style.display = 'none';
+                } else {
+                    header.style.display = 'flex';
+                }
+            },
+
+            nav(tab) {
+                const lockedUntil = parseInt(localStorage.getItem('sosLockedUntil') || '0');
+                const isLocked = lockedUntil > Date.now();
+
+                if (isLocked && (tab === 'Home' || tab === 'SOS' || tab === 'Form')) {
+                    this.toast('SOS LOCKED: Cooldown active.', '⏳');
+                    tab = 'Status';
+                }
+
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                if (tab === 'Home') this.showScreen('screenEmergencyType');
+                else if (tab === 'SOS') this.showScreen('screenEmergencyType'); // Redirect SOS to selection
+                else if (tab === 'Form') this.showScreen('screenForm');
+                else if (tab === 'Status') {
+                    this.showScreen('screenStatus');
+                    this.fetchStatus();
+                }
+                else if (tab === 'Settings') this.showScreen('screenSettings');
+
+                const highlightText = tab === 'Status' ? 'HISTORY' : tab;
+                const activeLink = Array.from(document.querySelectorAll('.nav-link')).find(l => l.innerText.includes(highlightText));
+                if (activeLink) activeLink.classList.add('active');
+            },
+
+            historyFilter: 'all',
+            rawData: { myHistory: [] },
+
+            async fetchStatus() {
+                try {
+                    const res = await fetch(\`\${this.API}/public/status/\${this.user.phone}\`);
+                    const data = await res.json();
+                    this.rawData = data; 
+                    this.renderStatusUI();
+                } catch (e) { console.error(e); }
+            },
+
+            renderStatusUI() {
+                const search = document.getElementById('statusSearch').value.toLowerCase();
+                const listOngoing = document.getElementById('ongoingList');
+                const listDone = document.getElementById('completedList');
+                
+                listOngoing.innerHTML = '';
+                listDone.innerHTML = '';
+
+                // Render Ongoing (Live)
+                const activeItems = this.rawData.myActive.filter(i => 
+                    i.type.toLowerCase().includes(search) || i.sector.toLowerCase().includes(search)
+                );
+                
+                if (!activeItems.length) {
+                    listOngoing.innerHTML = '<div style="text-align:center; padding:15px; color:#cbd5e1; font-size:11px; border:1px dashed #e2e8f0; border-radius:12px;">No active missions currently</div>';
+                }
+
+                activeItems.forEach(item => {
+                    listOngoing.innerHTML += \`
+                        <div class="hist-item" style="border-left: 4px solid var(--danger); padding:12px;">
+                            <div class="hist-details">
+                                <h4 style="font-size:13px;">\${item.type.toUpperCase()} RESCUE</h4>
+                                <p style="font-size:10px;">📍 \${item.sector}</p>
+                            </div>
+                            <div class="status-badge status-active" style="padding:2px 8px; font-size:9px;">LIVE</div>
+                        </div>
+                    \`;
+                });
+
+                // Filter & Render Completed
+                let historyItems = this.rawData.myHistory.filter(i => 
+                    i.type.toLowerCase().includes(search) || i.sector.toLowerCase().includes(search) || String(i.id).includes(search)
+                );
+
+                const now = new Date();
+                if (this.historyFilter === 'today') {
+                    historyItems = historyItems.filter(i => new Date(i.updated_at).toDateString() === now.toDateString());
+                } else if (this.historyFilter === 'weekly') {
+                    historyItems = historyItems.filter(i => new Date(i.updated_at) >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+                } else if (this.historyFilter === 'yearly') {
+                    historyItems = historyItems.filter(i => new Date(i.updated_at) >= new Date(now.getFullYear(), 0, 1));
+                }
+
+                if (!historyItems.length) {
+                    listDone.innerHTML = '<div style="text-align:center; padding:15px; color:#cbd5e1; font-size:11px;">No completed records found</div>';
+                }
+
+                historyItems.forEach(item => {
+                    listDone.innerHTML += \`
+                        <div class="hist-item" style="padding:12px;">
+                            <div class="hist-details">
+                                <h4 style="font-size:13px;">\${item.type.toUpperCase()} • TID #\${item.id}</h4>
+                                <p style="font-size:10px;">📍 \${item.sector}</p>
+                                <p style="margin-top:2px; font-size:9px; color:#94a3b8;">\${formatLocalDate(item.updated_at)}</p>
+                            </div>
+                            <div class="status-badge status-completed" style="padding:2px 8px; font-size:9px;">\${item.status}</div>
+                        </div>
+                    \`;
+                });
+            },
+
+            setHistoryFilter(filter, btn) {
+                this.historyFilter = filter;
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.renderStatusUI();
+                this.toast(\`ARCHIVE FILTER: \${filter.toUpperCase()}\`, '🔍');
+            },
+
+            downloadPDF() {
+                this.toast('GENERATING MISSION REPORT...', '📄');
+                setTimeout(() => {
+                    const printWindow = window.open('', '_blank');
+                    let historyHtml = '';
+                    this.rawData.myHistory.forEach(h => {
+                        historyHtml += \`
+                            <div style="padding:15px; border-bottom:1px solid #eee;">
+                                <div style="font-weight:900;">\${h.type.toUpperCase()} RESCUE - TID #\${h.id}</div>
+                                <div style="font-size:12px; color:#666;">Date: \${formatLocalDate(h.updated_at)} | Status: \${h.status.toUpperCase()}</div>
+                                <div style="font-size:12px; color:#666;">Location: \${h.sector}</div>
+                            </div>
+                        \`;
+                    });
+
+                    printWindow.document.write(\`
+                        <html>
+                        <head><title>SOS Mission Report - \${this.user.name}</title></head>
+                        <body style="font-family:sans-serif; padding:40px;">
+                            <h1 style="color:#0ea5e9;">SOS MISSION REPORT</h1>
+                            <hr/>
+                            <p><strong>Citizen:</strong> \${this.user.name}</p>
+                            <p><strong>Serial:</strong> \${this.user.serial_number || 'PUB-01'}</p>
+                            <p><strong>Generated:</strong> \${new Date().toLocaleString()}</p>
+                            <h2 style="margin-top:40px; border-bottom:2px solid #000;">COMPLETED MISSIONS</h2>
+                            \${historyHtml || '<p>No mission history found.</p>'}
+                            <div style="margin-top:60px; font-size:10px; text-align:center; color:#999;">
+                                This is an automated system report. Verified by SOS Emergency Network.
+                            </div>
+                        </body>
+                        </html>
+                    \`);
+                    printWindow.document.close();
+                    printWindow.print();
+                }, 1000);
+            },
+
+            setMode(mode, btn) {
+                this.mode = mode;
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            },
+
+            updateNeeds(key, val) {
+                this.needs[key] = Math.max(0, this.needs[key] + val);
+                document.getElementById('n_' + key).value = this.needs[key];
+            },
+
+            manualNeeds(key, val) {
+                this.needs[key] = Math.max(0, parseInt(val) || 0);
+                document.getElementById('n_' + key).value = this.needs[key];
+            },
+
+            startSOS(priority = 'normal') {
+                document.querySelector('.pulse-ring').style.opacity = '1';
+                this.sosTimer = setTimeout(() => {
+                    this.triggerSOS(priority);
+                }, 2000);
+            },
+
+            cancelSOS() {
+                document.querySelector('.pulse-ring').style.opacity = '0';
+                clearTimeout(this.sosTimer);
+            },
+
+            captureNeed(type) {
+                if (type === 'photo') {
+                    const input = document.getElementById('critFileInput') || document.getElementById('camInput');
+                    if (input) input.click();
+                }
+            },
+
+            sosImageData: null,
+            handleSOSImage(input) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.sosImageData = e.target.result;
+                        this.needs.photo = e.target.result; // Sync for both flows
+                        
+                        const preview = document.getElementById('sosImagePreview');
+                        if (preview) {
+                            preview.style.backgroundImage = \`url(\${e.target.result})\`;
+                            preview.style.display = 'block';
+                        }
+                        
+                        // Update Critical SOS UI
+                        const btn = document.getElementById('critPhotoBtn');
+                        const label = document.getElementById('critPhotoLabel');
+                        if (btn) {
+                            btn.style.boxShadow = '0 0 15px rgba(59,130,246,0.4)';
+                            btn.style.borderColor = '#2563eb';
+                        }
+                        if (label) {
+                            label.innerText = 'ACTIVE';
+                            label.style.color = '#1d4ed8';
+                        }
+                        
+                        this.toast('PHOTO CAPTURED', '📸');
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            },
+            clearSOSImage() {
+                this.sosImageData = null;
+                const preview = document.getElementById('sosImagePreview');
+                if (preview) preview.style.display = 'none';
+                const input = document.getElementById('sosFileInput');
+                if (input) input.value = '';
+            },
+
+            async triggerSOS(priorityOverride) {
+                const priority = priorityOverride || (this.emergencyCategory === 'critical' ? 'critical' : 'normal');
+                this.updateStatusUI('TRIGGERED', \`\${priority.toUpperCase()} SOS initiated\`, '🚨');
+
+                // Check for manual overrides from Settings
+                const overLat = parseFloat(document.getElementById('overLat')?.value);
+                const overLng = parseFloat(document.getElementById('overLng')?.value);
+                let finalLat = this.currentLocation.lat;
+                let finalLng = this.currentLocation.lng;
+
+                if (!isNaN(overLat) && !isNaN(overLng) && (overLat !== 13.085 || overLng !== 80.272)) {
+                    finalLat = overLat;
+                    finalLng = overLng;
+                    console.log("[SOS] Using Manual Coordinate Override:", finalLat, finalLng);
+                }
+
+                const customDetails = document.getElementById('inpLoc')?.value.trim() || document.getElementById('crit_address')?.value.trim() || '';
+
+                const payload = {
+                    phone: this.user ? this.user.phone : 'Unknown',
+                    device_id: this.user ? this.user.serial_number : 'Unknown',
+                    type: this.mode,
+                    lat: finalLat, 
+                    lng: finalLng,
+                    details: JSON.stringify({
+                        needs: this.needs,
+                        route: this.needs.route || 'Not Defined',
+                        sector: customDetails,
+                        comments: customDetails
+                    }),
+                    image_data: this.sosImageData || this.needs.photo,
+                    urgency: priority === 'critical' ? 'critical' : 'high',
+                    sector: customDetails || 'Detected Location',
+                    priority: priority
+                };
+
+                if (navigator.onLine) {
+                    this.updateStatusUI('CONNECTING', 'Syncing with server...', '📡');
+                    try {
+                        const res = await fetch(\`\${this.API}/rescue-requests\`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (res.ok) {
+                            const result = await res.json();
+                            this.updateStatusUI('DELIVERED', \`SOS #\${result.id || ''} Delivered Successfully\`, '✅');
+                            this.updateGlobalNotification('SOS Received', 'Your SOS request received by Server', '📡', 'Received');
+                            this.toast('SOS DELIVERED', '✅');
+                            
+                            const minutes = this.sosBufferMinutes || 15;
+                            localStorage.setItem('sosLockedUntil', (Date.now() + minutes * 60 * 1000).toString());
+                            this.updateBufferCooldown();
+
+                            this.nav('Status');
+                        } else if (res.status === 429) {
+                            const errData = await res.json();
+                            this.updateStatusUI('BLOCKED', errData.error || 'SOS blocked by buffer time limit.', '⏳');
+                            this.toast(errData.error || 'You cannot submit an SOS at this time due to buffer restrictions.', '⏳', 2000);
+                            
+                            localStorage.setItem('sosLockedUntil', (Date.now() + 5 * 60 * 1000).toString());
+                            this.updateBufferCooldown();
+
+                            this.nav('Status');
+                            return;
+                        } else throw new Error('Server reject');
+                    } catch (e) {
+                        console.error("[SOS] Submit Error:", e);
+                        this.queueForRetry(payload);
+                    }
+                } else {
+                    this.queueForRetry(payload);
+                }
+            },
+
+            queueForRetry(payload) {
+                this.updateStatusUI('OFFLINE', 'Waiting for network...', '⏳');
+                const queue = JSON.parse(localStorage.getItem('sos_retry_queue') || '[]');
+                queue.push({ payload, retries: 0, timestamp: Date.now() });
+                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
+                this.toast('OFFLINE: SOS queued for retry', '⏳');
+            },
+
+            async processRetryQueue() {
+                const queue = JSON.parse(localStorage.getItem('sos_retry_queue') || '[]');
+                if (queue.length === 0) {
+                    setTimeout(() => this.processRetryQueue(), 5000);
+                    return;
+                }
+
+                if (navigator.onLine) {
+                    const item = queue[0];
+                    const waitTime = this.backoff[Math.min(item.retries, this.backoff.length - 1)];
+
+                    setTimeout(async () => {
+                        try {
+                            const res = await fetch(\`\${this.API}/rescue-requests\`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(item.payload)
+                            });
+                            if (res.ok) {
+                                queue.shift();
+                                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
+                                this.updateStatusUI('DELIVERED', 'Sync Complete: SOS Delivered', '✅');
+                                this.toast('SYNCED: SOS DELIVERED', '✅');
+                            } else if (res.status === 429) {
+                                queue.shift();
+                                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
+                                const errData = await res.json();
+                                this.updateStatusUI('BLOCKED', 'Queued SOS dropped: Buffer active.', '⏳');
+                                this.toast('A queued SOS was dropped: ' + (errData.error || 'Buffer limit reached.'), '⏳', 2000);
+                            } else {
+                                item.retries++;
+                                localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
+                            }
+                        } catch (e) {
+                            item.retries++;
+                            localStorage.setItem('sos_retry_queue', JSON.stringify(queue));
+                        }
+                        this.processRetryQueue();
+                    }, waitTime);
+                } else {
+                    setTimeout(() => this.processRetryQueue(), 5000);
+                }
+            },
+
+            async submitRequest() {
+                await this.triggerSOS();
+            },
+
+            async refreshStatus() {
+                try {
+                    const res = await fetch(\`\${this.API}/rescue-requests/by-phone/\${this.user.phone || this.user.serial_number}\`);
+                    let data = await res.json();
+                    data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    this.renderStatus(data);
+                } catch (e) { }
+            },
+
+            renderStatus(items) {
+                const list = document.getElementById('statusList');
+                if (items.length === 0) return;
+
+                list.innerHTML = '';
+                items.forEach(it => {
+                    const card = document.createElement('div');
+                    card.className = 'config-card';
+                    card.style.marginBottom = '16px';
+                    const colors = { pending: 'var(--warning)', accepted: 'var(--primary)', completed: 'var(--secondary)' };
+                    let commentHtml = '';
+                    if (it.details) {
+                        try {
+                            const d = typeof it.details === 'string' ? JSON.parse(it.details) : it.details;
+                            if (d.comments) {
+                                commentHtml = \`<p style="font-size:11px; color:var(--text-main); font-style:italic; margin-top:6px; border-left: 2px solid var(--primary); padding-left: 6px;">"\${d.comments}"</p>\`;
+                            }
+                        } catch(e) {
+                            if (it.details.length > 0) commentHtml = \`<p style="font-size:11px; color:var(--text-main); font-style:italic; margin-top:6px; border-left: 2px solid var(--primary); padding-left: 6px;">"\${it.details}"</p>\`;
+                        }
+                    }
+                    
+                    let evidenceHtml = '';
+                    if (it.image_url) {
+                        evidenceHtml = \`<div style="margin-top:8px; width:100%; height:100px; border-radius:8px; overflow:hidden; border:1px solid var(--border);">
+                            <img src="http://\${window.location.hostname}:3001\${it.image_url}" style="width:100%; height:100%; object-fit:cover;">
+                        </div>\`;
+                    }
+
+                    card.innerHTML = \`
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="font-weight:900; font-size:16px;">\${it.type.toUpperCase()} RESCUE</span>
+                            <span style="font-size:11px; font-weight:900; background:\${colors[it.status] || '#ccc'}; color:white; padding:4px 10px; border-radius:8px; text-transform:uppercase;">\${it.status}</span>
+                        </div>
+                        <p style="font-size:13px; color:var(--text-muted); font-weight:600;">Sector: \${it.sector || 'Coordinate'}</p>
+                        <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">Request ID: #REQ-\${it.id} • \${formatLocalTime(it.created_at)}</p>
+                        \${commentHtml}
+                        \${evidenceHtml}
+                    \`;
+                    list.appendChild(card);
+                });
+            },
+
+            toast(msg, icon = '⚠️', duration = 3500) {
+                const t = document.getElementById('toast');
+                document.getElementById('toastMsg').innerText = msg;
+                document.getElementById('toastIcon').innerText = icon;
+                t.style.display = 'flex';
+                setTimeout(() => t.style.display = 'none', duration);
+            },
+
+            showLoader(val) { document.getElementById('loader').style.display = val ? 'flex' : 'none'; },
+
+            setupKeyboardHandling() {
+                // Scroll active elements into view on focus
+                window.addEventListener('focusin', (e) => {
+                    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+                        setTimeout(() => {
+                            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                    }
+                });
+
+                // Adjust mockup height for Visual Viewport (handles mobile keyboard overlap)
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', () => {
+                        const mockup = document.querySelector('.phone-mockup');
+                        if (window.innerWidth <= 450) {
+                            mockup.style.height = \`\${window.visualViewport.height}px\`;
+                        } else {
+                            mockup.style.height = '100dvh';
+                        }
+                    });
+                }
+            },
+
+            openCamera() {
+                document.getElementById('camInput').click();
+            },
+
+            handlePhoto(input) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.needs.photo = e.target.result;
+                        document.getElementById('capturedImg').src = e.target.result;
+                        document.getElementById('photoPreview').style.display = 'block';
+                        this.toast('PHOTO ATTACHED', '📸');
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            },
+
+            removePhoto() {
+                this.needs.photo = null;
+                document.getElementById('camInput').value = '';
+                document.getElementById('photoPreview').style.display = 'none';
+                this.toast('PHOTO REMOVED', '🗑️');
+            },
+
+            setRoute(route, btn) {
+                if (this.needs.route === route) {
+                    this.needs.route = null;
+                    btn.classList.remove('active');
+                    this.toast('ROUTE DESELECTED', '📍');
+                } else {
+                    this.needs.route = route;
+                    document.querySelectorAll('.route-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    this.toast(\`PREFERRING \${route.toUpperCase()}\`, '🚀');
+                }
+            },
+
+            bootstrap() {
+                document.getElementById('dispName').innerText = this.user.name;
+                document.getElementById('profName').innerText = this.user.name;
+                document.getElementById('profId').innerText = \`ID: \${this.user.serial_number || 'PUB-01'}\`;
+                
+                window.addEventListener('online', () => this.updateNetUI(true));
+                window.addEventListener('offline', () => this.updateNetUI(false));
+                this.updateNetUI(navigator.onLine);
+            },
+
+            updateNetUI(online) {
+                const dot = document.getElementById('syncStatusDot');
+                const label = document.getElementById('dispSyncInterval');
+                if (dot) {
+                    dot.style.background = online ? 'var(--secondary)' : 'var(--danger)';
+                    dot.style.boxShadow = online ? '0 0 10px var(--secondary)' : '0 0 10px var(--danger)';
+                }
+                if (!online && label) {
+                    label.innerText = \`RECONNECTING: \${this.refreshInterval}s\`;
+                    label.style.color = 'var(--danger)';
+                } else if (label) {
+                    label.innerText = \`\${this.refreshInterval}s (Admin Set)\`;
+                    label.style.color = 'var(--primary)';
+                }
+            }
+        };
+
+        window.core = core;
+        window.onload = () => core.init();
+    </script>
+</body>
+
+</html>`;

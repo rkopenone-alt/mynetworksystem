@@ -2238,7 +2238,7 @@
                     </div>
                     <div class="input-group" style="margin-bottom:0;">
                         <label class="input-label">Commander Head Name</label>
-                        <input type="text" class="form-control" placeholder="e.g. Commander John Doe">
+                        <input type="text" id="sysCommanderInput" class="form-control" placeholder="e.g. Commander John Doe">
                     </div>
                 </div>
                 <div class="input-group" style="margin-bottom:16px;">
@@ -3201,26 +3201,36 @@
             }
         }
 
-        function saveMainFeedSettings() {
+        async function saveMainFeedSettings() {
             const newName = document.getElementById('sysNameInput').value;
             const newLogo = document.getElementById('sysLogoInput').value;
+            const newCommander = document.getElementById('sysCommanderInput').value;
 
-            if (newName) {
-                document.getElementById('landingTitle').innerText = newName;
-                document.getElementById('navBrandTitle').innerText = newName.toUpperCase();
+            try {
+                if (newName) {
+                    await fetch(`${API_BASE}/settings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'system_name', value: newName }) });
+                    document.getElementById('landingTitle').innerHTML = newName.replace(' ', '<br>');
+                    document.getElementById('navBrandTitle').innerText = newName.toUpperCase();
+                }
+                if (newCommander) {
+                    await fetch(`${API_BASE}/settings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'commander_name', value: newCommander }) });
+                }
+                if (newLogo) {
+                    await fetch(`${API_BASE}/settings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'system_logo', value: newLogo }) });
+                    document.getElementById('landingLogoImg').src = newLogo;
+                    document.getElementById('landingLogoImg').style.display = 'block';
+                    document.getElementById('landingLogoIcon').style.display = 'none';
+                } else if (newLogo === '') {
+                    document.getElementById('landingLogoImg').style.display = 'none';
+                    document.getElementById('landingLogoIcon').style.display = 'inline-block';
+                }
+
+                closeModal('mainFeedSettingsModal');
+                showAdminToast('System profile saved and broadcasted across network successfully.');
+            } catch (e) {
+                console.error(e);
+                alert('Error saving system profile');
             }
-
-            if (newLogo) {
-                document.getElementById('landingLogoImg').src = newLogo;
-                document.getElementById('landingLogoImg').style.display = 'block';
-                document.getElementById('landingLogoIcon').style.display = 'none';
-            } else {
-                document.getElementById('landingLogoImg').style.display = 'none';
-                document.getElementById('landingLogoIcon').style.display = 'inline-block';
-            }
-
-            closeModal('mainFeedSettingsModal');
-            alert('System profile saved successfully.');
         }
 
         function openCreateOpModal() {
@@ -5845,6 +5855,22 @@
                     }
                     document.getElementById('activeBufferValue').innerText = displayVal;
                 }
+                if (settings.system_name) {
+                    document.getElementById('sysNameInput').value = settings.system_name;
+                    document.getElementById('landingTitle').innerHTML = settings.system_name.replace(' ', '<br>');
+                    document.getElementById('navBrandTitle').innerText = settings.system_name.toUpperCase();
+                }
+                if (settings.commander_name) {
+                    const el = document.getElementById('sysCommanderInput');
+                    if (el) el.value = settings.commander_name;
+                }
+                if (settings.system_logo) {
+                    document.getElementById('sysLogoInput').value = settings.system_logo;
+                    document.getElementById('landingLogoImg').src = settings.system_logo;
+                    document.getElementById('landingLogoImg').style.display = 'block';
+                    document.getElementById('landingLogoIcon').style.display = 'none';
+                }
+
             } catch (e) { console.error("Error fetching settings", e); }
         }
 

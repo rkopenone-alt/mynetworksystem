@@ -1691,6 +1691,10 @@
                 try {
                     const res = await fetch(`${this.API}/settings`);
                     const settings = await res.json();
+                    if (settings.system_name) {
+                        const brandEls = document.querySelectorAll('.brand-name');
+                        brandEls.forEach(el => el.innerText = settings.system_name);
+                    }
                     if (settings.retry_intervals) {
                         const intervals = settings.retry_intervals.split(',').map(s => parseInt(s.trim()) * 1000);
                         if (intervals.length > 0 && !intervals.some(isNaN)) {

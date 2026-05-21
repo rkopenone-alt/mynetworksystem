@@ -1292,6 +1292,10 @@
                     const res = await fetch(`${this.API}/settings`);
                     if (res.ok) {
                         const settings = await res.json();
+                        if (settings.system_name) {
+                            const brandEls = document.querySelectorAll('.brand-name');
+                            brandEls.forEach(el => el.innerText = settings.system_name);
+                        }
                         if (settings.refresh_interval) {
                             this.refreshInterval = parseInt(settings.refresh_interval) || 10;
                             const el = document.getElementById('dispSyncInterval');
@@ -1404,8 +1408,8 @@
                     // Sort: Latest on top
                     historyData.sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
 
-                    // Filter: All active statuses
-                    const activeData = historyData.filter(t => t.status && !['completed', 'resolved', 'inactive'].includes(t.status.toLowerCase()));
+                    // Filter: Show all active statuses (assigned = awaiting acceptance, accepted/ongoing = in progress)
+                    const activeData = historyData.filter(t => t.status && !['completed', 'resolved', 'inactive', 'declined'].includes(t.status.toLowerCase()));
 
                     // Deduplicate identical tasks (Requests vs Commands)
                     const reqIdsInCmds = new Set();
@@ -2266,8 +2270,15 @@
                 const myDeviceId = this.user?.device_id;
                 const myGroups = this.user?.group_ids || [];
 
-                const isTargeted = (c.target_phone && (c.target_phone === myPhone || c.target_phone === myDeviceId));
-                const isGroupTargeted = (c.group_id && myGroups.includes(c.group_id));
+                // Match phone normalized (last 10 digits) or device_id directly
+                const myPhoneClean = (myPhone || '').replace(/\D/g,'').slice(-10);
+                const tpClean = (c.target_phone || '').replace(/\D/g,'').slice(-10);
+                const isTargeted = c.target_phone && (
+                    c.target_phone === myPhone ||
+                    c.target_phone === myDeviceId ||
+                    (myPhoneClean && tpClean && tpClean === myPhoneClean)
+                );
+                const isGroupTargeted = (c.group_id && myGroups.includes(Number(c.group_id)));
                 const isGeneral = (!c.target_phone && !c.group_id);
 
                 if (!isTargeted && !isGroupTargeted && !isGeneral) {

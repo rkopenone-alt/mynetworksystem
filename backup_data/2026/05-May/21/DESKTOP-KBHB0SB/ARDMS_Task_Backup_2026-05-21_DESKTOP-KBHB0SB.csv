@@ -1,7 +1,7 @@
 ARDMS SYSTEM BACKUP REPORT - DATE: 2026-05-21
 Device Hostname: , DESKTOP-KBHB0SB
 Device Info: , DESKTOP-KBHB0SB (User: Alienware, OS: Windows_NT x64)
-Generated At: , 21/5/2026, 8:12:14 pm
+Generated At: , 21/5/2026, 11:35:43 pm
 
 SECTION 1: RESCUE REQUESTS & TASKS
 Request ID,Type,Urgency,Status,Latitude,Longitude,Details/Location,Assigned Responder,Created At,Updated At,Device Node
@@ -9,15 +9,21 @@ Request ID,Type,Urgency,Status,Latitude,Longitude,Details/Location,Assigned Resp
 2,Medical,urgent,completed,12.9723,77.59512,Diabetic resident requires urgent insulin supply delivery and checkup.,Sarah Khan (MEM-02),2026-05-21 13:39:34,2026-05-21 14:09:34,DESKTOP-KBHB0SB
 3,Food Supply,normal,declined,12.97085,77.59388,15 families in community hall requiring raw material rations and drinking water.,Unassigned,2026-05-21 13:39:34,2026-05-21 14:14:38,DESKTOP-KBHB0SB
 4,Rescue,high,active,12.97311,77.59604,Collapsed compound brick wall trapping access road to emergency vehicles.,Vikram Rao (MEM-03),2026-05-21 13:39:34,2026-05-21 14:09:34,DESKTOP-KBHB0SB
-5,medical,critical,assigned,12.9943016,80.1957349,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 14:17:51,2026-05-21 14:18:08,DESKTOP-KBHB0SB
+5,medical,critical,completed,12.9943016,80.1957349,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 14:17:51,2026-05-21 16:39:02,DESKTOP-KBHB0SB
+6,pregnancy,critical,completed,12.9943104,80.1957302,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 16:39:13,2026-05-21 16:51:36,DESKTOP-KBHB0SB
+7,pregnancy,critical,completed,12.9944672,80.1956951,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 16:52:07,2026-05-21 18:04:46,DESKTOP-KBHB0SB
+8,medical,critical,assigned,12.9943588,80.1939576,Critical Emergency Triggered,Arjun Singh (MEM-01),2026-05-21 18:05:34,2026-05-21 18:05:42,DESKTOP-KBHB0SB
 
 
 SECTION 2: RESCUER COMMAND DISPATCHES
 Command ID,Assigned Group ID,Target Phone,Payload Details,Type,Status,Created At,Acknowledged At,Device Node
-1,1,919000000001,"Deploy immediate water evacuation unit to coordinates 12.97159, 77.59456 (Sector A).",zone,accepted,2026-05-21 13:24:34,,DESKTOP-KBHB0SB
+1,1,919000000001,"Deploy immediate water evacuation unit to coordinates 12.97159, 77.59456 (Sector A).",zone,completed,2026-05-21 13:24:34,,DESKTOP-KBHB0SB
 2,3,919000000002,Deliver critical medical box to safe shelter building near Sector B.,medical,completed,2026-05-21 13:24:34,,DESKTOP-KBHB0SB
-3,2,919000000005,Deliver dry food ration containers to central school distribution station.,supply,pending,2026-05-21 13:24:34,,DESKTOP-KBHB0SB
-4,N/A,919000000001,"{""message"":""MEDICAL RESCUE at Detected via GPS"",""sector"":""Detected via GPS"",""lat"":12.9943016,""lng"":80.1957349,""urgency"":""critical"",""rescue_req_id"":5,""requester_name"":""Citizen"",""requester_phone"":""919000000001"",""details"":""Critical Emergency Triggered""}",critical,assigned,2026-05-21 14:18:08,,DESKTOP-KBHB0SB
+3,2,919000000005,Deliver dry food ration containers to central school distribution station.,supply,completed,2026-05-21 13:24:34,,DESKTOP-KBHB0SB
+4,N/A,919000000001,"{""message"":""MEDICAL RESCUE at Detected via GPS"",""sector"":""Detected via GPS"",""lat"":12.9943016,""lng"":80.1957349,""urgency"":""critical"",""rescue_req_id"":5,""requester_name"":""Citizen"",""requester_phone"":""919000000001"",""details"":""Critical Emergency Triggered""}",critical,completed,2026-05-21 14:18:08,,DESKTOP-KBHB0SB
+5,N/A,919000000001,"{""message"":""PREGNANCY RESCUE at Detected via GPS"",""sector"":""Detected via GPS"",""lat"":12.9943104,""lng"":80.1957302,""urgency"":""critical"",""rescue_req_id"":6,""requester_name"":""Citizen"",""requester_phone"":""919000000001"",""details"":""Critical Emergency Triggered""}",critical,completed,2026-05-21 16:39:21,,DESKTOP-KBHB0SB
+6,N/A,919000000001,"{""message"":""PREGNANCY RESCUE at Detected via GPS"",""sector"":""Detected via GPS"",""lat"":12.9944672,""lng"":80.1956951,""urgency"":""critical"",""rescue_req_id"":7,""requester_name"":""Citizen"",""requester_phone"":""918000000001"",""details"":""Critical Emergency Triggered""}",critical,completed,2026-05-21 16:52:17,,DESKTOP-KBHB0SB
+7,N/A,919000000001,"{""message"":""MEDICAL RESCUE at Detected via GPS"",""sector"":""Detected via GPS"",""lat"":12.9943588,""lng"":80.1939576,""urgency"":""critical"",""rescue_req_id"":8,""requester_name"":""Citizen"",""requester_phone"":""918000000001"",""details"":""Critical Emergency Triggered""}",critical,assigned,2026-05-21 18:05:42,,DESKTOP-KBHB0SB
 
 
 SECTION 3: PUBLIC SOS ALERTS
