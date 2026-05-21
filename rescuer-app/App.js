@@ -4,9 +4,18 @@ import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { htmlString } from './htmlStr';
 
+// ─── Server Configuration ─────────────────────────────────────────────────────
+// Update SERVER_IP to your machine's Wi-Fi IP address.
+// Run: ipconfig  → look for IPv4 Address under Wi-Fi
+const SERVER_IP = '192.168.1.5';
+const SERVER_PORT = '3001';
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function App() {
   const [hasPermission, setHasPermission] = useState(null);
+  const [serverIp, setServerIp] = useState(SERVER_IP);
   const webViewRef = useRef(null);
+
 
   useEffect(() => {
     let locationSubscription = null;
@@ -60,6 +69,16 @@ export default function App() {
     };
   }, []);
 
+  // Inject the server IP into the WebView as a global variable
+  // This runs BEFORE any page scripts so core.API can use it
+  const injectedJavaScript = `
+    window.__SERVER_IP__ = '${serverIp}';
+    window.__SERVER_PORT__ = '${SERVER_PORT}';
+    window.__API_BASE__ = 'http://${serverIp}:${SERVER_PORT}/api';
+    window.__WS_BASE__ = 'ws://${serverIp}:${SERVER_PORT}';
+    true;
+  `;
+
   if (hasPermission === null) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}>
@@ -81,9 +100,9 @@ export default function App() {
 
   return (
     <View style={{ flex: 1 }}>
-      <WebView 
+      <WebView
         ref={webViewRef}
-        source={{ html: htmlString, baseUrl: 'http://192.168.1.5:3001' }} 
+        source={{ html: htmlString, baseUrl: `http://${serverIp}:${SERVER_PORT}` }}
         style={{ flex: 1 }}
         originWhitelist={['*']}
         javaScriptEnabled={true}
@@ -92,6 +111,14 @@ export default function App() {
         allowFileAccess={true}
         allowUniversalAccessFromFileURLs={true}
         mixedContentMode="always"
+        injectedJavaScriptBeforeContentLoaded={injectedJavaScript}
+        onMessage={(event) => {
+          // Handle messages from WebView back to native if needed
+          try {
+            const data = JSON.parse(event.nativeEvent.data);
+            console.log('[WebView Message]', data);
+          } catch (e) {}
+        }}
       />
     </View>
   );

@@ -1187,8 +1187,8 @@ export const htmlString = `<!DOCTYPE html>
          */
 
         const core = {
-            API: \`http://\${window.location.hostname || 'localhost'}:3001/api\`,
-            WS_URL: \`ws://\${window.location.hostname || 'localhost'}:3001\`,
+            API: window.__API_BASE__ || \`http://\${window.location.hostname || '192.168.1.5'}:3001/api\`,
+            WS_URL: window.__WS_BASE__ || \`ws://\${window.location.hostname || '192.168.1.5'}:3001\`,
             user: null,
             map: null,
             rescuerMarker: null,
