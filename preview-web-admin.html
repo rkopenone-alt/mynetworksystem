@@ -3921,7 +3921,7 @@
                                                (window.selectedTrackingCmdId === `CMD-${c.id}`) ||
                                                (typeof window.selectedTrackingCmdId === 'string' && window.selectedTrackingCmdId.replace('CMD-', '') == c.id);
 
-                            if ((isCriticalCmd || isSelected) && (c.status !== 'completed' || isSelected) && (c.target_phone === r.phone || (r.id && c.target_phone === r.id.toString()) || isInGroup(c.group_id))) {
+                            if ((isCriticalCmd || isSelected) && (c.status !== 'completed' || isSelected) && (c.target_phone === r.phone || c.target_phone === r.device_id || (r.id && c.target_phone === r.id.toString()) || isInGroup(c.group_id))) {
                                 // Find all target request locations
                                 let targetLocations = [];
                                 const payload = JSON.parse(c.command_payload || '{}');
@@ -3931,6 +3931,8 @@
                                         const tReq = tasks.find(t => t.id.toString() === reqId.toString());
                                         if (tReq && tReq.lat && tReq.lng) targetLocations.push([tReq.lat, tReq.lng]);
                                     });
+                                } else if (c.requester_lat && c.requester_lng) {
+                                    targetLocations.push([c.requester_lat, c.requester_lng]);
                                 } else if (payload.rescue_req_id) {
                                     const targetReq = tasks.find(t => t.id.toString() === payload.rescue_req_id.toString());
                                     if (targetReq && targetReq.lat && targetReq.lng) targetLocations.push([targetReq.lat, targetReq.lng]);
