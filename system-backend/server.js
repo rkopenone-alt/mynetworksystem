@@ -778,27 +778,43 @@ app.get('/api/users/:id/combined-history', async (req, res) => {
         const groups = await all(`SELECT group_id FROM group_members WHERE user_id = ?`, [userId]);
         const groupIds = groups.map(g => g.group_id);
 
-        // Personal & Group Rescue Requests
-        let personalReqQuery = `SELECT 'request' as source, id, type, sector, status, lat, lng, created_at, updated_at, image_url, completion_image_url, details, priority FROM rescue_requests WHERE (assigned_user_id = ?)`;
+        // Personal & Group Rescue Requests (include status='assigned' tasks)
+        let personalReqQuery = `SELECT 'request' as source, id, type, sector, status, lat, lng, created_at, updated_at, image_url, completion_image_url, details, priority FROM rescue_requests WHERE (assigned_user_id = ? AND status NOT IN ('completed','resolved','declined'))`;
         let reqParams = [userId];
         if (groupIds.length > 0) {
-            personalReqQuery += ` OR (assigned_group_id IN (${groupIds.map(() => '?').join(',')}))`;
+            personalReqQuery += ` OR (assigned_group_id IN (${groupIds.map(() => '?').join(',')}) AND status NOT IN ('completed','resolved','declined'))`;
             reqParams = reqParams.concat(groupIds);
         }
         const personalReqs = await all(personalReqQuery, reqParams);
 
-        // Group & Personal Commands (Normalize phone matching)
-        const cleanPhone = (user.phone || '').replace(/\D/g, '').slice(-10); // Last 10 digits
-        const cleanDeviceId = (user.device_id || '').replace(/\D/g, '').slice(-10);
-        
+        // Group & Personal Commands — match by phone OR device_id (both 10-digit normalized)
+        const cleanPhone = (user.phone || '').replace(/\D/g, '').slice(-10);
+        const cleanDeviceId = (user.device_id || '').trim();
+
+        // Build WHERE clauses for phone/device matching
+        let phoneOrDeviceClauses = [];
+        let params = [];
+        if (cleanPhone) {
+            phoneOrDeviceClauses.push(`REPLACE(REPLACE(cq.target_phone, '+', ''), ' ', '') LIKE ?`);
+            params.push(`%${cleanPhone}%`);
+        }
+        if (cleanDeviceId) {
+            phoneOrDeviceClauses.push(`cq.target_phone = ?`);
+            params.push(cleanDeviceId);
+        }
+        // Also match commands linked to rescue_requests assigned to this user
+        phoneOrDeviceClauses.push(`CAST(json_extract(cq.command_payload, '$.rescue_req_id') AS TEXT) IN (SELECT CAST(id AS TEXT) FROM rescue_requests WHERE assigned_user_id = ?)`);
+        params.push(userId);
+
+        const matchClause = phoneOrDeviceClauses.length > 0 ? `(${phoneOrDeviceClauses.join(' OR ')})` : '1=0';
+
         let commandQuery = `SELECT 'command' as source, cq.id, cq.command_type as type, 'HQ Order' as sector, cq.status, cq.created_at, cq.updated_at, cq.command_payload, cq.priority, rr.image_url, cq.completion_image_url, rr.details as rescue_details 
                            FROM command_queue cq
                            LEFT JOIN rescue_requests rr ON CAST(rr.id AS TEXT) = CAST(json_extract(cq.command_payload, '$.rescue_req_id') AS TEXT)
-                           WHERE (REPLACE(REPLACE(cq.target_phone, '+', ''), ' ', '') LIKE ?)`;
-        let params = [`%${cleanPhone || cleanDeviceId}%`];
+                           WHERE cq.status NOT IN ('completed','declined') AND (${matchClause})`;
 
         if (groupIds.length > 0) {
-            commandQuery += ` OR (group_id IN (${groupIds.map(() => '?').join(',')}))`;
+            commandQuery += ` OR (cq.group_id IN (${groupIds.map(() => '?').join(',')}) AND cq.status NOT IN ('completed','declined'))`;
             params = params.concat(groupIds);
         }
 

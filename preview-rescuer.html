@@ -1520,7 +1520,8 @@
                     const targetTasks = isGroup ? tasksGrouped : (isCrit ? tasksCrit : tasksNorm);
 
 
-                    const isOngoing = (t.status === 'accepted' || t.status === 'ongoing');
+                    const isOngoing = (t.status === 'accepted' || t.status === 'ongoing' || t.status === 'in_progress');
+                    const isAssigned = (t.status === 'assigned' || t.status === 'pending');
 
                     let btnHtml = '';
                     let badgeHtml = '';
@@ -1533,8 +1534,12 @@
                             <button class="${cameraCls}" id="camBtn_${t.id}" onclick="core.triggerCamera('${t.id}', '${t.source}')">${cameraLabel}</button>
                             <button class="btn-action" style="background:#ef4444; color:white; flex:1;" onclick="core.completeTask('${t.id}', '${t.source}')">COMPLETE MISSION</button>`;
                         badgeHtml = `<span class="notif-badge" style="background:var(--warning); color:white;">ONGOING - ${t.type.toUpperCase()}</span>`;
+                    } else if (isAssigned) {
+                        btnHtml = `<button class="btn-action" style="background:#0ea5e9; color:white;" onclick="core.accept('${t.id}', '${t.type}', '${encodeURIComponent(t.sector||'')}', ${t.lat||0}, ${t.lng||0}, '${t.source||'request'}')">✅ ACCEPT</button>
+                                   <button class="btn-action" style="background:#64748b; color:white;" onclick="core.declineTask('${t.id}', event)">❌ IGNORE</button>`;
+                        badgeHtml = `<span class="notif-badge" style="background:#3b82f6; color:white; animation: pulse 1.5s infinite;">📋 ASSIGNED - AWAITING ACCEPTANCE</span>`;
                     } else {
-                        btnHtml = `<button class="btn-action" style="background:#0ea5e9; color:white;" onclick="core.accept('${t.id}', '${t.type}', '${t.sector}', ${t.lat}, ${t.lng}, '${t.source}')">ACCEPT</button>
+                        btnHtml = `<button class="btn-action" style="background:#0ea5e9; color:white;" onclick="core.accept('${t.id}', '${t.type}', '${encodeURIComponent(t.sector||'')}', ${t.lat||0}, ${t.lng||0}, '${t.source||'request'}')">ACCEPT</button>
                                    <button class="btn-action" style="background:#64748b; color:white;" onclick="core.declineTask('${t.id}', event)">IGNORE</button>`;
                         badgeHtml = `<span class="notif-badge badge-${t.type}">${t.type}</span>`;
                     }
